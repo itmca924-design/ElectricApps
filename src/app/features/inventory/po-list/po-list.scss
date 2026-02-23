@@ -138,7 +138,26 @@
           border-left: 6px solid #3b82f6;
           .stat-icon { background: #dbeafe; color: #2563eb; }
       }
+
+      &.inward {
+          background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+          border-left: 6px solid #0ea5e9;
+          .stat-icon { background: #e0f2fe; color: #0284c7; }
+          .stat-badge { background: #e0f2fe; color: #0284c7; }
+
+          &.has-pending {
+              .value { color: #0284c7; }
+              .stat-badge {
+                  animation: gentle-pulse 2s infinite;
+              }
+          }
+      }
   }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
 }
 
 /* API Load hote waqt jo screen dhundli (Shade) dikhti hai */

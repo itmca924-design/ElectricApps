@@ -66,6 +66,7 @@ export class PoList implements OnInit {
   totalPurchaseAmount: number = 0;
   pendingReceiveCount: number = 0;
   pendingApprovalCount: number = 0;
+  pendingInwardCount: number = 0;
 
   constructor(
     private poService: InventoryService,
@@ -257,6 +258,7 @@ export class PoList implements OnInit {
         this.totalPurchaseAmount = 0;
         this.pendingReceiveCount = 0;
         this.pendingApprovalCount = 0;
+        this.pendingInwardCount = 0;
 
         items.forEach((item: any) => {
           const status = item.status?.toLowerCase();
@@ -279,6 +281,11 @@ export class PoList implements OnInit {
 
           if (status === 'approved' || status === 'partially received' || (status === 'received' && (needsReplacement || (item.totalPending || 0) > 0))) {
             this.pendingReceiveCount++;
+          }
+
+          // Pending Inward: Partially Received POs that need replacement inward (have returned/rejected items)
+          if (status === 'partially received' && ((item.totalReturned || 0) > 0 || (item.totalRejected || 0) > 0)) {
+            this.pendingInwardCount++;
           }
 
           if (status === 'submitted') {
