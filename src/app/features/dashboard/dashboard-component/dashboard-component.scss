@@ -401,3 +401,449 @@
     background-color: #f5f5f5;
   }
 }
+
+/* ======================== Customer Dues Card ======================== */
+.dues-card {
+  border: 2px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+              linear-gradient(135deg, #e91e63, #ff5722) border-box !important;
+  position: relative;
+  overflow: visible !important;
+
+  &:hover {
+    box-shadow: 0 15px 30px rgba(233, 30, 99, 0.2) !important;
+  }
+}
+
+.dues-badge {
+  background: linear-gradient(135deg, #e91e63, #ff5722);
+  color: white;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 50px;
+  min-width: 20px;
+  text-align: center;
+  animation: pulse-pink 1.5s infinite;
+  box-shadow: 0 2px 6px rgba(233, 30, 99, 0.5);
+}
+
+@keyframes pulse-pink {
+  0% { box-shadow: 0 0 0 0 rgba(233, 30, 99, 0.6); }
+  70% { box-shadow: 0 0 0 8px rgba(233, 30, 99, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(233, 30, 99, 0); }
+}
+
+.dues-sublabel {
+  color: #e91e63 !important;
+  font-weight: 600 !important;
+}
+
+/* ======================== Customer Dues Modal ======================== */
+.dues-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 30, 0.7);
+  backdrop-filter: blur(6px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeInOverlay 0.25s ease;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dues-modal {
+  background: #ffffff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 820px;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+  animation: slideInModal 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideInModal {
+  from { transform: translateY(60px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+/* Modal Header */
+.dues-modal-header {
+  background: linear-gradient(135deg, #e91e63 0%, #ff5722 100%);
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+
+  .modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    .modal-icon-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      mat-icon {
+        color: white;
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    h2 {
+      margin: 0;
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    p {
+      margin: 4px 0 0;
+      color: rgba(255,255,255,0.85);
+      font-size: 13px;
+    }
+  }
+
+  .modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+}
+
+.modal-close-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  mat-icon { color: white; font-size: 20px; width: 20px; height: 20px; }
+
+  &:hover { background: rgba(255,255,255,0.35); }
+}
+
+/* WhatsApp Bulk Button */
+.whatsapp-bulk-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: #25d366;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: #1ebe5d;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+  }
+}
+
+/* Search Bar */
+.dues-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+  flex-shrink: 0;
+
+  mat-icon { color: #adb5bd; font-size: 20px; width: 20px; height: 20px; }
+
+  .dues-search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: transparent;
+    color: #343a40;
+
+    &::placeholder { color: #adb5bd; }
+  }
+
+  .clear-search {
+    cursor: pointer;
+    mat-icon { color: #adb5bd; font-size: 18px; width: 18px; height: 18px; transition: color 0.2s; }
+    &:hover mat-icon { color: #e91e63; }
+  }
+}
+
+/* Loading & Empty States */
+.dues-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 60px 20px;
+  flex: 1;
+  p { color: #6c757d; font-size: 14px; }
+}
+
+.dues-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  flex: 1;
+
+  mat-icon { font-size: 56px; width: 56px; height: 56px; color: #4caf50; }
+  h3 { margin: 0; font-size: 18px; font-weight: 700; color: #343a40; }
+  p { margin: 0; color: #6c757d; font-size: 14px; }
+}
+
+/* Dues Table */
+.dues-table-wrap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+
+  &::-webkit-scrollbar { width: 6px; }
+  &::-webkit-scrollbar-thumb { background: #dee2e6; border-radius: 6px; }
+}
+
+.dues-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  thead tr {
+    background: #f8f9fa;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: #6c757d;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e9ecef;
+    }
+  }
+
+  tbody tr {
+    transition: background 0.15s;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:hover { background: #fff5f7; }
+    &:last-child { border-bottom: none; }
+
+    &.overdue-row {
+      background: #fff5f5;
+      &:hover { background: #ffe8e8; }
+    }
+
+    td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      color: #343a40;
+    }
+  }
+}
+
+.serial-col { color: #adb5bd !important; font-weight: 600; width: 40px; }
+
+.name-col {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+
+  .customer-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #e91e63, #ff5722);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+}
+
+.amount-col {
+  .amount-badge {
+    background: #fff3f7;
+    color: #e91e63;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+}
+
+.date-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  .no-date { color: #adb5bd; }
+
+  .overdue-tag {
+    background: #ffebee;
+    color: #e53935;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+}
+
+.status-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.status-pending {
+    background: #fff8e1;
+    color: #f57c00;
+  }
+
+  &.status-overdue {
+    background: #ffebee;
+    color: #c62828;
+  }
+}
+
+.action-col {
+  .whatsapp-row-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+
+    &:hover {
+      background: #25d366;
+      color: white;
+      border-color: #25d366;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(37, 211, 102, 0.35);
+    }
+  }
+}
+
+/* Modal Footer */
+.dues-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-top: 1px solid #f0f0f0;
+  background: #fafafa;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: #6c757d;
+
+  .navigate-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #e91e63, #ff5722);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(233, 30, 99, 0.35);
+    }
+  }
+}
+
+/* ======================== Responsive Modal ======================== */
+@media (max-width: 600px) {
+  .dues-modal {
+    max-height: 95vh;
+    border-radius: 16px 16px 0 0;
+    align-self: flex-end;
+    margin-bottom: 0;
+  }
+
+  .dues-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .dues-modal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+
+    .modal-header-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .dues-table thead th:nth-child(4),
+  .dues-table tbody td:nth-child(4) {
+    display: none; /* Hide Due Date on mobile */
+  }
+
+  .whatsapp-bulk-btn span { display: none; }
+}

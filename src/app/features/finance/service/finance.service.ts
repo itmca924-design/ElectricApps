@@ -97,6 +97,7 @@ export class FinanceService {
                 return dues.map(d => ({
                     customerId: d.customerId || d.CustomerId,
                     customerName: d.customerName || d.CustomerName,
+                    phone: d.phone || d.Phone || '',  // ← WhatsApp ke liye zaruri!
                     pendingAmount: d.pendingAmount || d.PendingAmount,
                     status: d.status || d.Status,
                     dueDate: d.dueDate || d.DueDate,

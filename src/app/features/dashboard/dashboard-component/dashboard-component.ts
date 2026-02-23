@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { CommonModule, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
 import { DashboardService } from '../services/dashboard.service';
@@ -19,7 +20,7 @@ import { environment } from '../../../enviornments/environment';
 @Component({
   selector: 'app-dashboard-component',
   standalone: true,
-  imports: [MaterialModule, CommonModule, BaseChartDirective, ScrollingModule],
+  imports: [MaterialModule, CommonModule, BaseChartDirective, ScrollingModule, FormsModule],
   providers: [DecimalPipe],
   templateUrl: './dashboard-component.html',
   styleUrl: './dashboard-component.scss',
@@ -95,6 +96,22 @@ export class DashboardComponent implements OnInit {
   loadingActivities = false;
   allLoaded = false;
 
+  // ========== Customer Dues Modal State ==========
+  isDuesModalOpen = false;
+  isDuesLoading = false;
+  customerDues: any[] = [];
+  duesSearchQuery = '';
+  customerDuesCount = 0;
+  customerDuesTotalFormatted = '0';
+
+  get filteredCustomerDues(): any[] {
+    if (!this.duesSearchQuery.trim()) return this.customerDues;
+    const q = this.duesSearchQuery.toLowerCase();
+    return this.customerDues.filter(d =>
+      (d.customerName || '').toLowerCase().includes(q)
+    );
+  }
+
   public lineChartData: ChartConfiguration['data'] = {
     datasets: [
       { data: [], label: 'Sales', borderColor: '#4caf50', backgroundColor: 'rgba(76,175,80,0.1)', fill: true, tension: 0.4 },
@@ -126,6 +143,20 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadDashboardData();
     this.loadCompanyInfo();
+    this.loadCustomerDuesSummary();
+  }
+
+  loadCustomerDuesSummary() {
+    this.financeService.getPendingCustomerDues().subscribe({
+      next: (dues: any[]) => {
+        this.customerDues = dues || [];
+        this.customerDuesCount = this.customerDues.length;
+        const total = this.customerDues.reduce((sum, d) => sum + (d.pendingAmount || 0), 0);
+        this.customerDuesTotalFormatted = this.decimalPipe.transform(total, '1.0-0') || '0';
+        this.cdr.detectChanges();
+      },
+      error: () => { /* Silent fail – just show 0 */ }
+    });
   }
 
   loadCompanyInfo() {
@@ -212,13 +243,85 @@ export class DashboardComponent implements OnInit {
   }
 
   navigateToLowStockReport() {
-    console.log('Low Stock Card Clicked. Stats Data:', this.stats[3]);
-
-    // Testing ke liye condition hata di taaki har baar redirect ho
-    console.log('Force Redirecting to Product List...');
     this.router.navigate(['/app/master/products'], {
       queryParams: { filter: 'lowstock' }
     });
+  }
+
+  // ========== Customer Dues Modal Methods ==========
+  openCustomerDuesModal() {
+    this.isDuesModalOpen = true;
+    this.duesSearchQuery = '';
+    this.loadCustomerDues();
+  }
+
+  closeCustomerDuesModal(event: MouseEvent, force = false) {
+    const target = event.target as HTMLElement;
+    // Only close if clicking on overlay itself OR force=true (close button)
+    if (force || target.classList.contains('dues-modal-overlay')) {
+      this.isDuesModalOpen = false;
+    }
+  }
+
+  loadCustomerDues() {
+    this.isDuesLoading = true;
+    this.financeService.getPendingCustomerDues().subscribe({
+      next: (dues: any[]) => {
+        this.customerDues = dues || [];
+        this.customerDuesCount = this.customerDues.length;
+        const total = this.customerDues.reduce((sum, d) => sum + (d.pendingAmount || 0), 0);
+        this.customerDuesTotalFormatted = this.decimalPipe.transform(total, '1.0-0') || '0';
+        this.isDuesLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Customer Dues load error:', err);
+        this.customerDues = [];
+        this.isDuesLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  isOverdue(dueDate: string | null): boolean {
+    if (!dueDate) return false;
+    return new Date(dueDate) < new Date();
+  }
+
+  // Company ka WhatsApp number (9540553975) is device pe logged in hai
+  // Isi liye jab bhi wa.me link khulega, message IS number se jayega automatically
+
+  sendWhatsAppReminder(due: any) {
+    const name = due.customerName || 'Customer';
+    const amount = this.decimalPipe.transform(due.pendingAmount, '1.0-0') || '0';
+    const company = this.companyInfo?.name || 'Reyakat Electrics';
+    // Company ka phone dynamically liya — Company Master se aata hai
+    const companyPhone = (this.companyInfo?.primaryPhone || '9540553975').replace(/\D/g, '');
+    const message = encodeURIComponent(
+      `Namaste ${name} ji! 🙏\n\nYe ${company} ki taraf se ek friendly reminder hai.\n\nAapka abhi *₹${amount}* ka payment pending hai.\n\nKripaya jald se jald payment karein.\n\nShukriya! 🙏`
+    );
+    const customerPhone = (due.phone || '').replace(/\D/g, '');
+    const url = customerPhone
+      ? `https://web.whatsapp.com/send?phone=91${customerPhone}&text=${message}`
+      : `https://web.whatsapp.com/send?text=${message}`;
+    window.open(url, '_blank');
+  }
+
+  sendBulkWhatsApp() {
+    const overdueList = this.filteredCustomerDues;
+    if (!overdueList.length) return;
+
+    const company = this.companyInfo?.name || 'Reyakat Electrics';
+    // Company ka phone dynamically liya — Company Master se aata hai
+    const companyPhone = (this.companyInfo?.primaryPhone || '9540553975').replace(/\D/g, '');
+    const lines = overdueList.map((d, i) =>
+      `${i + 1}. ${d.customerName} — ₹${this.decimalPipe.transform(d.pendingAmount, '1.0-0') || '0'}`
+    ).join('\n');
+
+    const message = encodeURIComponent(
+      `Namaste! 🙏\n\n*${company}* ki taraf se Pending Dues Report:\n\n${lines}\n\nKripaya apni payment jald se jald complete karein. Shukriya!`
+    );
+    window.open(`https://web.whatsapp.com/send?text=${message}`, '_blank');
   }
   exportToExcel() {
     this.isExcelLoading = true; // Spinner start karein
