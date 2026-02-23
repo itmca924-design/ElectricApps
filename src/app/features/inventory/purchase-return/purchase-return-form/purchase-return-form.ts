@@ -165,6 +165,7 @@ export class PurchaseReturnForm implements OnInit {
       item.grnRef = ref;
       item.productName = pName.trim() === '' ? "Product-" + item.productId.substring(0, 8) : pName;
       item.availableQty = avail;
+      item.currentStock = item.currentStock ?? item.CurrentStock ?? 0;
       item.rate = rate;
       item.gstPercent = item.gstPercent ?? item.GstPercent ?? 0;
       item.discountPercent = item.discountPercent ?? item.DiscountPercent ?? 0;
@@ -266,17 +267,23 @@ export class PurchaseReturnForm implements OnInit {
     }
 
     const maxQty = item.availableQty || item.rejectedQty || 0;
+    // Logical Fix: Default return qty should be min of Received Qty and Physical Stock [cite: 2026-02-23]
+    const physicalStock = item.currentStock || 0;
+    const initialReturnQty = Math.max(0, Math.min(maxQty, physicalStock));
+
     const group = this.fb.group({
       productId: [item.productId],
       productName: [item.productName],
       grnRef: [item.grnRef],
       maxQty: [maxQty],
-      returnQty: [maxQty, [Validators.required, Validators.min(0), Validators.max(maxQty)]], // Auto-fill max qty
+      returnQty: [initialReturnQty, [Validators.required, Validators.min(0), Validators.max(Math.min(maxQty, physicalStock))]],
       rate: [item.rate],
+      currentStock: [physicalStock],
       discountPercent: [item.discountPercent || 0],
       gstPercent: [item.gstPercent || 0],
       taxAmount: [0],
       total: [0],
+      limit: [Math.min(maxQty, physicalStock)],
       itemType: [type]
     });
 

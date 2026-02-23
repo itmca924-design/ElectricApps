@@ -275,6 +275,15 @@ $border-color: #e2e8f0;
 
                    .item-name { font-weight: 600; color: #334155; }
                    .item-avail { color: #64748b; font-size: 0.8rem; }
+                   
+                   .stock-danger {
+                      color: #ef4444;
+                      font-weight: 700;
+                   }
+                   .stock-success {
+                      color: #22c55e;
+                      font-weight: 700;
+                   }
                 }
 
                 &.item-rejected {
@@ -453,6 +462,19 @@ table.clean-table {
     background-color: #dcfce7;
     color: #15803d;
     border: 1px solid #86efac;
+  }
+
+  .stock-info-badge {
+    &.badge-danger {
+      background-color: #fee2e2;
+      color: #ef4444;
+      border: 1px solid #fecdd3;
+    }
+    &.badge-success {
+      background-color: #f0fdf4;
+      color: #22c55e;
+      border: 1px solid #dcfce7;
+    }
   }
 
   .stock-badge {

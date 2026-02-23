@@ -24,44 +24,42 @@
   </div>
 
   <div class="stats-grid" *ngIf="!isDashboardLoading">
-    <mat-card class="stat-card total">
-        <mat-card-content>
-            <div class="stat-icon"><mat-icon>payments</mat-icon></div>
-            <div class="stat-info">
-                <span class="label">Total Confirmed Returns</span>
-                <span class="value">₹{{totalReturnAmount | number:'1.2-2'}}</span>
-            </div>
-        </mat-card-content>
-    </mat-card>
-
-    <mat-card class="stat-card active" (click)="loadReturns()" style="cursor: pointer;">
-        <mat-card-content>
-            <div class="stat-icon"><mat-icon>inventory_2</mat-icon></div>
-            <div class="stat-info">
-                <span class="label">{{selection.selected.length > 0 ? 'Selected Qty' : 'Total Return Qty'}}</span>
-                <span class="value">{{selection.selected.length > 0 ? selectedTotalQty : totalItemsReturned}} PCS</span>
-            </div>
-            <div class="stat-badge" style="background: #E0E7FF; color: #4338CA;">Items</div>
-        </mat-card-content>
-    </mat-card>
-
-    <mat-card class="stat-card overdue" (click)="loadReturns()" style="cursor: pointer;">
-        <mat-card-content>
-            <div class="stat-icon"><mat-icon>check_circle</mat-icon></div>
-            <div class="stat-info">
-                <span class="label">Confirmed Returns</span>
-                <span class="value">{{confirmedReturnsCount}}</span>
-            </div>
-            <div class="stat-badge" *ngIf="confirmedReturnsCount > 0">Completed</div>
-        </mat-card-content>
-    </mat-card>
-
-    <mat-card class="stat-card active" (click)="loadReturns()" style="cursor: pointer;">
+    <mat-card class="stat-card total border-primary" (click)="activeStatus = 'TODAY'; loadReturns()" style="cursor: pointer;">
         <mat-card-content>
             <div class="stat-icon"><mat-icon>assignment_return</mat-icon></div>
             <div class="stat-info">
-                <span class="label">Total Records</span>
-                <span class="value">{{totalReturnsCount}}</span>
+                <span class="label">TOTAL RETURNS (TODAY)</span>
+                <span class="value">{{summaryData.totalReturnsToday}}</span>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card border-danger">
+        <mat-card-content>
+            <div class="stat-icon color-danger"><mat-icon>payments</mat-icon></div>
+            <div class="stat-info">
+                <span class="label">TOTAL REFUND VALUE</span>
+                <span class="value text-danger">₹{{summaryData.totalRefundValue | number:'1.2-2'}}</span>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card border-success">
+        <mat-card-content>
+            <div class="stat-icon color-success"><mat-icon>inventory_2</mat-icon></div>
+            <div class="stat-info">
+                <span class="label">{{selection.selected.length > 0 ? 'SELECTED QTY' : 'STOCK REDUCED'}}</span>
+                <span class="value text-success">{{selection.selected.length > 0 ? selectedTotalQty : summaryData.stockReducedPcs}} PCS</span>
+            </div>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card border-info" (click)="activeStatus = 'Confirmed'; loadReturns()" style="cursor: pointer;">
+        <mat-card-content>
+            <div class="stat-icon"><mat-icon>local_shipping</mat-icon></div>
+            <div class="stat-info">
+                <span class="label">PENDING OUTWARDS</span>
+                <span class="value" [style.color]="summaryData.pendingOutwardCount > 0 ? '#f44336' : '#212121'">{{summaryData.pendingOutwardCount}}</span>
             </div>
         </mat-card-content>
     </mat-card>

@@ -100,7 +100,12 @@
                                        (change)="onItemToggle(item)" color="primary">
                             <span class="item-details-inline">
                                <strong class="item-name">{{item.productName}}</strong> 
-                               <small class="item-avail text-secondary"> (Avail: {{item.availableQty}} | Rate: {{item.rate | currency:'INR'}})</small>
+                               <small class="item-avail text-secondary"> 
+                                 (Received: {{item.availableQty}} | Rate: {{item.rate | currency:'INR'}} | 
+                                 <span [class.stock-danger]="item.currentStock < 0" [class.stock-success]="item.currentStock >= 0">
+                                   Stock: {{item.currentStock}}
+                                 </span>)
+                               </small>
                             </span>
                          </mat-checkbox>
                       </div>
@@ -141,12 +146,15 @@
                 <span class="type-badge ms-2" [ngClass]="element.value.itemType === 'Rejected' ? 'badge-rejected' : 'badge-accepted'">
                    {{element.value.itemType}}
                 </span>
+                <span class="type-badge ms-2 stock-info-badge" [ngClass]="element.value.currentStock < 0 ? 'badge-danger' : 'badge-success'">
+                   Stock: {{element.value.currentStock}}
+                </span>
               </div>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="rejectedQty">
-            <th mat-header-cell *matHeaderCellDef class="text-center"> Available </th>
+            <th mat-header-cell *matHeaderCellDef class="text-center"> Received </th>
             <td mat-cell *matCellDef="let element" class="text-center">
               <div class="stock-badge" *ngIf="element?.value" [ngClass]="element.value.itemType === 'Rejected' ? 'rejected-badge' : 'accepted-badge'">
                 <span class="value">{{element.value.maxQty}}</span>
@@ -159,11 +167,11 @@
             <th mat-header-cell *matHeaderCellDef class="text-center"> Return Qty </th>
             <td mat-cell *matCellDef="let element; let i = index" class="text-center">
               <mat-form-field appearance="outline" subscriptSizing="dynamic" class="qty-input compact-input d-inline-block" *ngIf="element">
-                <input matInput type="number" min="0" [max]="element.value.maxQty" 
+                <input matInput type="number" min="0" [max]="element.value.limit" 
                        [readonly]="element.value.itemType === 'Rejected'"
                        [formControl]="getControl(element, 'returnQty')" (input)="calculateTotal(i)" class="text-center fw-bold">
                 <mat-error *ngIf="getControl(element, 'returnQty').hasError('max')" style="font-size: 9px; white-space: nowrap;">
-                  Max: {{element.value.maxQty}}
+                  Max: {{element.value.limit}}
                 </mat-error>
                 <mat-error *ngIf="getControl(element, 'returnQty').hasError('min')" style="font-size: 9px; white-space: nowrap;">
                   Min: 0

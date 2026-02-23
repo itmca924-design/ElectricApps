@@ -58,8 +58,17 @@ export class PurchaseReturnList implements OnInit {
   totalRecords = 0;
   pageSize = 10;
   pageIndex = 0;
+  activeStatus: string = "";
 
-  // Stats
+  // Stats data from API
+  summaryData: any = {
+    totalReturnsToday: 0,
+    totalRefundValue: 0,
+    stockReducedPcs: 0,
+    confirmedReturns: 0,
+    pendingOutwardCount: 0
+  };
+
   totalReturnAmount: number = 0;
   confirmedReturnsCount: number = 0;
   totalReturnsCount: number = 0;
@@ -144,12 +153,15 @@ export class PurchaseReturnList implements OnInit {
         start,
         end,
         sortField,
-        sortOrder
+        sortOrder,
+        this.activeStatus
       ),
+      summary: this.prService.getSummary(),
       gatePasses: this.gatePassService.getGatePassesPaged({ pageSize: 150, sortField: 'CreatedAt', sortOrder: 'desc' }).pipe(catchError(() => of({ data: [] })))
     }).subscribe({
       next: (res: any) => {
         const returnData = res.returns;
+        this.summaryData = res.summary || this.summaryData;
         const gatePasses = res.gatePasses?.data || [];
         const items = returnData.items || [];
 

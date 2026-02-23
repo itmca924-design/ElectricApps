@@ -89,6 +89,14 @@ import { LoadingService } from '../../../core/services/loading.service';
             </td>
           </ng-container>
           
+          <ng-container matColumnDef="stock">
+            <th mat-header-cell *matHeaderCellDef> Stock </th>
+            <td mat-cell *matCellDef="let row"> 
+               <span class="stock-badge-inline" [class.danger]="row.currentStock < 0" [class.success]="row.currentStock >= 0">
+                 {{row.currentStock}}
+               </span>
+            </td>
+          </ng-container>
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef> Status </th>
             <td mat-cell *matCellDef="let row">
@@ -304,6 +312,15 @@ import { LoadingService } from '../../../core/services/loading.service';
       &.available { background: #d1fae5; color: #065f46; }
     }
 
+    .stock-badge-inline {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      &.danger { background: #fee2e2; color: #ef4444; border: 1px solid #fecdd3; }
+      &.success { background: #f0fdf4; color: #22c55e; border: 1px solid #dcfce7; }
+    }
+
     .bulk-select-btn {
       height: 48px !important;
       border-radius: 10px !important;
@@ -390,7 +407,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
 
   existingIds: any[] = [];
-  displayedColumns: string[] = ['select', 'sku', 'name', 'category', 'status'];
+  displayedColumns: string[] = ['select', 'sku', 'name', 'category', 'stock', 'status'];
   dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 

@@ -120,8 +120,17 @@
           <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayProductFn" (optionSelected)="onProductChange(i, $event)">
             <mat-option *ngFor="let product of filteredProducts[i] | async" [value]="product">
               <span>{{product.productName || product.name}}</span> - <small>{{product.sku}}</small>
+              <small class="ms-2" [style.color]="product.currentStock < 0 ? '#ef4444' : '#10b981'" style="font-weight: 700;">
+                (Stock: {{product.currentStock}})
+              </small>
             </mat-option>
           </mat-autocomplete>
+          <mat-hint *ngIf="row.get('productId')?.value" style="font-size: 10px; display: flex; justify-content: space-between; margin-top: 4px;">
+            <span class="text-secondary">SKU: {{row.get('sku')?.value}}</span>
+            <span [style.color]="row.get('currentStock')?.value < 0 ? '#ef4444' : '#10b981'" style="font-weight: 600;">
+              Curr Stock: {{row.get('currentStock')?.value}}
+            </span>
+          </mat-hint>
         </mat-form-field>
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic">

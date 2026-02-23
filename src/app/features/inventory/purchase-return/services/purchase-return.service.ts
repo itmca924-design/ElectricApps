@@ -35,14 +35,16 @@ export class PurchaseReturnService {
         fromDate?: string,
         toDate?: string,
         sortField: string = 'ReturnDate',
-        sortOrder: string = 'desc'
+        sortOrder: string = 'desc',
+        status: string = ''
     ): Observable<any> {
         const request: any = {
             filter: search,
             pageIndex,
             pageSize,
             sortField,
-            sortOrder
+            sortOrder,
+            status
         };
 
         if (fromDate) request.fromDate = fromDate;
@@ -69,5 +71,9 @@ export class PurchaseReturnService {
 
     bulkOutward(ids: string[]): Observable<any> {
         return this.api.post('PurchaseReturn/bulk-outward', ids);
+    }
+
+    getSummary(): Observable<any> {
+        return this.api.get('PurchaseReturn/summary');
     }
 }

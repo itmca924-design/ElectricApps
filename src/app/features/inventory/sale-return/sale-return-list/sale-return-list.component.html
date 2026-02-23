@@ -35,13 +35,13 @@
         </div>
 
         <div class="stat-item border-info" 
-             [ngClass]="{'active-widget': activeStatus === 'CONFIRMED'}"
-             (click)="filterByStatus('CONFIRMED')"
+             [ngClass]="{'active-widget': activeStatus === 'Confirmed'}"
+             (click)="filterByStatus('Confirmed')"
              style="cursor: pointer;">
-            <div class="stat-label">CONFIRMED RETURNS</div>
+            <div class="stat-label">PENDING INWARDS</div>
             <div class="stat-data">
-                <span class="stat-value">{{summaryData.confirmedReturns}}</span>
-                <mat-icon class="stat-icon" [style.color]="activeStatus === 'CONFIRMED' ? '#24d2fd' : '#ccc'">verified</mat-icon>
+                <span class="stat-value" [style.color]="summaryData.pendingInwardCount > 0 ? '#f44336' : '#212121'">{{summaryData.pendingInwardCount}}</span>
+                <mat-icon class="stat-icon" [style.color]="activeStatus === 'Confirmed' ? '#24d2fd' : '#ccc'">local_shipping</mat-icon>
             </div>
         </div>
     </div>
@@ -132,8 +132,7 @@ class="export-action-btn" (click)="exportToExcel()" [disabled]="isExportLoading 
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Return No. </th>
                     <td mat-cell *matCellDef="let row" class="bold-text"> {{row.returnNumber}} </td>
                 </ng-container>
-                
-                <ng-container matColumnDef="gatePassNo">
+                                <ng-container matColumnDef="gatePassNo">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Gate Pass </th>
                     <td mat-cell *matCellDef="let row">
                         <ng-container *ngIf="row.gatePassNo; else noPass">
@@ -152,6 +151,7 @@ class="export-action-btn" (click)="exportToExcel()" [disabled]="isExportLoading 
                         </ng-template>
                     </td>
                 </ng-container>
+
 
                 <ng-container matColumnDef="returnDate">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
@@ -190,8 +190,8 @@ class="export-action-btn" (click)="exportToExcel()" [disabled]="isExportLoading 
                 </ng-container>
 
                 <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef> Actions </th>
-                    <td mat-cell *matCellDef="let row">
+                    <th mat-header-cell *matHeaderCellDef class="text-center"> Actions </th>
+                    <td mat-cell *matCellDef="let row" class="text-center">
                         <div class="action-buttons">
                             <button mat-icon-button color="primary" (click)="viewCreditNote(row)" matTooltip="View Details" class="small-action-btn">
                                 <mat-icon>visibility</mat-icon>

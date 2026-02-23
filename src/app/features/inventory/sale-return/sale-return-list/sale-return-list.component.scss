@@ -332,9 +332,16 @@
         }
     }
 
+    .mat-column-actions {
+        text-align: center !important;
+    }
+
     .action-buttons {
-        display: flex;
-        gap: 4px;
+        display: inline-flex;
+        gap: 12px;
+        justify-content: center;
+        align-items: center;
+        vertical-align: middle;
         white-space: nowrap !important;
     }
 }
@@ -507,14 +514,30 @@
 
 // Small Action Buttons [cite: 2026-02-21]
 .small-action-btn {
-    width: 28px !important;
-    height: 28px !important;
-    line-height: 28px !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    transition: all 0.2s ease !important;
+
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+    }
     
     mat-icon {
-        font-size: 16px !important;
-        width: 16px !important;
-        height: 16px !important;
+        font-size: 18px !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 }
 

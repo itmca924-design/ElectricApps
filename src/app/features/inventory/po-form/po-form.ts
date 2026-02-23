@@ -174,6 +174,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       gstPercent: [product.defaultGst || product.gstPercent || 0], // GST Product Master se
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
+      currentStock: [product.currentStock || 0],
+      sku: [product.sku || ''],
       id: [0]
     });
 
@@ -212,6 +214,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       gstPercent: [data.gstPercent || 18], // GST from Master
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
+      currentStock: [data.currentStock || 0],
+      sku: [data.sku || ''],
       id: [0]
     });
 
@@ -289,6 +293,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       gstPercent: [item.gstPercent || 0],
       taxAmount: [{ value: item.taxAmount, disabled: true }],
       total: [{ value: item.total, disabled: true }],
+      currentStock: [item.currentStock || 0],
+      sku: [item.sku || ''],
       id: [item.id || 0]
     });
     this.items.push(row);
@@ -363,7 +369,9 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       price: product.basePurchasePrice || 0,
       gstPercent: product.defaultGst || product.gstPercent || 0, // Master GST
       discountPercent: 0,
-      qty: 1
+      qty: 1,
+      currentStock: product.currentStock || 0,
+      sku: product.sku || ''
     });
 
     if (product.id && priceListId) {
@@ -425,6 +433,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       gstPercent: [0],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
+      currentStock: [0],
+      sku: [''],
       id: [0]
     });
     this.items.push(row);
