@@ -295,11 +295,17 @@ export class DashboardComponent implements OnInit {
     const name = due.customerName || 'Customer';
     const amount = this.decimalPipe.transform(due.pendingAmount, '1.0-0') || '0';
     const company = this.companyInfo?.name || 'Reyakat Electrics';
-    // Company ka phone dynamically liya — Company Master se aata hai
-    const companyPhone = (this.companyInfo?.primaryPhone || '9540553975').replace(/\D/g, '');
-    const message = encodeURIComponent(
-      `Namaste ${name} ji! 🙏\n\nYe ${company} ki taraf se ek friendly reminder hai.\n\nAapka abhi *₹${amount}* ka payment pending hai.\n\nKripaya jald se jald payment karein.\n\nShukriya! 🙏`
-    );
+
+    // Company Master se dynamic message lo, warna fallback use karo
+    const templateMsg = this.companyInfo?.message
+      ? this.companyInfo.message
+        .replace(/\[Amount\]/g, `₹${amount}`)          // [Amount] placeholder
+        .replace(/₹[\d,]+/g, `₹${amount}`)             // ya seedha ₹177 jaisa number
+        .replace(/\[Name\]/g, `${name} ji`)
+        .replace(/\[Company\]/g, company)
+      : `Namaste ${name} ji! 🙏\n\nYe ${company} ki taraf se ek friendly reminder hai.\n\nAapka abhi *₹${amount}* ka payment pending hai.\n\nKripaya jald se jald payment karein.\n\nShukriya! 🙏`;
+
+    const message = encodeURIComponent(templateMsg);
     const customerPhone = (due.phone || '').replace(/\D/g, '');
     const url = customerPhone
       ? `https://web.whatsapp.com/send?phone=91${customerPhone}&text=${message}`
@@ -311,17 +317,12 @@ export class DashboardComponent implements OnInit {
     const overdueList = this.filteredCustomerDues;
     if (!overdueList.length) return;
 
-    const company = this.companyInfo?.name || 'Reyakat Electrics';
-    // Company ka phone dynamically liya — Company Master se aata hai
-    const companyPhone = (this.companyInfo?.primaryPhone || '9540553975').replace(/\D/g, '');
-    const lines = overdueList.map((d, i) =>
-      `${i + 1}. ${d.customerName} — ₹${this.decimalPipe.transform(d.pendingAmount, '1.0-0') || '0'}`
-    ).join('\n');
-
-    const message = encodeURIComponent(
-      `Namaste! 🙏\n\n*${company}* ki taraf se Pending Dues Report:\n\n${lines}\n\nKripaya apni payment jald se jald complete karein. Shukriya!`
-    );
-    window.open(`https://web.whatsapp.com/send?text=${message}`, '_blank');
+    // Har customer ko individually unka apna amount ke saath message bhejo
+    overdueList.forEach((due, index) => {
+      setTimeout(() => {
+        this.sendWhatsAppReminder(due);
+      }, index * 500); // 0.5 sec delay — browser blocking avoid karne ke liye
+    });
   }
   exportToExcel() {
     this.isExcelLoading = true; // Spinner start karein

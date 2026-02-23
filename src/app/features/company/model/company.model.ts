@@ -12,6 +12,7 @@ export interface CompanyProfileDto {
     primaryEmail: string;
     primaryPhone: string;
     website: string;
+    message: string | null; // WhatsApp/SMS reminder message
     isActive: boolean;
     address: AddressDto; // Nested Object
     bankInfo: BankDetailDto; // Nested Object
@@ -68,6 +69,7 @@ export interface UpsertCompanyRequest {
     primaryEmail: string;
     primaryPhone: string;
     website: string;
+    message: string | null; // WhatsApp/SMS reminder message
     address: AddressDto;
     bankInfo: BankDetailDto;
     authorizedSignatories: AuthorizedSignatoryDto[];

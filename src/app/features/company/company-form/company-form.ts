@@ -67,6 +67,7 @@ export class CompanyForm implements OnInit {
             primaryEmail: ['', [Validators.required, Validators.email]],
             primaryPhone: ['', [Validators.required]],
             website: [''],
+            message: [''],
             isActive: [true],
 
             // Address Nested Group
