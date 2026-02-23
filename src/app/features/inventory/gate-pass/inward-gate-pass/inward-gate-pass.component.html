@@ -126,6 +126,14 @@
                     </mat-form-field>
                 </div>
 
+                <!-- Breakdown Preview -->
+                <div class="row" *ngIf="bulkBreakdown">
+                    <div class="breakdown-info">
+                        <mat-icon>info</mat-icon>
+                        <span><strong>Material Breakdown:</strong> {{bulkBreakdown}}</span>
+                    </div>
+                </div>
+
             </form>
         </mat-card-content>
         

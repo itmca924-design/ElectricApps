@@ -102,6 +102,15 @@
             color: #111827;
             border: 1px solid #e5e7eb;
         }
+
+        &.breakdown-table {
+            th, td {
+                padding: 8px 12px;
+            }
+            th {
+                background: #f1f5f9;
+            }
+        }
     }
 
     .terms-section {

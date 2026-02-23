@@ -42,6 +42,7 @@ export class InwardGatePassComponent implements OnInit {
     isEditMode = false;
     gatePassId: number | null = null;
     currentPassNo = 'Auto-Generated Pass No: GP-IN-2026-XXXX';
+    bulkBreakdown: string = '';
 
     // Reference Selection
     referenceTypes = [
@@ -187,13 +188,15 @@ export class InwardGatePassComponent implements OnInit {
                 refIdControl.setErrors(null);
             }
 
+            this.bulkBreakdown = params['breakdown'] || '';
             this.gatePassForm.patchValue({
                 referenceId: params['refId'] ? String(params['refId']) : '',
                 referenceNo: refNo,
                 partyName: params['partyName'] || '',
                 expectedQty: params['qty'] || 0,
                 referenceType: GatePassReferenceType.SaleReturn,
-                invoiceNo: params['isBulk'] === 'true' ? 'BULK-INWARD' : `CH-${refNo}`
+                invoiceNo: params['isBulk'] === 'true' ? 'BULK-INWARD' : `CH-${refNo}`,
+                remarks: '' // Keep empty for user to fill voluntarily
             });
 
             this.gatePassForm.get('referenceType')?.disable();
@@ -331,6 +334,12 @@ export class InwardGatePassComponent implements OnInit {
 
     saveGatePass() {
         const formValue = this.gatePassForm.getRawValue();
+        let finalRemarks = formValue.remarks || '';
+
+        // Append breakdown if available and not already present
+        if (this.bulkBreakdown && !finalRemarks.includes('Breakdown:')) {
+            finalRemarks = finalRemarks ? `${finalRemarks} | Breakdown: ${this.bulkBreakdown}` : `Breakdown: ${this.bulkBreakdown}`;
+        }
 
         // Create Inward Gate Pass Payload
         const gatePassData: any = {
@@ -351,7 +360,7 @@ export class InwardGatePassComponent implements OnInit {
             gateEntryTime: this.isEditMode ? undefined : new Date(), // Don't overwrite entry time on edit
             securityGuard: formValue.securityGuard,
             status: Number(formValue.referenceType) === GatePassReferenceType.SaleReturn ? GatePassStatus.Completed : GatePassStatus.Entered,
-            remarks: formValue.remarks,
+            remarks: finalRemarks,
             createdBy: this.authService.getUserName()
         };
 

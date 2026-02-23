@@ -229,7 +229,8 @@ form#saleReturnForm {
             }
 
             .mat-mdc-form-field-subscript-wrapper {
-                display: none; // Hide space for errors unless they appear
+                // Remove display: none to show errors
+                font-size: 10px;
             }
 
             // Simple border for table inputs

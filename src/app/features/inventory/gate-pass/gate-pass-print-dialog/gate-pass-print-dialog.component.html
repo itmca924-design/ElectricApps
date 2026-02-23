@@ -73,15 +73,36 @@
                     <thead>
                         <tr>
                             <th>Total Quantity</th>
-                            <th>Total Weight (if applicable)</th>
-                            <th>Remarks</th>
+                            <th>Total Weight</th>
+                            <th>General Remarks</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>{{gatePass.totalQty}}</td>
+                            <td style="font-weight: bold; font-size: 16px;">{{gatePass.totalQty}}</td>
                             <td>{{gatePass.totalWeight || '-'}}</td>
-                            <td>{{gatePass.remarks || 'N/A'}}</td>
+                            <td style="font-style: italic;">{{gatePass.remarks || 'N/A'}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Itemized Breakdown (For Bulk) -->
+            <div class="detail-section" *ngIf="getBreakdownItems().length > 0">
+                <h3>Itemized Breakdown</h3>
+                <table class="summary-table breakdown-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Reference Number</th>
+                            <th style="text-align: right;">Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let item of getBreakdownItems(); let i = index">
+                            <td>{{i + 1}}</td>
+                            <td>{{item.ref}}</td>
+                            <td style="text-align: right; font-weight: 600;">{{item.qty}}</td>
                         </tr>
                     </tbody>
                 </table>

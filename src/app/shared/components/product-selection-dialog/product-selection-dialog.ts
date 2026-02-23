@@ -82,6 +82,13 @@ import { LoadingService } from '../../../core/services/loading.service';
             <td mat-cell *matCellDef="let row" class="name-cell"> {{row.productName}} </td>
           </ng-container>
 
+          <ng-container matColumnDef="unit">
+            <th mat-header-cell *matHeaderCellDef> Unit </th>
+            <td mat-cell *matCellDef="let row"> 
+               <span class="unit-badge text-secondary">{{row.unit || 'PCS'}}</span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="category">
             <th mat-header-cell *matHeaderCellDef> Category </th>
             <td mat-cell *matCellDef="let row" class="cat-cell"> 
@@ -92,9 +99,9 @@ import { LoadingService } from '../../../core/services/loading.service';
           <ng-container matColumnDef="stock">
             <th mat-header-cell *matHeaderCellDef> Stock </th>
             <td mat-cell *matCellDef="let row"> 
-               <span class="stock-badge-inline" [class.danger]="row.currentStock < 0" [class.success]="row.currentStock >= 0">
-                 {{row.currentStock}}
-               </span>
+                <span class="stock-badge-inline" [class.danger]="row.currentStock <= 0" [class.success]="row.currentStock > 0">
+                  {{row.currentStock > 0 ? row.currentStock : 'Out of Stock'}}
+                </span>
             </td>
           </ng-container>
           <ng-container matColumnDef="status">
@@ -312,6 +319,16 @@ import { LoadingService } from '../../../core/services/loading.service';
       &.available { background: #d1fae5; color: #065f46; }
     }
 
+    .unit-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      background: #f8fafc;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+
     .stock-badge-inline {
       padding: 2px 8px;
       border-radius: 4px;
@@ -407,7 +424,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
 
   existingIds: any[] = [];
-  displayedColumns: string[] = ['select', 'sku', 'name', 'category', 'stock', 'status'];
+  displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'stock', 'status'];
   dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 

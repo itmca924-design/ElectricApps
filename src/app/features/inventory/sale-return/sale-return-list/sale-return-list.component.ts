@@ -327,7 +327,12 @@ export class SaleReturnListComponent implements OnInit {
                                 const refIds = ids.join(',');
                                 const partyName = selectedItems[0].customerName;
 
-                                // Sum up Qty from all line items (using fields from getPrintData response)
+                                const breakdown = details.map((d, idx) => {
+                                    const itemsList = d.items || d.saleReturnItems || d.returnItems || [];
+                                    const itemSum = itemsList.reduce((s: number, i: any) => s + (Number(i.qty) || Number(i.returnQty) || 0), 0);
+                                    return `${selectedItems[idx].returnNumber}: ${itemSum} Pcs`;
+                                }).join(', ');
+
                                 const totalSumQty = details.reduce((total, d) => {
                                     const itemsList = d.items || d.saleReturnItems || d.returnItems || [];
                                     const itemSum = itemsList.reduce((s: number, i: any) => s + (Number(i.qty) || Number(i.returnQty) || 0), 0);
@@ -342,7 +347,8 @@ export class SaleReturnListComponent implements OnInit {
                                         refId: refIds,
                                         partyName: partyName,
                                         qty: totalSumQty,
-                                        isBulk: true
+                                        isBulk: true,
+                                        breakdown: breakdown
                                     }
                                 });
                             },

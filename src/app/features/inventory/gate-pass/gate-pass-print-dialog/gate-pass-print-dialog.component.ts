@@ -12,84 +12,108 @@ import { environment } from '../../../../enviornments/environment';
 import { GatePass } from '../models/gate-pass.model';
 
 @Component({
-    selector: 'app-gate-pass-print-dialog',
-    standalone: true,
-    imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatDividerModule, MatProgressSpinnerModule],
-    templateUrl: './gate-pass-print-dialog.component.html',
-    styleUrls: ['./gate-pass-print-dialog.component.scss']
+  selector: 'app-gate-pass-print-dialog',
+  standalone: true,
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, MatDividerModule, MatProgressSpinnerModule],
+  templateUrl: './gate-pass-print-dialog.component.html',
+  styleUrls: ['./gate-pass-print-dialog.component.scss']
 })
 export class GatePassPrintDialogComponent implements OnInit {
-    private gatePassService = inject(GatePassService);
-    private companyService = inject(CompanyService);
-    private cdr = inject(ChangeDetectorRef);
+  private gatePassService = inject(GatePassService);
+  private companyService = inject(CompanyService);
+  private cdr = inject(ChangeDetectorRef);
 
-    gatePass: GatePass | null = null;
-    loading = true;
-    companyInfo: CompanyProfileDto | null = null;
+  gatePass: GatePass | null = null;
+  loading = true;
+  companyInfo: CompanyProfileDto | null = null;
 
-    constructor(
-        public dialogRef: MatDialogRef<GatePassPrintDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: { id: number }
-    ) { }
+  constructor(
+    public dialogRef: MatDialogRef<GatePassPrintDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { id: number }
+  ) { }
 
-    ngOnInit(): void {
-        this.fetchGatePass();
-        this.loadCompanyProfile();
+  ngOnInit(): void {
+    this.fetchGatePass();
+    this.loadCompanyProfile();
+  }
+
+  loadCompanyProfile(): void {
+    this.companyService.getCompanyProfile().subscribe({
+      next: (res) => {
+        this.companyInfo = res;
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Error fetching company profile:', err)
+    });
+  }
+
+  fetchGatePass(): void {
+    this.gatePassService.getGatePass(this.data.id).subscribe({
+      next: (res) => {
+        this.gatePass = res;
+        this.loading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error fetching gate pass:', err);
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getImgUrl(url: string | null | undefined): string {
+    if (!url) return '';
+    if (url.startsWith('data:image') || url.startsWith('http')) {
+      return url;
+    }
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `${environment.CompanyRootUrl}/${cleanUrl}`;
+  }
+
+  getBreakdownItems(): { ref: string, qty: string }[] {
+    if (!this.gatePass?.remarks || !this.gatePass.remarks.includes('Breakdown:')) return [];
+    try {
+      // Support formats like "Manual Remark | Breakdown: SR-1: 5 Pcs" or just "Breakdown: SR-1: 5 Pcs"
+      let breakdownStr = this.gatePass.remarks.split('Breakdown:')[1].trim();
+
+      // If there are other things after the breakdown (unlikely but safe), we stop at a common separator
+      if (breakdownStr.includes('|')) breakdownStr = breakdownStr.split('|')[0].trim();
+      if (breakdownStr.includes('\n')) breakdownStr = breakdownStr.split('\n')[0].trim();
+
+      const items = breakdownStr.split(',').filter(x => x.trim() !== '');
+      return items.map(item => {
+        const parts = item.split(':');
+        return {
+          ref: parts[0]?.trim() || '',
+          qty: parts[1]?.trim() || ''
+        };
+      });
+    } catch (e) {
+      console.error('Error parsing breakdown:', e);
+      return [];
+    }
+  }
+
+  print(): void {
+    const printContent = document.getElementById('printable-area');
+    if (!printContent || !this.gatePass) return;
+
+    const WindowPrt = window.open('', '', 'left=0,top=0,width=900,height=900,toolbar=0,scrollbars=0,status=0');
+    if (!WindowPrt) return;
+
+    const companyName = this.companyInfo?.name || 'Reyakat Electronics';
+    const logoUrl = this.companyInfo?.logoUrl ? this.getImgUrl(this.companyInfo.logoUrl) : '';
+
+    let addressStr = '';
+    if (this.companyInfo?.address) {
+      const addr = this.companyInfo.address;
+      addressStr = `${addr.addressLine1}, ${addr.addressLine2 ? addr.addressLine2 + ', ' : ''}${addr.city}, ${addr.state} - ${addr.pinCode}`;
     }
 
-    loadCompanyProfile(): void {
-        this.companyService.getCompanyProfile().subscribe({
-            next: (res) => {
-                this.companyInfo = res;
-                this.cdr.detectChanges();
-            },
-            error: (err) => console.error('Error fetching company profile:', err)
-        });
-    }
+    const contactInfo = `Contact: ${this.companyInfo?.primaryPhone || ''} | Email: ${this.companyInfo?.primaryEmail || ''}`;
 
-    fetchGatePass(): void {
-        this.gatePassService.getGatePass(this.data.id).subscribe({
-            next: (res) => {
-                this.gatePass = res;
-                this.loading = false;
-                this.cdr.detectChanges();
-            },
-            error: (err) => {
-                console.error('Error fetching gate pass:', err);
-                this.loading = false;
-                this.cdr.detectChanges();
-            }
-        });
-    }
-
-    getImgUrl(url: string | null | undefined): string {
-        if (!url) return '';
-        if (url.startsWith('data:image') || url.startsWith('http')) {
-            return url;
-        }
-        const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
-        return `${environment.CompanyRootUrl}/${cleanUrl}`;
-    }
-
-    print(): void {
-        const printContent = document.getElementById('printable-area');
-        if (!printContent || !this.gatePass) return;
-
-        const WindowPrt = window.open('', '', 'left=0,top=0,width=900,height=900,toolbar=0,scrollbars=0,status=0');
-        if (!WindowPrt) return;
-
-        const companyName = this.companyInfo?.name || 'Reyakat Electronics';
-        const logoUrl = this.companyInfo?.logoUrl ? this.getImgUrl(this.companyInfo.logoUrl) : '';
-
-        let addressStr = '';
-        if (this.companyInfo?.address) {
-            const addr = this.companyInfo.address;
-            addressStr = `${addr.addressLine1}, ${addr.addressLine2 ? addr.addressLine2 + ', ' : ''}${addr.city}, ${addr.state} - ${addr.pinCode}`;
-        }
-
-        const contactInfo = `Contact: ${this.companyInfo?.primaryPhone || ''} | Email: ${this.companyInfo?.primaryEmail || ''}`;
-
-        WindowPrt.document.write(`
+    WindowPrt.document.write(`
       <html>
         <head>
           <title>Gate Pass - ${this.gatePass.passNo}</title>
@@ -109,6 +133,11 @@ export class GatePassPrintDialogComponent implements OnInit {
             .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
             .detail-label { font-weight: 600; color: #4b5563; }
             
+            .summary-table { width: 100%; border-collapse: collapse; margin: 15px 0; border: 1px solid #e5e7eb; }
+            .summary-table th { background: #f9fafb; padding: 10px; border: 1px solid #e5e7eb; text-align: left; font-size: 11px; text-transform: uppercase; color: #4b5563; }
+            .summary-table td { padding: 10px; border: 1px solid #e5e7eb; font-size: 13px; color: #111827; }
+            .breakdown-table th { background: #f1f5f9; }
+
             .barcode-area { margin-top: 20px; padding: 15px; border: 1px dashed #ccc; text-align: center; font-size: 12px; color: #999; }
             
             .print-footer { margin-top: 80px; display: flex; justify-content: space-between; }
@@ -164,11 +193,11 @@ export class GatePassPrintDialogComponent implements OnInit {
         </body>
       </html>
     `);
-        WindowPrt.document.close();
-        WindowPrt.focus();
-    }
+    WindowPrt.document.close();
+    WindowPrt.focus();
+  }
 
-    close(): void {
-        this.dialogRef.close();
-    }
+  close(): void {
+    this.dialogRef.close();
+  }
 }

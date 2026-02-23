@@ -126,10 +126,10 @@
                     <ng-container matColumnDef="returnQty">
                         <th mat-header-cell *matHeaderCellDef> Return Qty </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
-                            <mat-form-field appearance="outline" class="small-input">
-                                <input matInput type="number" formControlName="returnQty">
-                                <mat-error *ngIf="element.get('returnQty')?.hasError('max')">
-                                    Max {{element.get('quantity').value}}
+                            <mat-form-field appearance="outline" class="small-input" subscriptSizing="dynamic">
+                                <input matInput type="number" formControlName="returnQty" (input)="element.get('returnQty').markAsTouched()">
+                                <mat-error *ngIf="element.get('returnQty')?.hasError('max')" style="font-size: 9px; white-space: nowrap;">
+                                    Max: {{element.get('quantity').value}}
                                 </mat-error>
                             </mat-form-field>
                         </td>
