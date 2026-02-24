@@ -172,12 +172,6 @@
                                 (click)="onCreateGrn(row)" matTooltip="Create GRN">
                             <mat-icon>add_shopping_cart</mat-icon>
                         </button>
-                        <button mat-icon-button color="primary" (click)="onEdit(row)" matTooltip="Edit Pass" *ngIf="row.status !== 4">
-                            <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="onDelete(row)" matTooltip="Delete Pass" *ngIf="row.status !== 4">
-                            <mat-icon>delete</mat-icon>
-                        </button>
                         <button mat-icon-button color="accent" (click)="onPrint(row)" matTooltip="Print Pass">
                             <mat-icon>print</mat-icon>
                         </button>
