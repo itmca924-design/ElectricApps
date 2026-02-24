@@ -271,7 +271,7 @@
     </div>
 
     <!-- Payment Status Filter Menu -->
-    <mat-menu #paymentFilterMenu="matMenu" class="filter-menu-panel">
+    <mat-menu #paymentFilterMenu="matMenu" xPosition="after" [overlapTrigger]="false" class="filter-menu-panel">
       <div class="filter-container">
         <button mat-menu-item (click)="setPaymentFilter('')" [class.active-filter]="paymentFilter === ''">
           <mat-icon>clear_all</mat-icon> All Orders
@@ -289,7 +289,7 @@
     </mat-menu>
 
     <!-- Filter Menu Template -->
-    <mat-menu #filterMenu="matMenu" xPosition="before" [overlapTrigger]="false" class="filter-menu-panel">
+    <mat-menu #filterMenu="matMenu" xPosition="after" [overlapTrigger]="false" class="filter-menu-panel">
       <ng-template matMenuContent let-placeholder="placeholder">
         <div (click)="$event.stopPropagation()" class="filter-container">
           <mat-form-field appearance="outline" class="w-100 compact-filter-input" subscriptSizing="dynamic">
