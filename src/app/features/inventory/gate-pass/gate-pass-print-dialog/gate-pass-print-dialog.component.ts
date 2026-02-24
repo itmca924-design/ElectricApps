@@ -74,20 +74,31 @@ export class GatePassPrintDialogComponent implements OnInit {
   getBreakdownItems(): { ref: string, qty: string }[] {
     if (!this.gatePass?.remarks || !this.gatePass.remarks.includes('Breakdown:')) return [];
     try {
-      // Support formats like "Manual Remark | Breakdown: SR-1: 5 Pcs" or just "Breakdown: SR-1: 5 Pcs"
       let breakdownStr = this.gatePass.remarks.split('Breakdown:')[1].trim();
 
-      // If there are other things after the breakdown (unlikely but safe), we stop at a common separator
       if (breakdownStr.includes('|')) breakdownStr = breakdownStr.split('|')[0].trim();
       if (breakdownStr.includes('\n')) breakdownStr = breakdownStr.split('\n')[0].trim();
 
       const items = breakdownStr.split(',').filter(x => x.trim() !== '');
       return items.map(item => {
-        const parts = item.split(':');
-        return {
-          ref: parts[0]?.trim() || '',
-          qty: parts[1]?.trim() || ''
-        };
+        let ref = item.trim();
+        let qty = '';
+
+        // Handle Format 1: "Ref: Qty"
+        if (ref.includes(':')) {
+          const parts = ref.split(':');
+          ref = parts[0]?.trim() || '';
+          qty = parts[1]?.trim() || '';
+        }
+        // Handle Format 2: "Ref (Qty)"
+        else if (ref.includes('(') && ref.includes(')')) {
+          const start = ref.indexOf('(');
+          const end = ref.indexOf(')');
+          qty = ref.substring(start + 1, end).trim();
+          ref = ref.substring(0, start).trim();
+        }
+
+        return { ref, qty };
       });
     } catch (e) {
       console.error('Error parsing breakdown:', e);
