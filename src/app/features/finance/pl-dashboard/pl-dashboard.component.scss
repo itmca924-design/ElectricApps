@@ -4,15 +4,7 @@
     font-family: 'Roboto', sans-serif;
     animation: fadeIn 0.4s ease-in-out;
 
-    // Force the shared summary-stats component to always show in 1 row (5 columns)
-    ::ng-deep app-summary-stats .stats-grid {
-        grid-template-columns: repeat(5, 1fr);
-        margin-bottom: 16px;
-
-        .stat-info .value {
-            font-size: 1.3rem; // slightly smaller to fit all 5
-        }
-    }
+    // Layout follows default responsive grid from shared component
 }
 
 @keyframes fadeIn {
@@ -45,8 +37,8 @@
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
     margin-bottom: 24px;
 
     .stat-card {

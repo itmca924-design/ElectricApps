@@ -267,7 +267,6 @@ export class PLDashboardComponent implements OnInit {
         const net = this.netProfit;
         return [
             { label: 'Total Income', value: '₹' + this.totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'trending_up', type: 'success', badge: 'Income' },
-            { label: 'Total Expenses', value: '₹' + this.totalExpenses.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'trending_down', type: 'overdue', badge: 'Expenses' },
             { label: 'Net Profit', value: (net < 0 ? '-₹' : '₹') + Math.abs(net).toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'account_balance_wallet', type: net >= 0 ? 'success' : 'overdue', badge: 'Margin: ' + this.profitMargin.toFixed(1) + '%' },
             { label: 'Receivables', value: '₹' + Math.abs(this.totalReceivables).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + (this.totalReceivables < 0 ? ' (Adv)' : ''), icon: 'call_received', type: 'active', badge: 'From Customers' },
             { label: 'Payables', value: '₹' + Math.abs(this.totalPayables).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + (this.totalPayables < 0 ? ' (Adv)' : ''), icon: 'call_made', type: 'warning', badge: 'To Suppliers' }
