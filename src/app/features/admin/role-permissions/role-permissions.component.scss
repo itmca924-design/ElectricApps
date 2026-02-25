@@ -210,14 +210,36 @@
           text-overflow: ellipsis;
           
           .toggle-btn {
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 24px !important;
+            height: 24px !important;
+            padding: 0 !important;
+            flex-shrink: 0;
             color: #94a3b8;
+
+            ::ng-deep .mat-mdc-button-touch-target {
+              width: 24px !important;
+              height: 24px !important;
+            }
             
             mat-icon {
               font-size: 18px;
+              width: 18px;
+              height: 18px;
+              line-height: 18px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
             }
+          }
+
+          .spacer-btn {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
           }
 
           .menu-icon {
