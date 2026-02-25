@@ -146,8 +146,17 @@
 
       &.active {
           background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-          border-left: 6px solid #3b82f6;
-          .stat-icon { background: #dbeafe; color: #2563eb; }
+          border-left: 6px solid #0ea5e9;
+          .stat-icon { background: #e0f2fe; color: #0284c7; }
+          .stat-badge { background: #e0f2fe; color: #0369a1; }
+      }
+
+      &.rejected {
+          background: linear-gradient(135deg, #fff5f5 0%, #fff1f2 100%);
+          border-left: 6px solid #f43f5e;
+          .stat-icon { background: #ffe4e6; color: #e11d48; }
+          .stat-badge { background: #ffe4e6; color: #e11d48; }
+          .value { color: #be123c; }
       }
   }
 }

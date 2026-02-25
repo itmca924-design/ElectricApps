@@ -84,6 +84,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   soForm!: FormGroup;
   isLoading = false;
   filteredProducts: Observable<any[]>[] = [];
+  filteredUnits: Observable<any[]>[] = [];
   isProductLoading: boolean[] = [];
 
   subTotal = 0;
@@ -210,9 +211,11 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private setupFilter(index: number): void {
-    const control = this.items.at(index).get('productSearch');
+    const row = this.items.at(index);
+    const control = row.get('productSearch');
     if (!control) return;
 
+    // Product Autocomplete
     this.filteredProducts[index] = control.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -223,6 +226,17 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
           finalize(() => this.isProductLoading[index] = false),
           catchError(() => of([]))
         );
+      }),
+      takeUntil(this.destroy$)
+    );
+
+    // Unit Autocomplete
+    this.filteredUnits[index] = row.get('unit')!.valueChanges.pipe(
+      debounceTime(200),
+      distinctUntilChanged(),
+      switchMap(value => {
+        const str = (value || '').toLowerCase();
+        return of(this.allUnits.filter(u => u.name.toLowerCase().includes(str)));
       }),
       takeUntil(this.destroy$)
     );

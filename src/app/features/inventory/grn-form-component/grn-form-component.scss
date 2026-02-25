@@ -276,30 +276,55 @@
   }
 }
 
-/* --- Replacement vs Normal Item Styling --- */
+/* --- Dynamic Row Styling --- */
+.active-row {
+  background-color: #fffef2 !important; // Very soft yellow gold for current action
+  border-left: 4px solid #3b82f6; // Blue indicator for active item
+  
+  td {
+     background-color: transparent !important;
+     font-weight: 500;
+  }
+}
+
 .replacement-row {
-  background: rgba(254, 226, 226, 0.4) !important; // Soft Red background
-  &:hover td { background: rgba(254, 226, 226, 0.6) !important; }
+  background-color: #fff5f5 !important; // Soft pink for replacement
+  border-left: 4px solid #ef4444 !important; // Red indicator for replacement
+}
+
+.inactive-row {
+  opacity: 0.6;
+  filter: grayscale(0.5);
+  background-color: #f8fafc !important;
+}
+
+.replacement-tag {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 8px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-weight: 800;
+  margin-left: 4px;
+  vertical-align: middle;
+  border: 1px solid #fecdd3;
+}
+
+.grn-items-table {
+  tr {
+    transition: all 0.2s ease;
+  }
   
   .col-product {
-    color: #dc2626 !important; // Red text
     &::before {
       content: '● ';
       font-size: 10px;
+      margin-right: 4px;
     }
   }
 }
 
-.normal-row {
-  background: rgba(240, 253, 244, 0.4) !important; // Soft Green background
-  &:hover td { background: rgba(240, 253, 244, 0.6) !important; }
-
-  .col-product {
-    color: #16a34a !important; // Green text
-    &::before {
-      content: '● ';
-      font-size: 10px;
-    }
-  }
-}
+.active-row .col-product { color: #2563eb !important; }
+.replacement-row .col-product { color: #dc2626 !important; }
+.inactive-row .col-product { color: #94a3b8 !important; }
 

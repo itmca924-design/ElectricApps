@@ -29,7 +29,10 @@
               <span class="label">Pending Inwards</span>
               <span class="value">{{pendingInwardCount}}</span>
           </div>
-          <div class="stat-badge inward-badge" *ngIf="pendingInwardCount > 0">Replacement Due</div>
+          <div class="stat-badges">
+            <div class="stat-badge inward-badge" *ngIf="pendingInwardCount > 0">Replacement Due</div>
+            <div class="stat-badge overdue-badge" *ngIf="overdueInwardCount > 0">{{overdueInwardCount}} Overdue</div>
+          </div>
       </mat-card-content>
   </mat-card>
 

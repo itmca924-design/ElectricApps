@@ -66,9 +66,13 @@
           </thead>
           <tbody>
             <tr *ngFor="let item of items; let i = index" 
-                [class.replacement-row]="item.isReplacement"
-                [class.normal-row]="!item.isReplacement">
-              <td class="col-product text-wrap">{{item.productName}}</td>
+                [class.active-row]="item.receivedQty > 0"
+                [class.replacement-row]="item.isReplacement && item.receivedQty > 0"
+                [class.inactive-row]="item.receivedQty === 0 && item.pendingQty === 0">
+              <td class="col-product text-wrap">
+                {{item.productName}}
+                <span class="replacement-tag" *ngIf="item.isReplacement">REPLACEMENT</span>
+              </td>
               <td class="text-center small text-secondary">{{item.poNumber}}</td>
               <td class="text-center">{{item.orderedQty}}</td>
               <td class="text-center text-primary"><b>{{item.pendingQty}}</b></td>

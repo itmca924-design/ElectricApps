@@ -67,6 +67,7 @@ export class PoList implements OnInit {
   pendingReceiveCount: number = 0;
   pendingApprovalCount: number = 0;
   pendingInwardCount: number = 0;
+  overdueInwardCount: number = 0;
 
   constructor(
     private poService: InventoryService,
@@ -161,7 +162,11 @@ export class PoList implements OnInit {
           const hasReturns = (row.totalReturned || 0) > 0;
 
           if (status === 'Received' && (isFulfillmentPending || hasReturns)) {
-            return 'Partially <br> Received';
+            const days = row.daysSinceUpdate || 0;
+            if (days > 7) {
+              return `<span class="overdue-text">Partially Received<br><small>(${days} days overdue)</small></span>`;
+            }
+            return `<span class="pending-text">Partially Received<br><small>(${days} days pending)</small></span>`;
           }
           return status;
         }
@@ -259,6 +264,7 @@ export class PoList implements OnInit {
         this.pendingReceiveCount = 0;
         this.pendingApprovalCount = 0;
         this.pendingInwardCount = 0;
+        this.overdueInwardCount = 0;
 
         items.forEach((item: any) => {
           const status = item.status?.toLowerCase();
@@ -284,8 +290,21 @@ export class PoList implements OnInit {
           }
 
           // Pending Inward: Partially Received POs that need replacement inward (have returned/rejected items)
-          if (status === 'partially received' && ((item.totalReturned || 0) > 0 || (item.totalRejected || 0) > 0)) {
-            this.pendingInwardCount++;
+          if (status === 'partially received' || (status === 'received' && needsReplacement)) {
+            if ((item.totalReturned || 0) > 0 || (item.totalRejected || 0) > 0 || needsReplacement) {
+              this.pendingInwardCount++;
+
+              // Calculate aging
+              const lastActionDate = new Date(item.updatedDate || item.poDate);
+              const today = new Date();
+              const diffTime = Math.abs(today.getTime() - lastActionDate.getTime());
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              item.daysSinceUpdate = diffDays;
+
+              if (diffDays > 7) {
+                this.overdueInwardCount++;
+              }
+            }
           }
 
           if (status === 'submitted') {

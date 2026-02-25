@@ -131,12 +131,12 @@ mat-card {
   flex-wrap: wrap;
   gap: 12px; /* Compact gap */
   margin-bottom: 12px; /* Reduced margin */
-  align-items: center; /* Ensures vertical centering */
+  align-items: flex-start; /* Fix: Align from top so hints don't shift boxes up/down */
 }
 
 .field-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Fix: Match grid alignment */
   gap: 4px;
   flex: 1 1 200px;
 }
@@ -160,6 +160,7 @@ mat-card {
   box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39) !important;
   border: none !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin-top: 4px; /* Nudge button down to align with input box center */
   
   mat-icon {
     font-size: 26px !important;
@@ -189,10 +190,10 @@ mat-card {
 
 .item-row {
   display: grid;
-  /* Columns: Product(Large), Qty, Unit, Rate, Disc, GST, TaxAmt, Total, Delete */
-  grid-template-columns: 2.5fr 0.8fr 1fr 0.7fr 0.7fr 0.7fr 1fr 1.2fr 45px;
+  /* Columns: Product, Qty, Unit, Rate, Disc, GST, TaxAmt, Total, Delete */
+  grid-template-columns: 2.8fr 0.7fr 0.9fr 0.7fr 0.6fr 0.6fr 0.9fr 1.1fr 45px;
   gap: 12px;
-  align-items: center;
+  align-items: start; /* Fix: 'start' keeps inputs aligned at the top even with different hint heights */
   /* Fields ko barabar line mein lane ke liye */
   background: #fcfcfc;
   padding: 8px; /* Reduced padding */
@@ -213,14 +214,79 @@ mat-form-field {
 }
 
 ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-  display: none !important;
-  /* Extra bottom space hatane ke liye */
+  /* Restored to allow Hints (Stock Info) and Errors to be visible */
+  min-height: 1.5em !important; /* Ensure a consistent height for the hint area */
 }
 
 /* ================= SPECIFIC FIELD LOOKS ================= */
 input.bg-light {
   background-color: #f1f3f5 !important;
   font-weight: 500;
+}
+
+/* ================= PRODUCT DISPLAY & STOCK ================= */
+.product-option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+
+  .p-name {
+    font-weight: 500;
+  }
+
+  .p-stock {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+
+    &.in-stock {
+      background-color: #f0fdf4;
+      color: #16a34a;
+    }
+
+    &.no-stock {
+      background-color: #fff1f2;
+      color: #ef4444;
+    }
+  }
+}
+
+.p-sku {
+  font-size: 10px;
+  display: block;
+  margin-top: -8px;
+}
+
+.stock-hint-container {
+  display: flex !important;
+  align-items: center !important;
+  font-size: 11px !important;
+  margin-top: 4px !important;
+  color: #64748b !important;
+  gap: 8px !important;
+
+  .sku-hint {
+    font-weight: 500;
+  }
+
+  .divider {
+    color: #cbd5e1;
+    font-weight: 300;
+  }
+
+  .qty-hint {
+    font-weight: 600;
+    
+    &.stock-ok {
+      color: #16a34a !important;
+    }
+    
+    &.stock-warn {
+      color: #ef4444 !important;
+    }
+  }
 }
 
 .fw-bold.text-primary {
@@ -307,7 +373,7 @@ input.bg-light {
 
 /* Material Field Fixes */
 ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-  display: none !important;
+  min-height: 0 !important;
 }
 
 .save-btn {

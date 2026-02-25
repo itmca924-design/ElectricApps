@@ -147,12 +147,60 @@
 
           &.has-pending {
               .value { color: #0284c7; }
-              .stat-badge {
+              .stat-badge.inward-badge {
                   animation: gentle-pulse 2s infinite;
               }
           }
       }
   }
+}
+
+.stat-badges {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  align-items: flex-end;
+}
+
+.overdue-badge {
+  background: #fee2e2;
+  color: #dc2626;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid #fecdd3;
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
+  animation-delay: 2s;
+}
+
+.overdue-text {
+  color: #dc2626 !important;
+  font-weight: 700;
+  small {
+    color: #ef4444;
+    font-weight: 800;
+    font-style: italic;
+  }
+}
+
+.pending-text {
+  color: #0284c7;
+  font-weight: 600;
+  small {
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
 @keyframes gentle-pulse {

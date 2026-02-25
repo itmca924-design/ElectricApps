@@ -112,9 +112,12 @@
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="unit-field">
               <mat-label>Unit</mat-label>
-              <mat-select formControlName="unit">
-                <mat-option *ngFor="let u of allUnits" [value]="u.name">{{u.name}}</mat-option>
-              </mat-select>
+              <input type="text" matInput formControlName="unit" [matAutocomplete]="autoUnitSo">
+              <mat-autocomplete #autoUnitSo="matAutocomplete">
+                <mat-option *ngFor="let u of filteredUnits[i] | async" [value]="u.name">
+                  {{u.name}}
+                </mat-option>
+              </mat-autocomplete>
             </mat-form-field>
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="rate-field">

@@ -23,11 +23,23 @@
 
         <mat-card class="stat-card active">
             <mat-card-content>
-                <div class="stat-icon"><mat-icon>error_outline</mat-icon></div>
+                <div class="stat-icon"><mat-icon>report_problem</mat-icon></div>
                 <div class="stat-info">
                     <span class="label">Quality Issues</span>
                     <span class="value">{{qualityIssueCount}}</span>
                 </div>
+                <div class="stat-badge bg-info-subtle" *ngIf="qualityIssueCount > 0">GRNs affected</div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card rejected">
+            <mat-card-content>
+                <div class="stat-icon"><mat-icon>block</mat-icon></div>
+                <div class="stat-info">
+                    <span class="label">Rejected Items</span>
+                    <span class="value">{{totalRejectedItemsQty}}</span>
+                </div>
+                <div class="stat-badge bg-danger-subtle" *ngIf="totalRejectedItemsQty > 0">Stock Loss</div>
             </mat-card-content>
         </mat-card>
     </div>

@@ -119,16 +119,21 @@
           </div>
           <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayProductFn" (optionSelected)="onProductChange(i, $event)">
             <mat-option *ngFor="let product of filteredProducts[i] | async" [value]="product">
-              <span>{{product.productName || product.name}}</span> - <small>{{product.sku}}</small>
-              <small class="ms-2" [style.color]="product.currentStock > 0 ? '#10b981' : '#ef4444'" style="font-weight: 700;">
-                {{ product.currentStock > 0 ? '(Stock: ' + product.currentStock + ')' : '(Out of Stock)' }}
-              </small>
+              <div class="product-option-row">
+                <span class="p-name">{{product.productName || product.name}}</span>
+                <span class="p-stock" [class.in-stock]="product.currentStock > 0" [class.no-stock]="product.currentStock <= 0">
+                  Stock: {{ product.currentStock || 0 }}
+                </span>
+              </div>
+              <small class="p-sku text-muted">SKU: {{product.sku}}</small>
             </mat-option>
           </mat-autocomplete>
-          <mat-hint *ngIf="row.get('productId')?.value" style="font-size: 10px; display: flex; justify-content: space-between; margin-top: 4px;">
-            <span class="text-secondary">SKU: {{row.get('sku')?.value}}</span>
-            <span [style.color]="row.get('currentStock')?.value > 0 ? '#10b981' : '#ef4444'" style="font-weight: 600;">
-              Curr Stock: {{row.get('currentStock')?.value > 0 ? row.get('currentStock')?.value : 'Out of Stock'}}
+          
+          <mat-hint *ngIf="row.get('productId')?.value" class="stock-hint-container">
+            <span class="sku-hint">SKU: {{row.get('sku')?.value}}</span>
+            <span class="divider">|</span>
+            <span class="qty-hint" [class.stock-ok]="row.get('currentStock')?.value > 0" [class.stock-warn]="row.get('currentStock')?.value <= 0">
+              Avail: {{row.get('currentStock')?.value || 0}}
             </span>
           </mat-hint>
         </mat-form-field>
@@ -140,9 +145,12 @@
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Unit</mat-label>
-          <mat-select formControlName="unit">
-            <mat-option *ngFor="let u of allUnits" [value]="u.name">{{u.name}}</mat-option>
-          </mat-select>
+          <input type="text" matInput formControlName="unit" [matAutocomplete]="autoUnit">
+          <mat-autocomplete #autoUnit="matAutocomplete">
+            <mat-option *ngFor="let u of filteredUnits[i] | async" [value]="u.name">
+              {{u.name}}
+            </mat-option>
+          </mat-autocomplete>
         </mat-form-field>
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
