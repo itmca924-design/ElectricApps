@@ -218,10 +218,35 @@
             padding: 0 !important;
             flex-shrink: 0;
             color: #94a3b8;
+            position: relative;
 
-            ::ng-deep .mat-mdc-button-touch-target {
-              width: 24px !important;
-              height: 24px !important;
+            ::ng-deep {
+              // Touch target ko button ke size pe fix karo
+              .mat-mdc-button-touch-target {
+                width: 24px !important;
+                height: 24px !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+              }
+
+              // Ripple circle ko perfectly center karo
+              .mdc-icon-button__ripple,
+              .mat-mdc-button-ripple {
+                width: 24px !important;
+                height: 24px !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                border-radius: 50%;
+              }
+
+              // Icon wrapper center
+              .mat-icon {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+              }
             }
             
             mat-icon {
