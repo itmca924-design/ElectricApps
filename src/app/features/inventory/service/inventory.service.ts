@@ -117,7 +117,9 @@ export class InventoryService {
         pageSize: number = 10,
         search: string = '',
         startDate: Date | null = null,
-        endDate: Date | null = null
+        endDate: Date | null = null,
+        warehouseId: string | null = null,
+        rackId: string | null = null
     ): Observable<any> {
         const request = {
             sortField,
@@ -126,7 +128,9 @@ export class InventoryService {
             pageSize,
             search,
             startDate: startDate?.toISOString(),
-            endDate: endDate?.toISOString()
+            endDate: endDate?.toISOString(),
+            warehouseId,
+            rackId
         };
 
         return this.api.get(`stock/current-stock?${this.api.toQueryString(request)}`);

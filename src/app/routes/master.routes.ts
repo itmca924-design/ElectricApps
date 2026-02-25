@@ -58,4 +58,26 @@ export const MASTER_ROUTES: Routes = [
     ]
   },
 
+  {
+    path: 'warehouses',
+    canActivate: [PermissionGuard],
+    data: { breadcrumb: 'Warehouses' },
+    children: [
+      { path: '', data: { breadcrumb: 'List' }, loadComponent: () => import('../features/master/locations/warehouse-list/warehouse-list').then(m => m.WarehouseList) },
+      { path: 'add', data: { breadcrumb: 'Add New' }, loadComponent: () => import('../features/master/locations/warehouse-form/warehouse-form').then(m => m.WarehouseForm) },
+      { path: 'edit/:id', data: { breadcrumb: 'Edit' }, loadComponent: () => import('../features/master/locations/warehouse-form/warehouse-form').then(m => m.WarehouseForm) }
+    ]
+  },
+
+  {
+    path: 'racks',
+    canActivate: [PermissionGuard],
+    data: { breadcrumb: 'Racks' },
+    children: [
+      { path: '', data: { breadcrumb: 'List' }, loadComponent: () => import('../features/master/locations/rack-list/rack-list').then(m => m.RackList) },
+      { path: 'add', data: { breadcrumb: 'Add New' }, loadComponent: () => import('../features/master/locations/rack-form/rack-form').then(m => m.RackForm) },
+      { path: 'edit/:id', data: { breadcrumb: 'Edit' }, loadComponent: () => import('../features/master/locations/rack-form/rack-form').then(m => m.RackForm) }
+    ]
+  },
+
 ];

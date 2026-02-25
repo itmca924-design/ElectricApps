@@ -79,15 +79,22 @@
                       <span>{{p.productName || p.name}}</span>
                       <small class="text-muted mx-1">({{p.sku}})</small>
                     </div>
-                    <small [style.color]="p.currentStock > 0 ? '#10b981' : '#ef4444'" style="font-weight: 700;">
-                      {{ p.currentStock > 0 ? 'Stock: ' + p.currentStock : 'Out of Stock' }}
-                    </small>
+                    <div class="text-end">
+                       <small [style.color]="p.currentStock > 0 ? '#10b981' : '#ef4444'" style="font-weight: 700; display: block;">
+                         {{ p.currentStock > 0 ? 'Stock: ' + p.currentStock : 'Out of Stock' }}
+                       </small>
+                       <small class="text-muted" style="font-size: 10px;" *ngIf="p.defaultRackName">
+                         Loc: {{p.defaultRackName}}
+                       </small>
+                    </div>
                   </div>
                 </mat-option>
               </mat-autocomplete>
               <mat-hint *ngIf="items.at(i).get('productId')?.value" class="stock-hint">
                 <ng-container *ngIf="getStockForProduct(i) > 0; else outOfStock">
-                  Available Stock: <strong [style.color]="'#10b981'">{{ getStockForProduct(i) }}</strong>
+                  Stock: <strong [style.color]="'#10b981'">{{ getStockForProduct(i) }}</strong>
+                  <span class="mx-2 text-muted">|</span>
+                  Pick From: <strong class="text-primary">{{ getRackName(i) }}</strong>
                 </ng-container>
                 <ng-template #outOfStock>
                   <strong [style.color]="'#ef4444'">Product Not Available (Stock: {{ getStockForProduct(i) }})</strong>

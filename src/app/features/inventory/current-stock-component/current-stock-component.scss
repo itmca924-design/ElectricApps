@@ -480,7 +480,7 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   gap: 15px;
-  flex-wrap: nowrap; /* Force single line on desktop */
+  flex-wrap: wrap; /* Changed to allow wrapping */
 }
 
 /* Search Box Container */
@@ -494,6 +494,10 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
   align-items: flex-end; /* Align with search box and button */
   gap: 12px;
   flex-wrap: nowrap;
+}
+
+.location-filter {
+  min-width: 180px;
 }
 
 /* Material Form Field Customization */

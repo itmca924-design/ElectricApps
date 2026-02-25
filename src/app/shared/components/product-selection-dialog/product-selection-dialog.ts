@@ -96,6 +96,16 @@ import { LoadingService } from '../../../core/services/loading.service';
             </td>
           </ng-container>
           
+          <ng-container matColumnDef="location">
+            <th mat-header-cell *matHeaderCellDef> Location (Rack) </th>
+            <td mat-cell *matCellDef="let row"> 
+               <div class="location-info">
+                 <span class="warehouse-text">{{row.defaultWarehouseName || 'N/A'}}</span>
+                 <span class="rack-badge" *ngIf="row.defaultRackName">{{row.defaultRackName}}</span>
+               </div>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="stock">
             <th mat-header-cell *matHeaderCellDef> Stock </th>
             <td mat-cell *matCellDef="let row"> 
@@ -310,6 +320,29 @@ import { LoadingService } from '../../../core/services/loading.service';
       font-weight: 500;
     }
 
+    .location-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      
+      .warehouse-text {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 500;
+      }
+      
+      .rack-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #4f46e5;
+        background: #eef2ff;
+        padding: 1px 6px;
+        border-radius: 4px;
+        width: fit-content;
+        border: 1px solid #c7d2fe;
+      }
+    }
+
     .status-badge {
       font-size: 11px;
       padding: 2px 8px;
@@ -424,7 +457,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
 
   existingIds: any[] = [];
-  displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'stock', 'status'];
+  displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'location', 'stock', 'status'];
   dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 

@@ -154,6 +154,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       taxAmount: [0],
       total: [{ value: 0, disabled: true }],
       availableStock: [0],
+      rackName: [''] // Added Rack Name
     });
 
     this.items.push(row);
@@ -185,6 +186,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
               taxAmount: [0],
               total: [{ value: 0, disabled: true }],
               availableStock: [product.currentStock || product.availableStock || 0],
+              rackName: [product.defaultRackName || '']
             });
             this.items.push(row);
             const index = this.items.length - 1;
@@ -274,7 +276,8 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
         rate: p.rate || p.saleRate || p.price || 0,
         discountPercent: p.discount || p.discountPercent || 0,
         gstPercent: p.defaultGst || p.gstPercent || 0,
-        availableStock: p.currentStock || 0
+        availableStock: p.currentStock || 0,
+        rackName: p.defaultRackName || ''
       });
       this.updateTotal(index);
     }
@@ -335,6 +338,10 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
   getStockForProduct(index: number): number {
     return this.items.at(index).get('availableStock')?.value || 0;
+  }
+
+  getRackName(index: number): string {
+    return this.items.at(index).get('rackName')?.value || 'Not Assigned';
   }
 
   openAddCustomerDialog() {

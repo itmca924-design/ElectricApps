@@ -171,6 +171,8 @@ export class PurchaseReturnForm implements OnInit {
       item.gstPercent = item.gstPercent ?? item.GstPercent ?? 0;
       item.discountPercent = item.discountPercent ?? item.DiscountPercent ?? 0;
       item.receivedDate = rDate;
+      item.warehouseName = item.warehouseName ?? item.WarehouseName ?? 'N/A';
+      item.rackName = item.rackName ?? item.RackName ?? 'N/A';
 
       item.selected = this.isItemInGrid(item);
       groups[ref].items.push(item);
@@ -282,6 +284,8 @@ export class PurchaseReturnForm implements OnInit {
       currentStock: [physicalStock],
       discountPercent: [item.discountPercent || 0],
       gstPercent: [item.gstPercent || 0],
+      warehouseName: [item.warehouseName || 'N/A'],
+      rackName: [item.rackName || 'N/A'],
       taxAmount: [0],
       total: [0],
       limit: [Math.min(maxQty, physicalStock)],

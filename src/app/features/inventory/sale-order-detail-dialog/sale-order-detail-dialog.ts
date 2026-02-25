@@ -78,7 +78,10 @@ export class SaleOrderDetailDialog implements OnInit {
     const itemsRows = this.data.items.map((item: any, index: number) => `
         <tr>
             <td style="text-align: center;">${index + 1}</td>
-            <td>${item.productName}</td>
+            <td>
+              <div>${item.productName}</div>
+              ${item.rackName ? `<small style="color: #666; font-size: 10px;">Location: <b>${item.rackName}</b></small>` : ''}
+            </td>
             <td style="text-align: center;">${item.qty} <small>(${item.unit || 'Nos'})</small></td>
             <td style="text-align: right;">${this.currencyPipe.transform(item.rate, 'INR')}</td>
             <td style="text-align: center;">${item.discountPercent || 0}%</td>

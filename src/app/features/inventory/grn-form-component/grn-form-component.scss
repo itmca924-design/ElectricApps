@@ -43,8 +43,7 @@
 /* --- Table Styles (Ultra-Compact Padding) --- [cite: 2026-01-22] */
 .table-responsive {
     width: 100%;
-    overflow-x: auto; 
-    -webkit-overflow-scrolling: touch;
+    overflow-x: auto; /* Enable auto scroll if content exceeds container */
     border-radius: 4px;
     background: white;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -52,13 +51,13 @@
 
 .grn-items-table {
     width: 100%;
-    min-width: 900px; /* Increased min-width to prevent squishing */
+    table-layout: auto; /* Changed from fixed to allow columns to expand as needed */
     border-collapse: collapse;
 
     th {
         background: #f8fafc;
-        padding: 6px 8px; 
-        font-size: 11px;
+        padding: 4px 4px; 
+        font-size: 10px; /* Smaller font for ultra-compactness */
         font-weight: 600;
         text-transform: uppercase;
         color: #475569;
@@ -68,9 +67,9 @@
     }
 
     td {
-        padding: 4px 8px; /* Slightly more vertical padding than before for readability */
-        font-size: 12px;
-        line-height: 1.4; 
+        padding: 4px 4px;
+        font-size: 11px; /* Smaller font for ultra-compactness */
+        line-height: 1.2; 
         border-bottom: 1px solid #f1f5f9;
         vertical-align: middle; 
         color: #334155;
@@ -83,7 +82,7 @@
 
     /* Column specific adjustments */
     .col-product {
-        min-width: 200px;
+        min-width: 150px; /* Reduced from 200px */
         font-weight: 500;
     }
 }
@@ -91,9 +90,19 @@
 /* Input box inside table - sizing fixed for compact rows */
 .dense-input {
     width: 100% !important;
-    min-width: 60px !important;
-    max-width: 80px !important;
     margin: 0 auto;
+
+    &.narrow {
+        min-width: 45px !important;
+        max-width: 55px !important;
+        input { text-align: center !important; }
+    }
+
+    &.wide {
+        min-width: 100px !important;
+        max-width: 125px !important;
+        mat-select { text-align: left !important; }
+    }
     
     ::v-deep .mat-mdc-text-field-wrapper {
         padding: 0 4px !important;
@@ -109,9 +118,30 @@
 
     input {
         text-align: center !important;
-        font-weight: 600 !important;
-        font-size: 12px !important;
+        font-weight: 500 !important;
+        font-size: 11px !important;
         padding: 0 !important;
+        appearance: none; /* Standard */
+
+        /* Hide spin buttons for Chrome, Safari, Edge, Opera */
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            appearance: none;
+            margin: 0;
+        }
+
+        /* Hide spin buttons for Firefox */
+        &[type='number'] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+    }
+
+    mat-select {
+        text-align: left !important;
+        font-weight: 500 !important;
+        font-size: 11px !important;
     }
 }
 

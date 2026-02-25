@@ -49,11 +49,27 @@
       <mat-form-field appearance="outline" subscriptSizing="dynamic">
         <mat-label>Enter a date range</mat-label>
         <mat-date-range-input [rangePicker]="picker">
-          <input matStartDate placeholder="Start date" [value]="startDate">
-          <input matEndDate placeholder="End date" [value]="endDate">
+          <input matStartDate placeholder="Start date" [value]="startDate" (dateChange)="startDate = $event.value">
+          <input matEndDate placeholder="End date" [value]="endDate" (dateChange)="endDate = $event.value">
         </mat-date-range-input>
         <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
         <mat-date-range-picker #picker></mat-date-range-picker>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-filter">
+        <mat-label>Warehouse</mat-label>
+        <mat-select [(ngModel)]="selectedWarehouseId" (selectionChange)="onWarehouseChange()">
+          <mat-option [value]="null">All Warehouses</mat-option>
+          <mat-option *ngFor="let w of warehouses" [value]="w.id">{{w.name}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-filter">
+        <mat-label>Rack</mat-label>
+        <mat-select [(ngModel)]="selectedRackId" (selectionChange)="applyDateFilter()">
+          <mat-option [value]="null">All Racks</mat-option>
+          <mat-option *ngFor="let r of filteredRacks" [value]="r.id">{{r.name}}</mat-option>
+        </mat-select>
       </mat-form-field>
       
       <button mat-raised-button color="primary" style="margin-bottom: 5px;" class="filter-btn" (click)="applyDateFilter()" [disabled]="isLoadingResults">
@@ -115,6 +131,16 @@
             <span class="product-name-text">{{element.productName}}</span>
           </div>
         </td>
+      </ng-container>
+
+      <ng-container matColumnDef="warehouseName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Warehouse </th>
+        <td mat-cell *matCellDef="let element"> {{element.warehouseName}} </td>
+      </ng-container>
+
+      <ng-container matColumnDef="rackName">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header> Rack </th>
+        <td mat-cell *matCellDef="let element"> {{element.rackName}} </td>
       </ng-container>
 
       <ng-container matColumnDef="totalReceived">
@@ -190,6 +216,8 @@
                       <th>GRNNumber</th>
                       <th>Product</th> 
                       <th>Supplier Source</th>
+                      <th>Warehouse</th>
+                      <th>Rack</th>
                       <th>Received</th>
                       <th>Rejected</th>
                     </tr>
@@ -201,6 +229,8 @@
                       <td>{{$any(h).grnNumber}}</td>
                       <td>{{$any(h).productName}}</td> 
                       <td>{{$any(h).supplierName}}</td>
+                      <td>{{$any(h).warehouseName}}</td>
+                      <td>{{$any(h).rackName}}</td>
                       <td class="font-600">{{$any(h).receivedQty}}</td>
                       <td>
                         <span [class.text-danger]="$any(h).rejectedQty > 0" [class.text-muted]="$any(h).rejectedQty === 0">

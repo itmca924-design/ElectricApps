@@ -13,6 +13,7 @@ import { SelectionModel } from '@angular/cdk/collections';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LoadingService } from '../../../core/services/loading.service';
+import { LocationService } from '../../master/locations/services/locations.service';
 
 @Component({
   selector: 'app-current-stock-component',
@@ -31,8 +32,8 @@ import { LoadingService } from '../../../core/services/loading.service';
 export class CurrentStockComponent implements OnInit, AfterViewInit {
   private loadingService = inject(LoadingService);
 
-  // ✅ Updated: Added 'totalSold' in correct sequence for the table
-  displayedColumns: string[] = ['select', 'productName', 'totalReceived', 'totalRejected', 'totalSold', 'availableStock', 'unitRate', 'actions'];
+  // ✅ Updated: Added warehouse and rack in correct sequence for the table
+  displayedColumns: string[] = ['select', 'productName', 'warehouseName', 'rackName', 'totalReceived', 'totalRejected', 'totalSold', 'availableStock', 'unitRate', 'actions'];
   stockDataSource = new MatTableDataSource<any>([]);
 
   selectedProductIds: number[] = [];
@@ -59,12 +60,43 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   startDate: Date | null = null;
   endDate: Date | null = null;
 
+  // 🆕 New Filters
+  private locationService = inject(LocationService);
+  warehouses: any[] = [];
+  racks: any[] = [];
+  filteredRacks: any[] = [];
+  selectedWarehouseId: string | null = null;
+  selectedRackId: string | null = null;
+
   constructor(private inventoryService: InventoryService, private router: Router,
     private cdr: ChangeDetectorRef) { }
 
   selection = new SelectionModel<any>(true, []);
 
-  ngOnInit() { }
+  ngOnInit() {
+    this.loadLocations();
+  }
+
+  loadLocations() {
+    this.locationService.getWarehouses().subscribe(data => {
+      this.warehouses = data.filter(w => w.isActive);
+      this.cdr.detectChanges();
+    });
+    this.locationService.getRacks().subscribe(data => {
+      this.racks = data.filter(r => r.isActive);
+      this.cdr.detectChanges();
+    });
+  }
+
+  onWarehouseChange() {
+    if (this.selectedWarehouseId) {
+      this.filteredRacks = this.racks.filter(r => r.warehouseId === this.selectedWarehouseId);
+    } else {
+      this.filteredRacks = [];
+    }
+    this.selectedRackId = null;
+    this.applyDateFilter(); // Re-fetch
+  }
 
   ngAfterViewInit() {
     this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
@@ -125,7 +157,9 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
       this.paginator.pageSize,
       this.searchValue, // Current Global Search
       this.startDate,   // New Date Filter
-      this.endDate      // New Date Filter
+      this.endDate,     // New Date Filter
+      this.selectedWarehouseId,
+      this.selectedRackId
     ).pipe(
       catchError(() => {
         this.isLoadingResults = false;
@@ -160,6 +194,8 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
         return {
           productId: item.productId,
           productName: item.productName,
+          warehouseName: item.warehouseName,
+          rackName: item.rackName,
           totalReceived: item.totalReceived,
           totalRejected: item.totalRejected,
           totalSold: item.totalSold || 0,

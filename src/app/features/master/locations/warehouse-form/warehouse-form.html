@@ -1,0 +1,41 @@
+<div class="form-container">
+    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px" style="margin-bottom: 24px;">
+      <button mat-icon-button routerLink="/app/master/warehouses">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1 class="page-title">{{ isEditMode ? 'Edit' : 'Add New' }} Warehouse</h1>
+    </div>
+  
+    <mat-card class="form-card">
+      <form [formGroup]="warehouseForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Warehouse Name</mat-label>
+            <input matInput formControlName="name" placeholder="Enter warehouse name (e.g. Main Godown)">
+            <mat-error *ngIf="warehouseForm.get('name')?.hasError('required')">
+              Warehouse name is required
+            </mat-error>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" placeholder="Short description about the location" rows="3"></textarea>
+          </mat-form-field>
+  
+          <div class="status-toggle">
+            <mat-slide-toggle formControlName="isActive" color="primary">
+              Active Status
+            </mat-slide-toggle>
+            <p class="hint-text">Disabled warehouses won't be visible in selection dropdowns.</p>
+          </div>
+        </div>
+  
+        <div class="form-actions">
+          <button mat-stroked-button type="button" routerLink="/app/master/warehouses">CANCEL</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="warehouseForm.invalid || isLoading">
+            <mat-icon>save</mat-icon> {{ isEditMode ? 'UPDATE' : 'SAVE' }} WAREHOUSE
+          </button>
+        </div>
+      </form>
+    </mat-card>
+  </div>

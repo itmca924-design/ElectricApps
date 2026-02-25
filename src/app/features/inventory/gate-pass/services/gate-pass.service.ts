@@ -25,4 +25,7 @@ export class GatePassService {
         return this.api.delete(`GatePass/${id}`);
     }
 
+    checkDuplicateGatePass(referenceNo: string, passType: string): Observable<any> {
+        return this.api.get(`GatePass/CheckDuplicate?referenceNo=${referenceNo}&passType=${passType}`);
+    }
 }

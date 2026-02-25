@@ -175,6 +175,26 @@
         <input matInput type="number" formControlName="minStock" placeholder="Alert level">
       </mat-form-field>
 
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Default Warehouse</mat-label>
+        <mat-select formControlName="defaultWarehouseId" (selectionChange)="onWarehouseChange($event.value)">
+          <mat-option [value]="null">No Default</mat-option>
+          <mat-option *ngFor="let w of warehouses" [value]="w.id">
+            {{ w.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Default Rack</mat-label>
+        <mat-select formControlName="defaultRackId">
+          <mat-option [value]="null">No Default</mat-option>
+          <mat-option *ngFor="let r of filteredRacks" [value]="r.id">
+            {{ r.name }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
       <div class="toggle-group d-flex gap-3 align-items-center">
         <mat-slide-toggle formControlName="trackInventory" color="primary">
           <span style="font-size: 0.85rem;">Track Inventory</span>
@@ -202,7 +222,7 @@
         <input matInput type="number" formControlName="damagedStock" placeholder="0">
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width" subscriptSizing="dynamic">
+      <mat-form-field appearance="outline" class="col-3" subscriptSizing="dynamic">
         <mat-label>Description</mat-label>
         <textarea matInput rows="1" formControlName="description" placeholder="Technical specifications..."></textarea>
       </mat-form-field>

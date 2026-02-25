@@ -48,18 +48,20 @@
         <table class="grn-items-table">
           <thead>
             <tr>
-              <th class="col-product">Product Name</th>
-              <th class="text-center" style="width: 120px;">Ref PO</th>
-              <th class="text-center" style="width: 80px;">PO Qty</th>
-              <th class="text-center" style="width: 70px;">Pend. Qty</th>
-              <th class="text-center" style="width: 80px;">Recv. Qty</th>
-              <th class="text-center" style="width: 80px;">Rej. Qty</th>
-              <th class="text-center" style="width: 80px;">Accpt. Qty</th>
-              <th class="text-right" style="width: 100px;">Unit Rate</th>
-              <th class="text-center" style="width: 60px;">DISC %</th>
-              <th class="text-center" style="width: 60px;">GST %</th>
-              <th class="text-right" style="width: 100px;">TAX AMT</th>
-              <th class="text-right" style="width: 100px;">Total</th>
+              <th class="col-product" style="width: 130px;">Product Name</th>
+              <th class="text-center" style="width: 90px;">Ref PO</th>
+              <th class="text-center" style="width: 45px;">PO Qty</th>
+              <th class="text-center" style="width: 45px;">Pend. Qty</th>
+              <th class="text-center" style="width: 55px;">Recv. Qty</th>
+              <th class="text-center" style="width: 55px;">Rej. Qty</th>
+              <th class="text-center" style="width: 45px;">Accpt. Qty</th>
+              <th class="text-center" style="width: 130px;">Warehouse</th>
+              <th class="text-center" style="width: 120px;">Rack</th>
+              <th class="text-right" style="width: 75px;">Unit Rate</th>
+              <th class="text-center" style="width: 45px;">DISC %</th>
+              <th class="text-center" style="width: 45px;">GST %</th>
+              <th class="text-right" style="width: 75px;">TAX AMT</th>
+              <th class="text-right" style="width: 75px;">Total</th>
             </tr>
           </thead>
           <tbody>
@@ -71,7 +73,7 @@
               <td class="text-center">{{item.orderedQty}}</td>
               <td class="text-center text-primary"><b>{{item.pendingQty}}</b></td>
               <td class="text-center">
-                <mat-form-field appearance="outline" class="dense-input" subscriptSizing="dynamic">
+                <mat-form-field appearance="outline" class="dense-input narrow" subscriptSizing="dynamic">
                   <input matInput type="number" 
                          [(ngModel)]="item.receivedQty" 
                          (ngModelChange)="onQtyChange(item)"
@@ -81,7 +83,7 @@
                 </mat-form-field>
               </td>
               <td class="text-center">
-                <mat-form-field appearance="outline" class="dense-input" subscriptSizing="dynamic">
+                <mat-form-field appearance="outline" class="dense-input narrow" subscriptSizing="dynamic">
                   <input matInput type="number" 
                          [(ngModel)]="item.rejectedQty" 
                          (ngModelChange)="onQtyChange(item)"
@@ -90,6 +92,25 @@
                 </mat-form-field>
               </td>
               <td class="text-center text-accepted"><b>{{item.acceptedQty}}</b></td>
+              
+              <td class="text-center">
+                <mat-form-field appearance="outline" class="dense-input wide" subscriptSizing="dynamic">
+                  <mat-select [(ngModel)]="item.warehouseId" (selectionChange)="onWarehouseChange(item)" [disabled]="isViewMode" placeholder="Warehouse">
+                    <mat-option [value]="null">Select</mat-option>
+                    <mat-option *ngFor="let w of warehouses" [value]="w.id">{{w.name}}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </td>
+
+              <td class="text-center">
+                <mat-form-field appearance="outline" class="dense-input wide" subscriptSizing="dynamic">
+                  <mat-select [(ngModel)]="item.rackId" [disabled]="isViewMode" placeholder="Rack">
+                    <mat-option [value]="null">Select</mat-option>
+                    <mat-option *ngFor="let r of filteredRacksMap[item.productId]" [value]="r.id">{{r.name}}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </td>
+
               <td class="text-right">{{item.unitRate | currency:'INR'}}</td>
               <td class="text-center text-secondary small">{{item.discountPercent}}%</td>
               <td class="text-center text-secondary small">{{item.gstPercent}}%</td>

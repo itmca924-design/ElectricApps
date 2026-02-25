@@ -141,10 +141,42 @@ export class InwardGatePassComponent implements OnInit {
         const isBulk = params['isBulk'] === 'true';
         this.isReplacement = params['isReplacement'] === 'true';
 
-        if (!refId) return;
+        if (!refId || !refNo) return;
 
+        // --- CHECK FOR DUPLICATE GATE PASS ---
+        this.loadingService.setLoading(true);
+        this.gatePassService.checkDuplicateGatePass(refNo, 'Inward').subscribe({
+            next: (dupRes) => {
+                if (dupRes.isDuplicate && !this.isEditMode) {
+                    this.loadingService.setLoading(false);
+                    this.dialog.open(StatusDialogComponent, {
+                        width: '450px',
+                        data: {
+                            title: 'Duplicate Gate Pass Found',
+                            message: `An Inward Gate Pass (${dupRes.passNo}) already exists for ${refNo}. \n\nYou cannot create another gate pass for the same PO until the previous one is completed (GRN created). \n\nPlease use the existing gate pass to create the GRN.`,
+                            status: 'warning',
+                            isSuccess: false
+                        }
+                    }).afterClosed().subscribe(() => {
+                        this.router.navigate(['/app/inventory/gate-pass']);
+                    });
+                    return;
+                }
+
+                // Continue with normal flow if not duplicate
+                this.continuePORedirection(params, refNo, refId, isBulk);
+            },
+            error: (err) => {
+                console.error('Error checking duplicate GP:', err);
+                this.continuePORedirection(params, refNo, refId, isBulk); // Proceed anyway if check fails
+            }
+        });
+    }
+
+    private continuePORedirection(params: any, refNo: string, refId: any, isBulk: boolean) {
         // --- BULK FLOW ---
         if (isBulk) {
+            this.loadingService.setLoading(false);
             this.bulkBreakdown = params['breakdown'] || '';
             this.gatePassForm.patchValue({
                 referenceType: GatePassReferenceType.PurchaseOrder,
@@ -160,7 +192,6 @@ export class InwardGatePassComponent implements OnInit {
         }
 
         // --- SINGLE PO FLOW ---
-        this.loadingService.setLoading(true);
         // Call the new backend endpoint for accurate replacement quantity
         this.poService.getReplacementQty(Number(refId)).subscribe({
             next: (resp) => {
@@ -309,13 +340,32 @@ export class InwardGatePassComponent implements OnInit {
     onPOSelected(poId: any) {
         const selectedPO = this.availablePOs.find(p => String(p.id) === String(poId));
         if (selectedPO) {
-            this.gatePassForm.patchValue({
-                referenceNo: selectedPO.poNumber,
-                partyName: selectedPO.supplierName,
-                expectedQty: selectedPO.expectedQty,
-                invoiceNo: `CH-${selectedPO.poNumber.replace(/\//g, '-')}` // Auto-filling Challan No for PO
+            // Check for duplicate
+            this.gatePassService.checkDuplicateGatePass(selectedPO.poNumber, 'Inward').subscribe(dupRes => {
+                if (dupRes.isDuplicate) {
+                    this.dialog.open(StatusDialogComponent, {
+                        width: '450px',
+                        data: {
+                            title: 'Duplicate Gate Pass Found',
+                            message: `An Inward Gate Pass (${dupRes.passNo}) already exists for ${selectedPO.poNumber}. \n\nYou cannot create another gate pass for the same PO until the previous one is completed (GRN created). \n\nPlease use the existing gate pass to create the GRN.`,
+                            status: 'warning',
+                            isSuccess: false
+                        }
+                    }).afterClosed().subscribe(() => {
+                        this.gatePassForm.patchValue({ referenceId: '', referenceNo: '', partyName: '', expectedQty: 0 });
+                        this.router.navigate(['/app/inventory/gate-pass']);
+                    });
+                    return;
+                }
+
+                this.gatePassForm.patchValue({
+                    referenceNo: selectedPO.poNumber,
+                    partyName: selectedPO.supplierName,
+                    expectedQty: selectedPO.expectedQty,
+                    invoiceNo: `CH-${selectedPO.poNumber.replace(/\//g, '-')}`
+                });
+                this.isReplacement = false;
             });
-            this.isReplacement = false;
         }
     }
 

@@ -8,6 +8,8 @@ import { StatusDialogComponent } from '../../../shared/components/status-dialog-
 import { MatDialog } from '@angular/material/dialog';
 import { GrnSuccessDialogComponent } from '../grn-success-dialog/grn-success-dialog.component';
 import { FinanceService } from '../../finance/service/finance.service';
+import { LocationService } from '../../master/locations/services/locations.service';
+import { Warehouse, Rack } from '../../master/locations/models/locations.model';
 
 @Component({
   selector: 'app-grn-form-component',
@@ -26,6 +28,11 @@ export class GrnFormComponent implements OnInit {
   isViewMode: boolean = false;
   private dialog = inject(MatDialog);
   private financeService = inject(FinanceService);
+  private locationService = inject(LocationService);
+
+  warehouses: Warehouse[] = [];
+  racks: Rack[] = [];
+  filteredRacksMap: { [productId: string]: Rack[] } = {};
 
   constructor(
     private fb: FormBuilder,
@@ -59,6 +66,8 @@ export class GrnFormComponent implements OnInit {
         }
       }
     });
+
+    this.loadLocations();
 
     this.route.queryParams.subscribe(params => {
       if (params['poId']) {
@@ -99,6 +108,19 @@ export class GrnFormComponent implements OnInit {
       gatePassNo: [{ value: '', disabled: true }],
       remarks: ['']
     });
+  }
+
+  loadLocations() {
+    this.locationService.getWarehouses().subscribe(data => this.warehouses = data.filter(w => w.isActive));
+    this.locationService.getRacks().subscribe(data => this.racks = data.filter(r => r.isActive));
+  }
+
+  onWarehouseChange(item: any) {
+    this.filteredRacksMap[item.productId] = this.racks.filter(r => r.warehouseId === item.warehouseId);
+    // Reset rack if it's not in the new filtered list
+    if (item.rackId && !this.filteredRacksMap[item.productId].some(r => r.id === item.rackId)) {
+      item.rackId = null;
+    }
   }
 
   loadPOData(id: string, grnHeaderId: number | null = null, gatePassNo: string | null = null) {
@@ -187,9 +209,19 @@ export class GrnFormComponent implements OnInit {
         discountPercent: discPer,
         gstPercent: gstPer,
         taxAmount: taxAmt,
-        total: taxableAmt + taxAmt
+        total: taxableAmt + taxAmt,
+        warehouseId: item.warehouseId || item.WarehouseId || null,
+        rackId: item.rackId || item.RackId || null
       };
     });
+
+    // Initialize filtered racks for each item
+    this.items.forEach(item => {
+      if (item.warehouseId) {
+        this.onWarehouseChange(item);
+      }
+    });
+
     this.calculateGrandTotal();
     this.cdr.detectChanges();
   }
@@ -287,7 +319,9 @@ export class GrnFormComponent implements OnInit {
           productId: i.productId,
           receivedQty: i.receivedQty,
           rejectedQty: i.rejectedQty,
-          unitRate: i.unitRate
+          unitRate: i.unitRate,
+          warehouseId: i.warehouseId,
+          rackId: i.rackId
         }))
       };
 
@@ -335,7 +369,9 @@ export class GrnFormComponent implements OnInit {
         discountPercent: Number(item.discountPercent),
         gstPercent: Number(item.gstPercent),
         taxAmount: Number(item.taxAmount),
-        totalAmount: Number(item.total)
+        totalAmount: Number(item.total),
+        warehouseId: item.warehouseId,
+        rackId: item.rackId
       }))
     };
 

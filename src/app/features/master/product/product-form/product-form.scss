@@ -37,6 +37,10 @@ mat-card.product-card {
     grid-column: 1 / -1;
   }
 
+  .col-3 {
+    grid-column: span 3;
+  }
+
   .toggle-group {
     grid-column: span 1;
     display: flex;

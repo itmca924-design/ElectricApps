@@ -14,6 +14,9 @@ import { Observable, Subject, of } from 'rxjs';
 import { map, startWith, takeUntil, finalize } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 
+import { LocationService } from '../../locations/services/locations.service';
+import { Warehouse, Rack } from '../../locations/models/locations.model';
+
 @Component({
   selector: 'app-product-form',
   standalone: true,
@@ -30,6 +33,7 @@ export class ProductForm implements OnInit, OnDestroy {
   private productLukupService = inject(ProductLookUpService);
   private productService = inject(ProductService);
   private unitService = inject(UnitService);
+  private locationService = inject(LocationService);
   private destroy$ = new Subject<void>();
 
   productsForm!: FormGroup;
@@ -40,6 +44,9 @@ export class ProductForm implements OnInit, OnDestroy {
   categories: any[] = [];
   subcategories: any[] = [];
   units: any[] = [];
+  warehouses: Warehouse[] = [];
+  racks: Rack[] = [];
+  filteredRacks: Rack[] = [];
 
   filteredCategories!: Observable<any[]>;
   filteredSubcategories!: Observable<any[]>;
@@ -210,12 +217,16 @@ export class ProductForm implements OnInit, OnDestroy {
                 mrp: res.mrp,
                 defaultGst: res.defaultGst,
                 trackInventory: res.trackInventory,
-                isActive: res.isActive,
-                minStock: res.minStock,
                 description: res.description,
                 productType: res.productType,
-                damagedStock: res.damagedStock
+                damagedStock: res.damagedStock,
+                defaultWarehouseId: res.defaultWarehouseId,
+                defaultRackId: res.defaultRackId
               });
+
+              if (res.defaultWarehouseId) {
+                this.onWarehouseChange(res.defaultWarehouseId);
+              }
 
               // Sync Autocomplete text
               this.syncAutocomplete(res.categoryId, res.subcategoryId);
@@ -399,11 +410,16 @@ export class ProductForm implements OnInit, OnDestroy {
       saleRate: [0, [Validators.min(0)]],
       productType: [null, [Validators.required]],
       damagedStock: [0],
+      defaultWarehouseId: [null],
+      defaultRackId: [null]
     });
   }
 
   loadInitialLookups() {
     this.unitService.getAll().subscribe(data => this.units = data || []);
+    this.locationService.getWarehouses().subscribe(data => this.warehouses = data.filter(w => w.isActive));
+    this.locationService.getRacks().subscribe(data => this.racks = data.filter(r => r.isActive));
+
     this.productLukupService.getLookups().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         this.categories = res.categories;
@@ -414,6 +430,15 @@ export class ProductForm implements OnInit, OnDestroy {
       },
       error: (err) => console.error('Lookup load failed', err)
     });
+  }
+
+  onWarehouseChange(warehouseId: string) {
+    this.filteredRacks = this.racks.filter(r => r.warehouseId === warehouseId);
+    // If current selected rack is not in the new filtered list, clear it
+    const currentRackId = this.productsForm.get('defaultRackId')?.value;
+    if (currentRackId && !this.filteredRacks.some(r => r.id === currentRackId)) {
+      this.productsForm.get('defaultRackId')?.setValue(null);
+    }
   }
 
   onCategoryChange(categoryId: number): void {
@@ -538,6 +563,8 @@ export class ProductForm implements OnInit, OnDestroy {
       saleRate: Number(formValue.saleRate),
       productType: formValue.productType ? String(formValue.productType) : '',
       damagedStock: formValue.damagedStock ? Number(formValue.damagedStock) : 0,
+      defaultWarehouseId: formValue.defaultWarehouseId,
+      defaultRackId: formValue.defaultRackId
     };
   }
 }

@@ -1,0 +1,52 @@
+<div class="form-container">
+    <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px" style="margin-bottom: 24px;">
+      <button mat-icon-button routerLink="/app/master/racks">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1 class="page-title">{{ isEditMode ? 'Edit' : 'Add New' }} Rack</h1>
+    </div>
+  
+    <mat-card class="form-card">
+      <form [formGroup]="rackForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Select Warehouse</mat-label>
+            <mat-select formControlName="warehouseId">
+              <mat-option *ngFor="let w of warehouses" [value]="w.id">
+                {{ w.name }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="rackForm.get('warehouseId')?.hasError('required')">
+              Warehouse selection is required
+            </mat-error>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Rack Name</mat-label>
+            <input matInput formControlName="name" placeholder="Enter rack name (e.g. Rack A1, Shelf 2)">
+            <mat-error *ngIf="rackForm.get('name')?.hasError('required')">
+              Rack name is required
+            </mat-error>
+          </mat-form-field>
+  
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" placeholder="Short description about the rack location" rows="3"></textarea>
+          </mat-form-field>
+  
+          <div class="status-toggle">
+            <mat-slide-toggle formControlName="isActive" color="primary">
+              Active Status
+            </mat-slide-toggle>
+          </div>
+        </div>
+  
+        <div class="form-actions">
+          <button mat-stroked-button type="button" routerLink="/app/master/racks">CANCEL</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="rackForm.invalid || isLoading">
+            <mat-icon>save</mat-icon> {{ isEditMode ? 'UPDATE' : 'SAVE' }} RACK
+          </button>
+        </div>
+      </form>
+    </mat-card>
+  </div>
