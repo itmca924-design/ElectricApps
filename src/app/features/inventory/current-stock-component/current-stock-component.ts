@@ -1,4 +1,6 @@
 import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+import { LocationTrackerDialogComponent } from '../purchase-return/location-tracker-dialog/location-tracker-dialog.component';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource } from '@angular/material/table';
@@ -31,6 +33,7 @@ import { LocationService } from '../../master/locations/services/locations.servi
 })
 export class CurrentStockComponent implements OnInit, AfterViewInit {
   private loadingService = inject(LoadingService);
+  private dialog = inject(MatDialog);
 
   // ✅ Updated: Added warehouse and rack in correct sequence for the table
   displayedColumns: string[] = ['select', 'productName', 'warehouseName', 'rackName', 'totalReceived', 'totalRejected', 'totalSold', 'availableStock', 'unitRate', 'actions'];
@@ -67,6 +70,26 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   filteredRacks: any[] = [];
   selectedWarehouseId: string | null = null;
   selectedRackId: string | null = null;
+
+  viewLiveLocation(item: any) {
+    if (!item) return;
+
+    // Fetch full warehouse info to get description if possible
+    this.locationService.getWarehouses().subscribe((warehouses: any[]) => {
+      const warehouse = warehouses.find((w: any) => w.name === item.warehouseName);
+
+      this.dialog.open(LocationTrackerDialogComponent, {
+        width: '500px',
+        data: {
+          warehouseName: item.warehouseName,
+          rackName: item.rackName,
+          description: warehouse?.description || 'Daily audit required for this zone. Ensure stock is organized by SKU.',
+          productId: item.productId
+        },
+        panelClass: 'live-location-dialog'
+      });
+    });
+  }
 
   constructor(private inventoryService: InventoryService, private router: Router,
     private cdr: ChangeDetectorRef) { }

@@ -593,7 +593,7 @@ export class PoList implements OnInit {
     this.router.navigate(['/app/inventory/purchase-return/add'], {
       queryParams: {
         poId: row.id,
-        supplierId: row.supplierId
+        supplierId: row.supplierId || row.partyId || row.vendorId || row.party_Id || row.id_Supplier || 0
       }
     });
   }

@@ -105,7 +105,10 @@
                                  <span [class.stock-danger]="item.currentStock < 0" [class.stock-success]="item.currentStock >= 0">
                                    Stock: {{item.currentStock}}
                                  </span> | 
-                                 Loc: {{item.warehouseName}}/{{item.rackName}})
+                                 <span class="location-badge live" (click)="$event.stopPropagation(); viewLiveLocation(item)" style="padding: 2px 4px; font-size: 11px;">
+                                   <mat-icon style="font-size: 11px; width: 11px; height: 11px; vertical-align: middle;">location_on</mat-icon>
+                                   {{item.warehouseName}}/{{item.rackName}}
+                                 </span>)
                                </small>
                             </span>
                          </mat-checkbox>
@@ -157,7 +160,9 @@
                 <span class="type-badge ms-2 stock-info-badge" [ngClass]="element.value.currentStock < 0 ? 'badge-danger' : 'badge-success'">
                    Stock: {{element.value.currentStock}}
                 </span>
-                <span class="type-badge ms-2 location-badge">
+                <span class="type-badge ms-2 location-badge live" 
+                      matTooltip="Click to view Live Location details"
+                      (click)="viewLiveLocation(element.value)">
                   <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-right: 2px;">location_on</mat-icon>
                   {{element.value.warehouseName}} / {{element.value.rackName}}
                 </span>

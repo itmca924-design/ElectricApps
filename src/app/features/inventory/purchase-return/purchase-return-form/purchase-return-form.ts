@@ -5,20 +5,23 @@ import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core'; //
 import { FormGroup, FormBuilder, Validators, FormArray, FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MaterialModule } from '../../../../shared/material/material/material-module';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PurchaseReturnService } from '../services/purchase-return.service';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { MatDialog } from '@angular/material/dialog';
 import { CompanyService } from '../../../company/services/company.service';
 import { LoadingService } from '../../../../core/services/loading.service';
+import { POService } from '../../service/po.service';
+import { LocationService } from '../../../master/locations/services/locations.service';
+import { LocationTrackerDialogComponent } from '../location-tracker-dialog/location-tracker-dialog.component';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { environment } from '../../../../enviornments/environment';
 
 @Component({
   selector: 'app-purchase-return-form',
   standalone: true,
-  imports: [CommonModule, MaterialModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, MaterialModule, ReactiveFormsModule, FormsModule, LocationTrackerDialogComponent],
   providers: [DatePipe, CurrencyPipe],
   templateUrl: './purchase-return-form.html',
   styleUrl: './purchase-return-form.scss',
@@ -27,8 +30,28 @@ export class PurchaseReturnForm implements OnInit {
   returnForm!: FormGroup;
   suppliers: any[] = [];
   displayedColumns: string[] = ['product', 'rejectedQty', 'returnQty', 'rate', 'discount', 'gst', 'taxAmount', 'total', 'actions'];
-  tableDataSource: any[] = []; // Explicit data source for MatTable binding
+  tableDataSource: any[] = [];
   minDate: Date = new Date();
+
+  viewLiveLocation(item: any) {
+    if (!item) return;
+
+    // Fetch full warehouse info to get description if possible
+    this.locationService.getWarehouses().subscribe((warehouses: any[]) => {
+      const warehouse = warehouses.find((w: any) => w.name === item.warehouseName);
+
+      this.dialog.open(LocationTrackerDialogComponent, {
+        width: '500px',
+        data: {
+          warehouseName: item.warehouseName,
+          rackName: item.rackName,
+          description: warehouse?.description || 'No detailed instructions available for this location.',
+          productId: item.productId
+        },
+        panelClass: 'live-location-dialog'
+      });
+    });
+  }
 
   // CDR inject kiya taaki table bind ho sake [cite: 2026-02-03]
   private cdr = inject(ChangeDetectorRef);
@@ -42,12 +65,53 @@ export class PurchaseReturnForm implements OnInit {
     private companyService: CompanyService,
     private loadingService: LoadingService,
     private datePipe: DatePipe,
-    private currencyPipe: CurrencyPipe
+    private currencyPipe: CurrencyPipe,
+    private route: ActivatedRoute,
+    private poService: POService,
+    private locationService: LocationService
   ) { }
 
   ngOnInit(): void {
     this.initForm();
-    this.GetSuppliersForPurchaseReturnAsync();
+    this.GetSuppliersForPurchaseReturnAndAutoSelect();
+  }
+
+  GetSuppliersForPurchaseReturnAndAutoSelect() {
+    this.prService.GetSuppliersForPurchaseReturnAsync().subscribe({
+      next: (data) => {
+        this.suppliers = data || [];
+        this.cdr.detectChanges();
+
+        // Check if supplierId is passed via queryParams (from PO List Red Truck)
+        this.route.queryParams.subscribe(params => {
+          let sId = params['supplierId'];
+          const poId = params['poId'];
+
+          // If supplierId is "0" or missing but poId exists, fetch PO to get supplierId
+          if ((!sId || sId === '0') && poId) {
+            console.log('[PurchaseReturn] Supplier ID missing, fetching from PO:', poId);
+            this.poService.getById(poId).subscribe({
+              next: (po: any) => {
+                const fetchedSId = po.supplierId || po.partyId;
+                if (fetchedSId) {
+                  this.autoSelectSupplier(fetchedSId);
+                }
+              }
+            });
+          } else if (sId && sId !== '0') {
+            this.autoSelectSupplier(Number(sId));
+          }
+        });
+      },
+      error: (err) => console.error("Error loading suppliers", err)
+    });
+  }
+
+  private autoSelectSupplier(sId: number) {
+    console.log('[PurchaseReturn] Auto-selecting supplierId:', sId);
+    this.returnForm.get('supplierId')?.setValue(sId);
+    this.returnForm.get('supplierId')?.disable(); // Lock the supplier to prevent mismatch
+    this.onSupplierChange(sId);
   }
 
   initForm() {
@@ -63,15 +127,6 @@ export class PurchaseReturnForm implements OnInit {
     return this.returnForm.get('items') as FormArray;
   }
 
-  GetSuppliersForPurchaseReturnAsync() {
-    this.prService.GetSuppliersForPurchaseReturnAsync().subscribe({
-      next: (data) => {
-        this.suppliers = data || [];
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error("Error loading suppliers", err)
-    });
-  }
 
   receivedStockItems: any[] = []; // Raw flat list
   groupedReceivedStock: any[] = []; // Hierarchy: GRN -> Items

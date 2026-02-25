@@ -514,6 +514,32 @@ table.clean-table {
     align-items: center;
     gap: 4px;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &.live {
+      background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+
+      mat-icon {
+        color: #2563eb;
+        animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      }
+
+      &:hover {
+        background: #dbeafe;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
   }
 
   .stock-badge {
