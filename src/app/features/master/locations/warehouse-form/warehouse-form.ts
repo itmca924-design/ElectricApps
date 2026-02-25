@@ -7,13 +7,12 @@ import { LocationService } from '../services/locations.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
-
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
-
 @Component({
     selector: 'app-warehouse-form',
     standalone: true,
-    imports: [CommonModule, MaterialModule, ReactiveFormsModule, RouterLink, SummaryStatsComponent],
+    imports: [CommonModule, MaterialModule, ReactiveFormsModule, RouterLink, 
+        SummaryStatsComponent],
     templateUrl: './warehouse-form.html',
     styleUrl: './warehouse-form.scss',
 })
@@ -23,6 +22,7 @@ export class WarehouseForm implements OnInit {
     warehouseId: string | null = null;
     isLoading = false;
     summaryStats: SummaryStat[] = [];
+
 
     constructor(
         private fb: FormBuilder,
@@ -59,6 +59,8 @@ export class WarehouseForm implements OnInit {
         });
     }
 
+
+
     loadWarehouseData(id: string) {
         this.isLoading = true;
         this.loadingService.setLoading(true);
@@ -69,6 +71,7 @@ export class WarehouseForm implements OnInit {
                     this.warehouseForm.patchValue(warehouse);
                 }
                 this.updateStats(warehouses);
+
                 this.isLoading = false;
                 this.loadingService.setLoading(false);
             },
@@ -78,6 +81,8 @@ export class WarehouseForm implements OnInit {
             }
         });
     }
+
+
 
     private updateStats(warehouses: any[]): void {
         const total = warehouses.length;
