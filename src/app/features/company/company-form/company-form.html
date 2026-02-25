@@ -100,15 +100,37 @@
         </mat-card-header>
         <mat-card-content class="pt-4">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Message</mat-label>
+            <mat-label>Customer Reminder Message</mat-label>
             <textarea
               matInput
               formControlName="message"
-              rows="5"
-              placeholder="Ye [Company Name] ki taraf se ek friendly reminder hai.&#10;&#10;Aapka abhi *₹[Amount]* ka payment pending hai.&#10;&#10;Kripaya jald se jald payment karein.&#10;&#10;Shukriya! 🙏"
+              rows="4"
+              placeholder="Ye [Company Name] ki taraf se ek friendly reminder hai..."
             ></textarea>
             <mat-icon matSuffix>message</mat-icon>
-            <mat-hint>Ye message customer dues reminder mein use hoga. Aap ₹[Amount] jaise placeholders use kar sakte hain.</mat-hint>
+            <mat-hint>Ye message customer dues reminder mein use hoga.</mat-hint>
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Section: Driver Tracking Message -->
+      <mat-card class="section-card">
+        <mat-card-header>
+          <mat-icon mat-card-avatar color="primary">local_shipping</mat-icon>
+          <mat-card-title>Driver Tracking Message Template</mat-card-title>
+          <mat-card-subtitle>Driver se live location mangne ke liye default message</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content class="pt-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Driver Message</mat-label>
+            <textarea
+              matInput
+              formControlName="driverWhatsAppMessage"
+              rows="4"
+              placeholder="Hello [Driver], this is [Company Name]. Please share your LIVE LOCATION for Truck [Vehicle No]..."
+            ></textarea>
+            <mat-icon matSuffix>add_location_alt</mat-icon>
+            <mat-hint>Ye message Gate Pass list se location mangte waqt use hoga.</mat-hint>
           </mat-form-field>
         </mat-card-content>
       </mat-card>

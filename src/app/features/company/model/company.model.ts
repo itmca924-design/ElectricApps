@@ -13,6 +13,7 @@ export interface CompanyProfileDto {
     primaryPhone: string;
     website: string;
     message: string | null; // WhatsApp/SMS reminder message
+    driverWhatsAppMessage: string | null; // Custom message for driver tracking
     isActive: boolean;
     address: AddressDto; // Nested Object
     bankInfo: BankDetailDto; // Nested Object
@@ -70,6 +71,7 @@ export interface UpsertCompanyRequest {
     primaryPhone: string;
     website: string;
     message: string | null; // WhatsApp/SMS reminder message
+    driverWhatsAppMessage: string | null; // Custom message for driver tracking
     address: AddressDto;
     bankInfo: BankDetailDto;
     authorizedSignatories: AuthorizedSignatoryDto[];

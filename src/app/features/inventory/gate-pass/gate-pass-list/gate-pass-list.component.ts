@@ -276,13 +276,22 @@ export class GatePassListComponent implements OnInit {
         // Default to India (91) if 10 digits
         const phoneWithCountry = cleanPhone.length === 10 ? '91' + cleanPhone : cleanPhone;
 
-        const companyName = this.companyProfile?.name || 'Reyakat Electrics';
+        const companyName = this.companyProfile?.name || this.companyProfile?.tagName;
         const companyPhone = this.companyProfile?.primaryPhone || '';
 
-        let message = `Hello ${row.driverName || 'Driver'}, this is ${companyName}. Please share your LIVE LOCATION for Truck ${row.vehicleNo} (Gate Pass: ${row.passNo}).`;
-
-        if (companyPhone) {
-            message += ` You can also contact us at ${companyPhone}.`;
+        // Use dynamic template if available, else fallback to default
+        let message = '';
+        if (this.companyProfile?.driverWhatsAppMessage) {
+            message = this.companyProfile.driverWhatsAppMessage
+                .replace(/\[Driver\]/g, row.driverName || 'Driver')
+                .replace(/\[Company Name\]/g, companyName)
+                .replace(/\[Vehicle No\]/g, row.vehicleNo)
+                .replace(/\[Pass No\]/g, row.passNo);
+        } else {
+            message = `Hello ${row.driverName || 'Driver'}, this is ${companyName}. Please share your LIVE LOCATION for Truck ${row.vehicleNo} (Gate Pass: ${row.passNo}). Shukriya! \uD83D\uDE4F`;
+            if (companyPhone) {
+                message += ` Contact: ${companyPhone}`;
+            }
         }
 
         const url = `https://wa.me/${phoneWithCountry}?text=${encodeURIComponent(message)}`;

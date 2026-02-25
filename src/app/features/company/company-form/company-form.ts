@@ -68,6 +68,7 @@ export class CompanyForm implements OnInit {
             primaryPhone: ['', [Validators.required]],
             website: [''],
             message: [''],
+            driverWhatsAppMessage: [''],
             isActive: [true],
 
             // Address Nested Group
