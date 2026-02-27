@@ -40,6 +40,7 @@ export class SupplierList implements OnInit {
   columns: GridColumn[] = [
     { field: 'name', header: 'Supplier Name', sortable: true, width: 250, visible: true },
     { field: 'phone', header: 'Phone', sortable: true, width: 150, visible: true },
+    { field: 'email', header: 'Email', sortable: true, width: 220, visible: true },
     { field: 'gstIn', header: 'GSTIN', sortable: true, width: 180, visible: true },
     {
       field: 'isActive',

@@ -194,8 +194,9 @@ export class PoList implements OnInit {
           if (isFinished) return row.status;
 
           const needsAction = isFulfillmentPending || hasPendingReturns || remainsToReceive;
+          const hasMovement = tRec > 0 || tAcc > 0 || tRej > 0;
 
-          if ((status === 'received' || status === 'partially received' || status === 'approved') && needsAction) {
+          if (((status === 'received' || status === 'partially received') || (status === 'approved' && hasMovement)) && needsAction) {
             const days = row.daysSinceUpdate || 0;
             let prefix = 'Partially Received';
 

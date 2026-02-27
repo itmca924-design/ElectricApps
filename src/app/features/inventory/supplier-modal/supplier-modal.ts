@@ -37,6 +37,7 @@ export class SupplierModalComponent implements OnInit {
       name: ['', Validators.required],
       phone: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
       gstIn: [''],
+      email: ['', [Validators.email]],
       address: [''],
       defaultpricelistId: [null, Validators.required],
       isActive: [true]

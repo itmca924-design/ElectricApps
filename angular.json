@@ -36,9 +36,14 @@
             ],
             "scripts": []
           },
-            "configurations": {
-              "production": {
-                "fileReplacements": [
+              "configurations": {
+                "production": {
+                  "optimization": {
+                    "fonts": {
+                      "inline": false
+                    }
+                  },
+                  "fileReplacements": [
                   {
                     "replace": "src/app/enviornments/environment.ts",
                     "with": "src/app/enviornments/environment.prod.ts"

@@ -21,8 +21,7 @@ import { environment } from '../../../../enviornments/environment';
 @Component({
   selector: 'app-purchase-return-form',
   standalone: true,
-  imports: [CommonModule, MaterialModule, ReactiveFormsModule, FormsModule,
-    LocationTrackerDialogComponent],
+  imports: [CommonModule, MaterialModule, ReactiveFormsModule, FormsModule, LocationTrackerDialogComponent],
   providers: [DatePipe, CurrencyPipe],
   templateUrl: './purchase-return-form.html',
   styleUrl: './purchase-return-form.scss',

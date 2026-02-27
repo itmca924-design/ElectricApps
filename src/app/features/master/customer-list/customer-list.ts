@@ -37,6 +37,7 @@ export class CustomerList implements OnInit {
   columns: GridColumn[] = [
     { field: 'customerName', header: 'Customer Name', sortable: true, width: 250, visible: true },
     { field: 'phone', header: 'Phone', sortable: true, width: 150, visible: true },
+    { field: 'email', header: 'Email', sortable: true, width: 220, visible: true },
     { field: 'customerType', header: 'Type', sortable: true, width: 150, visible: true },
     { field: 'status', header: 'Status', sortable: true, width: 120, visible: true }
   ];

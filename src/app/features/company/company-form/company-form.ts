@@ -69,6 +69,11 @@ export class CompanyForm implements OnInit {
             website: [''],
             message: [''],
             driverWhatsAppMessage: [''],
+            smtpEmail: ['', [Validators.email]],
+            smtpPassword: [''],
+            smtpHost: [''],
+            smtpPort: [587],
+            smtpUseSsl: [true],
             isActive: [true],
 
             // Address Nested Group

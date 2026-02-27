@@ -14,6 +14,7 @@ export interface Supplier {
     address?: string;
     createdBy?: string;
     defaultpricelistId?: string;
+    email?: string;
     isActive?: boolean;
 }
 

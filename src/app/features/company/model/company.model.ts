@@ -14,6 +14,11 @@ export interface CompanyProfileDto {
     website: string;
     message: string | null; // WhatsApp/SMS reminder message
     driverWhatsAppMessage: string | null; // Custom message for driver tracking
+    smtpEmail: string | null;
+    smtpPassword: string | null;
+    smtpHost: string | null;
+    smtpPort: number | null;
+    smtpUseSsl: boolean;
     isActive: boolean;
     address: AddressDto; // Nested Object
     bankInfo: BankDetailDto; // Nested Object
@@ -72,6 +77,11 @@ export interface UpsertCompanyRequest {
     website: string;
     message: string | null; // WhatsApp/SMS reminder message
     driverWhatsAppMessage: string | null; // Custom message for driver tracking
+    smtpEmail: string | null;
+    smtpPassword: string | null;
+    smtpHost: string | null;
+    smtpPort: number | null;
+    smtpUseSsl: boolean;
     address: AddressDto;
     bankInfo: BankDetailDto;
     authorizedSignatories: AuthorizedSignatoryDto[];
