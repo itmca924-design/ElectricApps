@@ -176,9 +176,9 @@ export class PurchaseReturnList implements OnInit {
 
         // 🚛 Match Returns with Gate Passes & Fix Timezone
         items.forEach((item: any) => {
-          // Fix Date to UTC if it doesn't have timezone info
-          if (item.returnDate && !item.returnDate.includes('Z') && !item.returnDate.includes('+')) {
-            item.returnDate = item.returnDate + '+05:30';
+          // Fix Date: Treat as UTC if no timezone exists
+          if (item.returnDate && typeof item.returnDate === 'string' && !item.returnDate.includes('Z') && !item.returnDate.includes('+')) {
+            item.returnDate = item.returnDate + 'Z';
           }
           const matchingPass = gatePasses.find((gp: any) =>
             gp.referenceNo === item.returnNumber ||

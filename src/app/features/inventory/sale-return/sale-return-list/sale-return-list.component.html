@@ -164,7 +164,7 @@ class="export-action-btn" (click)="exportToExcel()" [disabled]="isExportLoading 
 
                 <ng-container matColumnDef="returnDate">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
-                    <td mat-cell *matCellDef="let row"> {{row.returnDate | date:'dd-MMM-yy hh:mm a':'+0530'}} </td>
+                    <td mat-cell *matCellDef="let row"> {{row.returnDate | date:'dd/MM/yyyy hh:mm a':'+0530'}} </td>
                 </ng-container>
 
                 <ng-container matColumnDef="customerName">
