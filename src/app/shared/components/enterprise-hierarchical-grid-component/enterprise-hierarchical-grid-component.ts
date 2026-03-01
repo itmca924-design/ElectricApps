@@ -332,10 +332,30 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
 
   onResize(column: GridColumn, event: MouseEvent) {
     if (!column.isResizable) return;
-    const startX = event.pageX; const startWidth = column.width || 150;
-    const move = (e: MouseEvent) => { column.width = Math.max(80, startWidth + (e.pageX - startX)); this.cdr.detectChanges(); };
-    const up = () => { document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); };
-    document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+    event.preventDefault();
+    event.stopPropagation();
+
+    const startX = event.pageX;
+    const startWidth = column.width || 150;
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const move = (e: MouseEvent) => {
+      const newWidth = Math.max(80, startWidth + (e.pageX - startX));
+      column.width = newWidth;
+      this.cdr.detectChanges();
+    };
+
+    const up = () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+    };
+
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
   }
 
   toggleColumn(column: GridColumn) { column.visible = !column.visible; this.cdr.detectChanges(); }
@@ -357,11 +377,31 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   }
 
   onResizeChild(col: any, event: MouseEvent) {
+    if (!col.isResizable || event.button !== 0) return; // Only if resizable and left click
     event.preventDefault();
-    const startX = event.pageX; const startWidth = col.width || 120;
-    const onMouseMove = (e: MouseEvent) => { col.width = Math.max(60, startWidth + (e.pageX - startX)); };
-    const onMouseUp = () => { document.removeEventListener('mousemove', onMouseMove); document.removeEventListener('mouseup', onMouseUp); };
-    document.addEventListener('mousemove', onMouseMove); document.addEventListener('mouseup', onMouseUp);
+    event.stopPropagation();
+
+    const startX = event.pageX;
+    const startWidth = col.width || 120;
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    const onMouseMove = (e: MouseEvent) => {
+      const newWidth = Math.max(60, startWidth + (e.pageX - startX));
+      col.width = newWidth;
+      this.cdr.detectChanges(); // Trigger Change Detection to reflect new width
+    };
+
+    const onMouseUp = () => {
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   }
 
   onAddNewClick() { if (this.addNewRoute) this.router.navigate([this.addNewRoute]); }

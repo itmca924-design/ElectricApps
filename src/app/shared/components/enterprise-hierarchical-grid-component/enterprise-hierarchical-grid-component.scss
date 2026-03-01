@@ -202,9 +202,10 @@ app-search-input,
 }
 
 table {
-  width: 100%;
+  min-width: 100%; 
+  width: auto;
+  min-width: 1000px; /* Restored user-defined min-width */
   border-collapse: collapse;
-  min-width: 1000px;
   table-layout: fixed;
 }
 
@@ -214,6 +215,11 @@ table {
   z-index: 100;
   background: #fdfdfe !important;
   transition: box-shadow 0.3s ease;
+  
+  th {
+     position: relative !important; /* Required for resizer-bar to be positioned correctly */
+     overflow: visible !important; /* Show resizer even if it slightly overlaps */
+  }
   
   &::after {
     content: '';
@@ -270,19 +276,25 @@ table {
 
 .resizer-bar {
   position: absolute;
-  right: -5px;
+  right: 0;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 8px; /* Wider hit area */
   cursor: col-resize;
   z-index: 101;
   background: transparent;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  
+  &:hover, &:active {
+    background: rgba(59, 130, 246, 0.4);
+    border-right: 2px solid #3b82f6;
+  }
 }
 
-.resizer-bar:hover,
-.resizer-bar:active {
-  background: rgba(59, 130, 246, 0.6);
+.header-right-side {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 /* CHILD TABLE SECTION */
@@ -668,10 +680,10 @@ th.child-th {
     padding: 0px !important;
 
     .inner-table {
-      width: 100% !important;
+      min-width: 100% !important;
+      width: auto !important;
       border-collapse: collapse;
-      table-layout: auto !important;
-      /* Fixed se Auto kiya taaki columns adjust ho sakein */
+      table-layout: fixed !important; /* Required for programmatic resizing to work reliably */
 
       th.child-th,
       td {
@@ -680,6 +692,8 @@ th.child-th {
         font-size: 12px !important;
         border-bottom: 1px solid #e5e7eb !important;
         vertical-align: middle !important;
+        position: relative !important; /* Ensure resizer bar is positioned correctly */
+        overflow: visible !important; /* Show resizer handle */
       }
 
       /* --- ACTION COLUMN SPECIFIC FIX --- */

@@ -222,47 +222,49 @@ export class PoList implements OnInit {
     ];
 
     this.itemColumns = [
-      { field: 'productName', header: 'Product Name', width: 200, sortable: true, isFilterable: true, isResizable: true },
-      { field: 'qty', header: 'Ordered Qty', width: 80, align: 'left' },
+      { field: 'productName', header: 'Product Name', width: 215, sortable: true, isFilterable: false, isResizable: true },
+      { field: 'qty', header: 'Ordered Qty', width: 90, align: 'left', isResizable: true },
       {
         field: 'receivedQty',
         header: 'Received Qty',
-        width: 80,
+        width: 90,
         align: 'left',
+        isResizable: true,
         cell: (row) => row.receivedQty || 0
       },
       {
         field: 'pendingQty',
         header: 'Pending Qty',
-        width: 80,
+        width: 90,
         align: 'left',
+        isResizable: true,
         cell: (row) => {
           // Logic: Pending should be what is actually missing from the accepted stock
           const pending = (row.qty || 0) - (row.acceptedQty || 0);
           return pending > 0 ? pending : 0;
         }
       },
-      { field: 'rejectedQty', header: 'Rejected Qty', width: 80, align: 'left', cell: (row) => row.rejectedQty || 0 },
-      { field: 'acceptedQty', header: 'Accepted Qty', width: 80, align: 'left', cell: (row) => row.acceptedQty || 0 },
-      { field: 'unit', header: 'Unit', width: 80, align: 'left' },
+      { field: 'rejectedQty', header: 'Rejected Qty', width: 90, align: 'left', isResizable: true, cell: (row) => row.rejectedQty || 0 },
+      { field: 'acceptedQty', header: 'Accepted Qty', width: 90, align: 'left', isResizable: true, cell: (row) => row.acceptedQty || 0 },
+      { field: 'unit', header: 'Unit', width: 85, align: 'left', isResizable: false },
       {
-        field: 'rate', header: 'Rate', width: 100, align: 'left',
+        field: 'rate', header: 'Rate', width: 105, align: 'left', isResizable: false, isFilterable: false,
         cell: (row: any) => this.currencyPipe.transform(row.rate, 'INR', 'symbol', '1.2-2')
       },
       {
-        field: 'discountPercent', header: 'Dis(%)', width: 100, align: 'left',
+        field: 'discountPercent', header: 'Dis(%)', width: 100, align: 'left', isResizable: false, isFilterable: false,
         cell: (row: any) => `${(row.discountPercent || 0).toFixed(2)}%`
       },
       {
-        field: 'gstPercent', header: 'GST(%)', width: 100, align: 'left',
+        field: 'gstPercent', header: 'GST(%)', width: 100, align: 'left', isResizable: false, isFilterable: false,
         cell: (row: any) => `${(row.gstPercent || 0).toFixed(2)}%`
       },
       {
-        field: 'taxAmount', header: 'Tax Amount', width: 120, align: 'left',
+        field: 'taxAmount', header: 'Tax Amount', width: 125, align: 'left', isResizable: false, isFilterable: false,
         cell: (row: any) => this.currencyPipe.transform(row.taxAmount, 'INR', 'symbol', '1.2-2')
       },
       {
-        field: 'total', header: 'Total', width: 120, align: 'left',
+        field: 'total', header: 'Total', width: 125, align: 'left', isResizable: false, isFilterable: false,
         cell: (row: any) => this.currencyPipe.transform(row.total, 'INR', 'symbol', '1.2-2')
       }
     ];

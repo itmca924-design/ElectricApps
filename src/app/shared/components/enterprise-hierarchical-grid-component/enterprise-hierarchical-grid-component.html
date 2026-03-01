@@ -259,7 +259,7 @@
                                 <mat-icon [class.active-filter]="cCol.filterValue"
                                   style="font-size: 16px;">filter_list</mat-icon>
                               </button>
-                              <div class="resizer-bar"
+                              <div *ngIf="cCol.isResizable" class="resizer-bar"
                                 (mousedown)="onResizeChild(cCol, $event); $event.stopPropagation()"></div>
                             </div>
                           </div>
