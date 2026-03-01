@@ -96,10 +96,10 @@ export class GatePassListComponent implements OnInit {
                 const items = res.data || [];
                 items.forEach((item: any) => {
                     if (item.gateEntryTime && !item.gateEntryTime.includes('Z') && !item.gateEntryTime.includes('+')) {
-                        item.gateEntryTime = item.gateEntryTime + '+05:30';
+                        item.gateEntryTime = item.gateEntryTime + 'Z';
                     }
                     if (item.receivedDate && typeof item.receivedDate === 'string' && !item.receivedDate.includes('Z') && !item.receivedDate.includes('+')) {
-                        item.receivedDate = item.receivedDate + '+05:30';
+                        item.receivedDate = item.receivedDate + 'Z';
                     }
                 });
                 this.dataSource.data = items;

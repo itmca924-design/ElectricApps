@@ -116,7 +116,7 @@
             <!-- Date Column -->
             <ng-container matColumnDef="gateEntryTime">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> Entry Time </th>
-                <td mat-cell *matCellDef="let row"> {{row.gateEntryTime | date:'dd-MMM-yy hh:mm a':'+0530'}} </td>
+                <td mat-cell *matCellDef="let row"> {{row.gateEntryTime | date:'dd/MM/yyyy hh:mm a':'+0530'}} </td>
             </ng-container>
 
             <!-- Party Column -->

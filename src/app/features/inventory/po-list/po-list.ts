@@ -134,7 +134,7 @@ export class PoList implements OnInit {
             if (!rawDate) return '';
 
             // Clear AM/PM format to avoid 24-hour confusion
-            return this.datePipe.transform(rawDate, 'dd-MMM-yy hh:mm a');
+            return this.datePipe.transform(rawDate, 'dd/MM/yyyy hh:mm a', '+0530');
           } catch {
             return row.poDate || '';
           }
@@ -148,7 +148,7 @@ export class PoList implements OnInit {
         width: 120,
         cell: (row: any) => {
           try {
-            return row.expectedDeliveryDate ? this.datePipe.transform(row.expectedDeliveryDate, 'MM/dd/yyyy') : '';
+            return row.expectedDeliveryDate ? this.datePipe.transform(row.expectedDeliveryDate, 'dd/MM/yyyy', '+0530') : '';
           } catch { return row.expectedDeliveryDate || ''; }
         }
       },
@@ -300,7 +300,7 @@ export class PoList implements OnInit {
           // Force UTC-to-Local conversion (Normalized to IST)
           ['poDate', 'expectedDeliveryDate', 'CreatedAt', 'createdAt', 'CreatedDate', 'createdDate'].forEach(key => {
             if (item[key] && typeof item[key] === 'string' && !item[key].includes('Z') && !item[key].includes('+')) {
-              item[key] = item[key] + '+05:30';
+              item[key] = item[key] + 'Z';
             }
           });
 

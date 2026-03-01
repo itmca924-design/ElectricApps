@@ -246,7 +246,7 @@ export class SoList implements OnInit {
 
         let processedItems = items.map((item: any) => {
           if (item.soDate && typeof item.soDate === 'string' && !item.soDate.includes('Z') && !item.soDate.includes('+')) {
-            item.soDate += '+05:30';
+            item.soDate += 'Z';
           }
 
           // Local aggregation for Unpaid (Note: this is still page-based but unavoidable without backend FIFO)

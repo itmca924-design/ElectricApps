@@ -189,7 +189,16 @@ export class GrnListComponent implements OnInit, AfterViewInit {
           // We apply the supplier's total debt to bills starting from the NEWEST towards the OLDEST.
           // Any bill not covered by the current "Total Due" is considered PAID.
 
-          const items = data.items;
+          const items = data.items.map((item: any) => {
+            if (item.receivedDate && typeof item.receivedDate === 'string' && !item.receivedDate.includes('Z') && !item.receivedDate.includes('+')) {
+              // Ensure we only append Z to ISO-like strings YYYY-MM-DD...
+              if (/^\d{4}-\d{2}-\d{2}/.test(item.receivedDate)) {
+                item.receivedDate += 'Z';
+              }
+            }
+            return item;
+          });
+
           const supplierIds = [...new Set(items.map((i: any) => i.supplierId))];
 
           supplierIds.forEach(sid => {
@@ -236,10 +245,6 @@ export class GrnListComponent implements OnInit, AfterViewInit {
           });
 
           return items.map((item: any): GRNListRow => {
-            // Normalize Date to IST if it doesn't have timezone
-            if (item.receivedDate && typeof item.receivedDate === 'string' && !item.receivedDate.includes('Z') && !item.receivedDate.includes('+')) {
-              item.receivedDate += '+05:30';
-            }
             return {
               ...item,
               items: item.items || [],
