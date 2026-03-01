@@ -32,7 +32,7 @@
   }
 
   table[mat-table] {
-    min-width: 800px !important; /* Force horizontal scroll for data visibility */
+    min-width: auto !important; /* Allow shrinking without scroll */
   }
 }
 
@@ -158,15 +158,19 @@
 .table-scroll-wrapper {
   flex: 1;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: hidden !important; /* Strictly no horizontal scroll */
   
   &::-webkit-scrollbar {
     width: 6px;
-    height: 6px;
+    height: 0px; /* Hide horizontal scrollbar */
   }
   &::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
+    
+    &:hover {
+      background: #94a3b8;
+    }
   }
   &::-webkit-scrollbar-track {
     background: #f8fafc;
@@ -195,27 +199,74 @@ th.mat-mdc-header-cell {
 table[mat-table] {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed; /* Force fixed layout to prevent overflow */
+}
+
+/* Column Width Definitions for Current Stock */
+.mat-column-select { width: 45px !important; }
+.mat-column-productName { width: 160px !important; min-width: 160px !important; }
+.mat-column-warehouseName { width: 145px !important; }
+.mat-column-rackName { width: 105px !important; }
+.mat-column-totalReceived { width: 90px !important; text-align: center !important; }
+.mat-column-totalRejected { width: 75px !important; text-align: center !important; }
+.mat-column-totalSold { width: 85px !important; text-align: center !important; }
+.mat-column-availableStock { width: 115px !important; text-align: center !important; }
+.mat-column-unitRate { width: 110px !important; text-align: right !important; }
+.mat-column-actions { width: 70px !important; text-align: center !important; }
+
+/* Force alignment for cells in specific columns */
+.mat-column-totalReceived,
+.mat-column-totalRejected,
+.mat-column-totalSold,
+.mat-column-availableStock,
+.mat-column-actions {
+  display: table-cell !important;
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+.mat-column-unitRate {
+  display: table-cell !important;
+  text-align: right !important;
+  justify-content: flex-end !important;
 }
 
 /* Header Styling - Compact and Clean */
 th.mat-mdc-header-cell {
   background: var(--dg-header-bg) !important;
   color: #475569;
-  font-weight: 600;
-  font-size: 12px !important;
-  padding: 6px 12px !important; // Reduced padding
-  border-bottom: 1px solid var(--dg-border);
-  height: 38px !important;
-  text-transform: none;
+  font-weight: 700 !important;
+  font-size: 11px !important; /* Smaller font for headers to fit more */
+  padding: 6px 8px !important; 
+  border-bottom: 2px solid var(--dg-border) !important;
+  height: 42px !important;
+  text-transform: uppercase;
+  white-space: normal !important; /* Allow header text to wrap */
+  vertical-align: middle !important;
+  line-height: 1.2 !important;
+  text-overflow: clip !important;
+
+  /* Strict Fix for sort header artifacts/dots [cite: 2026-03-01] */
+  &.mat-column-productName {
+    .mat-sort-header-container {
+      &::after, &::before {
+        display: none !important;
+        content: none !important;
+      }
+    }
+  }
 }
 
 /* Body Cell Styling - High Density */
 td.mat-mdc-cell {
-  padding: 4px 12px !important; // Reduced vertical padding
+  padding: 4px 8px !important; 
   color: var(--dg-text-main);
-  font-size: 13px !important;
+  font-size: 12px !important;
   border-bottom: 1px solid #f1f5f9;
   height: var(--dg-row-height) !important;
+  overflow: hidden;
+  text-overflow: clip; /* Removed ellipsis (...) which looks like 'double dot' */
+  white-space: nowrap;
 }
 
 /* Row Styling */
@@ -233,6 +284,22 @@ tr.mat-mdc-row, tr.element-row {
 /* Detail Row Cleanup */
 tr.detail-row {
   height: 0;
+}
+
+/* Ensure the cart button is centered */
+.mat-column-actions {
+  .mat-mdc-icon-button {
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    
+    mat-icon {
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+    }
+  }
 }
 
 .expanded-row {
@@ -648,7 +715,7 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
     -webkit-overflow-scrolling: touch;
     
     table {
-      min-width: 800px !important; 
+      min-width: auto !important; 
     }
   }
 
