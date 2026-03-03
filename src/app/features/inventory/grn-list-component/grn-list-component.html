@@ -57,7 +57,7 @@
                 <mat-icon matSuffix>search</mat-icon>
             </mat-form-field>
 
-            <button mat-raised-button color="primary" class="main-add-btn" (click)="openPOSearchDialog()" [disabled]="isLoadingResults">
+            <button mat-raised-button color="primary" class="main-add-btn" *ngIf="canAdd" (click)="openPOSearchDialog()" [disabled]="isLoadingResults">
                 <mat-icon>add</mat-icon>
                 Receive New Stock
             </button>
@@ -70,7 +70,7 @@
             <mat-spinner diameter="50"></mat-spinner>
         </div>
 
-        <div class="empty-state-container" *ngIf="!isLoadingResults && (dataSource?.data?.length === 0)">
+        <div class="empty-state-container" *ngIf="!isLoadingResults && (dataSource.data.length === 0)">
             <div class="empty-state-content">
                 <mat-icon class="empty-icon">folder_off</mat-icon>
                 <h3 class="empty-title">No GRN Records Found</h3>
@@ -79,7 +79,7 @@
             </div>
         </div>
  
-        <div class="table-wrapper" [style.display]="(!isLoadingResults && (dataSource?.data?.length ?? 0) > 0) ? 'flex' : 'none'">
+        <div class="table-wrapper" [style.display]="(!isLoadingResults && dataSource.data.length > 0) ? 'flex' : 'none'">
             <div class="table-responsive">
                 <table mat-table [dataSource]="dataSource" matSort multiTemplateDataRows aria-label="GRN Table">
 

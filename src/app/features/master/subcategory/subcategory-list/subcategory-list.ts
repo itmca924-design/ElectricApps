@@ -1,14 +1,10 @@
 import { ChangeDetectorRef, Component, OnChanges, OnInit, SimpleChanges, ViewChild, inject } from '@angular/core';
-
-
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../../../shared/material/material/material-module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-
 import { SubCategoryService } from '../services/subcategory.service';
 import { SubCategory } from '../modesls/subcategory.model';
-
 import { CategoryService } from '../../category/services/category.service';
 import { ServerDatagridComponent } from '../../../../shared/components/server-datagrid-component/server-datagrid-component';
 import { MatDialog } from '@angular/material/dialog';
@@ -19,6 +15,7 @@ import { ApiResultDialog } from '../../../shared/api-result-dialog/api-result-di
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
   selector: 'app-subcategory-list',
@@ -37,10 +34,14 @@ export class SubcategoryList implements OnInit, OnChanges {
   readonly categoryService = inject(CategoryService)
   readonly subCategoryService = inject(SubCategoryService)
   private loadingService = inject(LoadingService);
+  private permissionService = inject(PermissionService);
 
   loading = true;
   isDashboardLoading = true;
   private isFirstLoad = true;
+
+  canAdd: boolean = true;
+  canDelete: boolean = true;
 
   data: SubCategory[] = [];
   totalCount = 0;
@@ -68,6 +69,9 @@ export class SubcategoryList implements OnInit, OnChanges {
 
 
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
+
     // Global loader ON
     this.isDashboardLoading = true;
     this.isFirstLoad = true;

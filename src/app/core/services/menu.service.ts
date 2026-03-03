@@ -1,5 +1,5 @@
 import { Injectable, inject } from "@angular/core";
-import { BehaviorSubject, Observable, map, of, catchError } from "rxjs";
+import { Observable, map, of, catchError, shareReplay } from "rxjs";
 import { environment } from "../../enviornments/environment";
 import { MenuItem } from "../models/menu-item.model";
 import { AuthService } from "./auth.service";
@@ -15,13 +15,47 @@ export class MenuService {
 
   private readonly baseUrl = environment.api.identity;
 
-  // Get hierarchical menu for current user (sidebar)
+  // --- Smart TTL Cache (60 seconds) ---
+  private readonly CACHE_TTL_MS = 60_000;
+  private cachedMenu$: Observable<MenuItem[]> | null = null;
+  private cacheTimestamp = 0;
+
+  /**
+   * Returns menu with permissions for current user.
+   * Uses 60-second TTL cache to avoid excessive API calls on every navigation.
+   * Cache is automatically invalidated after 60s — admin permission changes
+   * reflect within 60 seconds without requiring user to logout.
+   */
   getMenu(): Observable<MenuItem[]> {
+    const now = Date.now();
+
+    // Return cached observable if still fresh
+    if (this.cachedMenu$ && (now - this.cacheTimestamp) < this.CACHE_TTL_MS) {
+      return this.cachedMenu$;
+    }
+
+    // Fetch fresh — shareReplay(1) ensures single API execution even for concurrent subscribers
+    this.cachedMenu$ = this._fetchMenu().pipe(shareReplay(1));
+    this.cacheTimestamp = now;
+    return this.cachedMenu$;
+  }
+
+  /**
+   * Force-clears the cache. Call this after an admin saves role/permission changes
+   * so the very next getMenu() call fetches fresh data immediately.
+   */
+  refreshMenu(): void {
+    this.cachedMenu$ = null;
+    this.cacheTimestamp = 0;
+  }
+
+  /** Internal: does the actual 3-API-call chain */
+  private _fetchMenu(): Observable<MenuItem[]> {
     const roleName = this.authService.getUserRole();
 
     return this.roleService.getAllRoles().pipe(
       switchMap(roles => {
-        const userRole = roles.find(r => r.roleName === roleName);
+        const userRole = (roles as any[]).find((r: any) => r.roleName === roleName);
         const roleId = userRole ? userRole.id : 0;
 
         return this.roleService.getRolePermissions(roleId).pipe(
@@ -99,7 +133,7 @@ export class MenuService {
 
   private filterMenusByPermissions(menus: MenuItem[], permissions: any[]): MenuItem[] {
     return menus.map(menu => {
-      const perm = permissions.find(p => p.menuId === menu.id);
+      const perm = permissions.find((p: any) => p.menuId === menu.id);
       const canView = perm ? !!perm.canView : false;
 
       let children: MenuItem[] = [];
@@ -141,4 +175,3 @@ export class MenuService {
     return this.api.delete<void>(`menus/${id}`, this.baseUrl);
   }
 }
-

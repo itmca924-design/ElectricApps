@@ -94,7 +94,7 @@
                 <button mat-raised-button type="button" (click)="resetForm()" [disabled]="isLoading">
                     Reset Form
                 </button>
-                <button mat-raised-button color="primary" type="submit" [disabled]="!receipt.customerId || !receipt.amount || isLoading">
+                <button *ngIf="canAdd" mat-raised-button color="primary" type="submit" [disabled]="!receipt.customerId || !receipt.amount || isLoading">
                     <mat-icon *ngIf="!isLoading">save</mat-icon>
                     <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
                     {{isLoading ? 'Saving...' : 'Save Receipt'}}

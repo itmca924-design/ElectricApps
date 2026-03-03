@@ -30,6 +30,8 @@ export class PricelistHierarchicalGridComponent implements OnInit, OnChanges {
     @Input() totalCount: number = 0;
     @Input() loading: boolean = false;
     @Input() gridKey: string = '';
+    @Input() canEdit: boolean = true;
+    @Input() canDelete: boolean = true;
 
     @Output() loadData = new EventEmitter<any>();
     @Output() delete = new EventEmitter<any>();

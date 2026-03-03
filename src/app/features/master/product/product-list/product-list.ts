@@ -13,6 +13,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
   selector: 'app-product-list',
@@ -25,6 +26,7 @@ import { SummaryStat, SummaryStatsComponent } from '../../../../shared/component
 export class ProductList implements OnInit {
   summaryStats: SummaryStat[] = [];
   private route = inject(ActivatedRoute);
+  private permissionService = inject(PermissionService);
 
   loading = false;
   isDashboardLoading = true;
@@ -34,6 +36,9 @@ export class ProductList implements OnInit {
   selectedRows: any[] = [];
   lastRequest!: GridRequest;
   isLowStockFilterActive = false;
+
+  canAdd: boolean = true;
+  canDelete: boolean = true;
 
   @ViewChild(ServerDatagridComponent)
   grid!: ServerDatagridComponent<any>;
@@ -79,6 +84,9 @@ export class ProductList implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
+
     // Global loader ON
     this.isDashboardLoading = true;
     this.isFirstLoad = true;

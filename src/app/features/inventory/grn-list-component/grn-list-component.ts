@@ -15,6 +15,7 @@ import { PoSelectionDialog } from '../po-selection-dialog/po-selection-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GrnPrintDialogComponent } from '../grn-print-dialog/grn-print-dialog.component';
 import { animate, state, style, transition, trigger } from '@angular/animations';
+import { PermissionService } from '../../../core/services/permission.service';
 
 export interface GRNItem {
   productName: string;
@@ -92,10 +93,15 @@ export class GrnListComponent implements OnInit, AfterViewInit {
     private cdr: ChangeDetectorRef,
     private inventoryService: InventoryService,
     private financeService: FinanceService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private permissionService: PermissionService
   ) { }
 
+  canAdd: boolean = true;
+
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+
     this.searchControl.disable({ emitEvent: false });
 
     // Search input par debounce lagaya hai taaki har word par API call na ho [cite: 2026-01-22]

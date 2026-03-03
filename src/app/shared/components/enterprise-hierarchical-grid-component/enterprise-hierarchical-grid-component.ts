@@ -59,6 +59,10 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
 
   @Input() userRole: any = ''; // Parent se role lene ke liye
 
+  // Role Permission Inputs (from PermissionService via parent)
+  @Input() canAdd: boolean = true;
+  @Input() canEdit: boolean = true;
+  @Input() canDelete: boolean = true;
 
 
   private notification = inject(NotificationService);

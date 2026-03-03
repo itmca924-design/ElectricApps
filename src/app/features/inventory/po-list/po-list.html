@@ -66,6 +66,9 @@
   [childDataField]="'items'"
   [userRole]="userRole"                    
   [highlightedId]="highlightedPoId"
+  [canAdd]="canAdd"
+  [canEdit]="canEdit"
+  [canDelete]="canDelete"
   (onGridStateChange)="onGridStateChange($event)"
 
   (deleteRecord)="onDeleteSingleParentRecord($event)"

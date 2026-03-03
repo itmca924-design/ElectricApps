@@ -19,6 +19,7 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FinanceService } from '../../finance/service/finance.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { PermissionService } from '../../../core/services/permission.service';
 
 @Component({
   selector: 'app-so-list',
@@ -58,8 +59,11 @@ export class SoList implements OnInit {
     private gatePassService: GatePassService,
     private financeService: FinanceService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private permissionService: PermissionService
   ) { }
+
+  canAdd: boolean = true;
 
   // --- Column Resizing Logic ---
   private resizingColumn: string = '';
@@ -101,6 +105,7 @@ export class SoList implements OnInit {
   }
 
   ngOnInit() {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
     this.checkUserRole();
 
     // Global loader ON - same as dashboard/po-list pattern

@@ -1,9 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-
 import { Router } from '@angular/router';
-
-
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { MaterialModule } from '../../../../shared/material/material/material-module';
@@ -14,6 +11,7 @@ import { GridRequest } from '../../../../shared/models/grid-request.model';
 import { SupplierService } from '../../../../features/inventory/service/supplier.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
   selector: 'app-supplier-list',
@@ -27,6 +25,9 @@ export class SupplierList implements OnInit {
   private supplierService = inject(SupplierService);
   private cdr = inject(ChangeDetectorRef);
   private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+
+  canAdd: boolean = true;
 
   loading = false;
   isDashboardLoading = true;
@@ -52,6 +53,8 @@ export class SupplierList implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+
     // Global loader ON
     this.isDashboardLoading = true;
     this.isFirstLoad = true;

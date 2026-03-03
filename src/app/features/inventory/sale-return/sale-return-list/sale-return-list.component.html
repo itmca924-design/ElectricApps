@@ -1,7 +1,7 @@
 <div class="list-container" [class.disabled-content]="isDashboardLoading">
     <div class="header-actions">
         <h1>Sale Returns (Credit Notes)</h1>
-        <button mat-raised-button class="main-add-btn" (click)="navigateToCreate()" [disabled]="isTableLoading">
+        <button mat-raised-button class="main-add-btn" *ngIf="canAdd" (click)="navigateToCreate()" [disabled]="isTableLoading">
             <mat-icon>add</mat-icon> New Return
         </button>
     </div>

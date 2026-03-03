@@ -37,11 +37,11 @@
 
       <!-- Contextual Action Buttons (Show only when more than one record is selected) -->
       <div class="contextual-buttons-group" *ngIf="selection.selected.length > 1">
-        <button mat-raised-button color="warn" *ngIf="allSelectedAreDraft && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onBulkDeleteClick()" class="bulk-action-btn">
+        <button mat-raised-button color="warn" *ngIf="allSelectedAreDraft && canDelete && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onBulkDeleteClick()" class="bulk-action-btn">
           <mat-icon>delete_sweep</mat-icon> Bulk Delete
         </button>
 
-        <button mat-raised-button  *ngIf="allSelectedAreDraft && (userRole === 'User' || userRole === 'Super Admin')" (click)="onBulkApproveClick()" class="bulk-action-btn glass-btn success-btn">
+        <button mat-raised-button  *ngIf="allSelectedAreDraft && canAdd && (userRole === 'User' || userRole === 'Super Admin')" (click)="onBulkApproveClick()" class="bulk-action-btn glass-btn success-btn">
           <mat-icon>done_all</mat-icon> Submit Approval
         </button>
 
@@ -58,7 +58,7 @@
         </button>
       </div>
       
-      <button mat-raised-button color="primary" *ngIf="userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin'" (click)="onAddNewClick()" class="main-add-btn">
+      <button mat-raised-button color="primary" *ngIf="canAdd && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onAddNewClick()" class="main-add-btn">
         <mat-icon>add</mat-icon>
         {{ addNewLabel }}
       </button>
@@ -139,19 +139,25 @@
     <div class="po-actions-wrapper">
 
      <ng-container *ngIf="(row.status === 'Draft' || row.status === 'Rejected') && (userRole === 'User' || userRole === 'Super Admin')">
+      <!-- Edit button: canEdit permission required -->
       <button mat-icon-button color="primary" 
+              *ngIf="canEdit"
               (click)="$event.stopPropagation(); handleAction('EDIT', row)" 
               matTooltip="Edit PO">
         <mat-icon>edit</mat-icon>
       </button>
 
+      <!-- Delete button: canDelete permission required -->
       <button mat-icon-button color="warn" 
+              *ngIf="canDelete"
               (click)="$event.stopPropagation(); handleAction('DELETE', row)" 
               matTooltip="Delete PO">
         <mat-icon>delete</mat-icon>
       </button>
 
+      <!-- Submit button: canAdd (create/submit) permission required -->
       <button mat-icon-button 
+              *ngIf="canAdd"
               (click)="$event.stopPropagation(); handleAction('SUBMIT', row)" 
               matTooltip="Draft Submit for Approval"
               class="btn-submit">
@@ -300,16 +306,19 @@
                         <td>
                           <div *ngIf="!childSelection.hasValue()"
                             style="display: flex; gap: 4px; justify-content: center;">
-                            @if (element.status === 'Draft' && (userRole === 'User' || userRole === 'Super Admin')) {
+                            @if (element.status === 'Draft' && canEdit && (userRole === 'User' || userRole === 'Super Admin')) {
                             <button mat-icon-button (click)="onEditChild(element, childRow)" color="primary"
                               title="Edit Item">
                               <mat-icon style="font-size: 18px;">edit</mat-icon>
                             </button>
+                            }
+                            @if (element.status === 'Draft' && canDelete && (userRole === 'User' || userRole === 'Super Admin')) {
                             <button mat-icon-button (click)="onDeleteChild(element, childRow)" color="warn"
                               title="Delete Item">
                               <mat-icon style="font-size: 18px;">delete</mat-icon>
                             </button>
-                            } @else {
+                            }
+                            @if (element.status !== 'Draft' || (!canEdit && !canDelete)) {
                             <mat-icon style="font-size: 18px; color: #bdbdbd;" title="Locked">lock</mat-icon>
                             }
                           </div>

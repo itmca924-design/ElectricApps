@@ -118,7 +118,7 @@
                 <button mat-raised-button type="button" (click)="resetForm()" [disabled]="isSaving">
                     Reset Form
                 </button>
-                <button mat-raised-button color="primary" type="submit" [disabled]="!payment.supplierId || !payment.amount || isDuplicateRef || isCheckingRef || isSaving">
+                <button *ngIf="canAdd" mat-raised-button color="primary" type="submit" [disabled]="!payment.supplierId || !payment.amount || isDuplicateRef || isCheckingRef || isSaving">
                     <mat-icon *ngIf="!isSaving">save</mat-icon>
                     <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
                     {{ isSaving ? 'Recording...' : (isDuplicateRef ? 'Invalid Reference' : 'Record Payment') }}

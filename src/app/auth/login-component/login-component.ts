@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { LoginDto } from '../../core/models/user.model';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../shared/components/status-dialog-component/status-dialog-component';
+import { PermissionService } from '../../core/services/permission.service';
 
 @Component({
   selector: 'app-login',
@@ -32,6 +33,7 @@ export class LoginComponent implements OnInit {
 
   private dialog = inject(MatDialog);
   private cdr = inject(ChangeDetectorRef);
+  private permissionService = inject(PermissionService);
 
   constructor(private fb: FormBuilder, private auth: AuthService, private router: Router) {
     this.loginForm = this.fb.group({
@@ -106,6 +108,9 @@ export class LoginComponent implements OnInit {
         } else {
           localStorage.removeItem('rememberedEmail');
         }
+
+        // Reset permission cache so resolver fetches fresh data for this user's role
+        this.permissionService.resetForLogin();
 
         this.router.navigate(['/app/dashboard']);
       },

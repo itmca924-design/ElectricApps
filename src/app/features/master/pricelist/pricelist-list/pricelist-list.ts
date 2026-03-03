@@ -15,6 +15,7 @@ import { LoadingService } from '../../../../core/services/loading.service';
 import { ActionConfirmDialog } from '../../../../shared/components/action-confirm-dialog/action-confirm-dialog';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
 import { inject } from '@angular/core';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
   selector: 'app-pricelist-list',
@@ -71,9 +72,14 @@ export class PricelistList implements OnInit {
   isDashboardLoading = true;
   private isFirstLoad = true;
   private loadingService = inject(LoadingService);
+  private permissionService = inject(PermissionService);
   totalCount = 0;
   selectedRows: any[] = [];
   lastRequest!: GridRequest;
+
+  canAdd: boolean = true;
+  canEdit: boolean = true;
+  canDelete: boolean = true;
 
   @ViewChild(PricelistHierarchicalGridComponent) grid!: PricelistHierarchicalGridComponent;
   data: PriceListModel[] = [];
@@ -88,6 +94,10 @@ export class PricelistList implements OnInit {
   selectedId: string | null = null;
 
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canEdit = this.permissionService.hasPermission('CanEdit');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
+
     // Global loader ON
     this.isDashboardLoading = true;
     this.isFirstLoad = true;

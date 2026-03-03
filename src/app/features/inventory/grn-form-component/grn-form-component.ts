@@ -307,12 +307,14 @@ export class GrnFormComponent implements OnInit {
 
       itemsByPo.forEach((poItems, pId) => {
         const firstItem = poItems[0];
+        const poTotal = poItems.reduce((sum, i) => sum + Number(i.total || 0), 0);
         const grnData = {
           poHeaderId: pId,
           supplierId: firstItem.supplierId || firstItem.SupplierId || 0,
           gatePassNo: formValue.gatePassNo,
           receivedDate: formValue.receivedDate,
           remarks: formValue.remarks,
+          totalAmount: poTotal,  // ✅ was missing — caused ₹0.00 bug
           status: 'Received',
           createdBy: currentUserId,
           items: poItems.map(i => ({

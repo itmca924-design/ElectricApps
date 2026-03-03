@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, OnDestroy, inject } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { GridRequest } from '../../models/grid-request.model';
 import { GridColumn } from '../../../shared/models/grid-column.model';
@@ -7,6 +7,7 @@ import { MaterialModule } from '../../material/material/material-module';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import * as XLSX from 'xlsx';
+import { PermissionService } from '../../../core/services/permission.service';
 
 @Component({
   selector: 'app-server-datagrid',
@@ -31,6 +32,12 @@ export class ServerDatagridComponent<T> implements OnChanges, OnInit, OnDestroy 
   selection = new Set<any>();
   private readonly STORAGE_KEY = 'grid-settings-state';
   @Input({ required: true }) gridKey!: string;
+
+  // Permission Inputs (auto-loaded from PermissionService based on current URL)
+  private permissionService = inject(PermissionService);
+  canAdd: boolean = true;
+  canEdit: boolean = true;
+  canDelete: boolean = true;
 
   filteredColumns: GridColumn[] = [];
 
@@ -79,6 +86,13 @@ export class ServerDatagridComponent<T> implements OnChanges, OnInit, OnDestroy 
   ngOnInit(): void {
     this.restoreColumnState();
     this.filteredColumns = [...this.columns];
+
+    // Load permissions for current page automatically
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canEdit = this.permissionService.hasPermission('CanEdit');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
+
+    console.log('[ServerDatagrid] Permissions -> canAdd:', this.canAdd, 'canEdit:', this.canEdit, 'canDelete:', this.canDelete);
   }
 
 

@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { LoadingService } from '../../../core/services/loading.service';
+import { PermissionService } from '../../../core/services/permission.service';
 
 @Component({
   selector: 'app-receipt-entry',
@@ -31,6 +32,8 @@ export class ReceiptEntryComponent implements OnInit {
   isCustomerPreSelected: boolean = false;
   private loadingService = inject(LoadingService);
   private cdr = inject(ChangeDetectorRef);
+  private permissionService = inject(PermissionService);
+  canAdd: boolean = true;
 
   receipt: any = {
     customerId: null,
@@ -51,6 +54,7 @@ export class ReceiptEntryComponent implements OnInit {
   ) { }
 
   ngOnInit() {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
     this.isDashboardLoading = true;
     this.isFirstLoad = true;
     this.loadingService.setLoading(true);

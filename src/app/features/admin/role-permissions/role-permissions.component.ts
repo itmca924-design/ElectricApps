@@ -171,6 +171,9 @@ export class RolePermissionsComponent implements OnInit {
           this.loadingService.setLoading(true);
           this.roleService.updateRolePermissions(this.selectedRoleId!, this.permissions).subscribe({
             next: () => {
+              // Clear menu cache immediately so next navigation fetches fresh permissions
+              this.menuService.refreshMenu();
+
               this.loading = false;
               this.loadingService.setLoading(false);
               this.cdr.detectChanges();

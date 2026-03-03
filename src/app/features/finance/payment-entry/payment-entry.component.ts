@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -12,6 +12,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 import { LoadingService } from '../../../core/services/loading.service';
+import { PermissionService } from '../../../core/services/permission.service';
 
 @Component({
   selector: 'app-payment-entry',
@@ -58,12 +59,16 @@ export class PaymentEntryComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) { }
 
+  private permissionService = inject(PermissionService);
+  canAdd: boolean = true;
+
   private updateLoading(delta: number) {
     this.loadingCount = Math.max(0, this.loadingCount + delta);
     this.loadingService.setLoading(this.loadingCount > 0);
   }
 
   ngOnInit() {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
     this.isDashboardLoading = true;
     this.isFirstLoad = true;
     this.loadingService.setLoading(true);

@@ -1,15 +1,11 @@
 import { ChangeDetectorRef, Component, OnInit, ViewChild, inject } from '@angular/core';
-
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../shared/material/material/material-module';
 import { Router, RouterLink } from '@angular/router';
-
 import { CategoryService } from '../services/category.service';
-
 import { GridColumn } from '../../../../shared/models/grid-column.model';
 import { GridRequest } from '../../../../shared/models/grid-request.model';
-
 import { ServerDatagridComponent } from '../../../../shared/components/server-datagrid-component/server-datagrid-component';
 import { CategoryGridDto } from '../models/category-grid-response.model';
 import { ApiResultDialog } from '../../../shared/api-result-dialog/api-result-dialog';
@@ -18,6 +14,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
   selector: 'app-category-list',
@@ -36,6 +33,7 @@ export class CategoryList implements OnInit {
 
   readonly categoryService = inject(CategoryService)
   private loadingService = inject(LoadingService);
+  private permissionService = inject(PermissionService);
 
   loading = false;
   isDashboardLoading = true;
@@ -43,6 +41,9 @@ export class CategoryList implements OnInit {
   filteredColumns: GridColumn[] = [];
   data: CategoryGridDto[] = [];
   totalCount = 0;
+
+  canAdd: boolean = true;
+  canDelete: boolean = true;
 
   // Summary Stats
   totalCategories = 0;
@@ -73,6 +74,9 @@ export class CategoryList implements OnInit {
 
 
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
+
     // Global loader ON
     this.isDashboardLoading = true;
     this.isFirstLoad = true;

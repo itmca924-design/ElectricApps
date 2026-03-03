@@ -11,6 +11,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { CustomerComponent } from '../customer-component/customer-component';
 import { LoadingService } from '../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../shared/components/summary-stats-component/summary-stats-component';
+import { PermissionService } from '../../../core/services/permission.service';
 
 @Component({
   selector: 'app-customer-list',
@@ -24,6 +25,9 @@ export class CustomerList implements OnInit {
   private customerService = inject(customerService);
   private cdr = inject(ChangeDetectorRef);
   private dialog = inject(MatDialog);
+  private permissionService = inject(PermissionService);
+
+  canAdd: boolean = true;
 
   loading = false;
   isDashboardLoading = true;
@@ -43,6 +47,8 @@ export class CustomerList implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+
     // Global loader ON
     this.isDashboardLoading = true;
     this.isFirstLoad = true;

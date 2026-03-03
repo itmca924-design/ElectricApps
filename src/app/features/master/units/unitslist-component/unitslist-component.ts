@@ -13,6 +13,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 import * as XLSX from 'xlsx';
+import { PermissionService } from '../../../../core/services/permission.service';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-unitslist-component',
@@ -39,7 +41,15 @@ export class UnitslistComponent implements OnInit {
     private dialog: MatDialog
   ) { }
 
+  private permissionService = inject(PermissionService);
+  canAdd: boolean = true;
+  canEdit: boolean = true;
+  canDelete: boolean = true;
+
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canEdit = this.permissionService.hasPermission('CanEdit');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
     this.loadUnits();
   }
 

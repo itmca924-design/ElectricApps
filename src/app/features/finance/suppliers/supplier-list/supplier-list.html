@@ -1,7 +1,7 @@
 <div class="list-container" [class.disabled-content]="loading">
   <div class="header-actions">
     <h2 class="page-title">All Suppliers</h2>
-    <button mat-raised-button class="main-add-btn" (click)="addSupplier()">
+    <button mat-raised-button class="main-add-btn" *ngIf="canAdd" (click)="addSupplier()">
       <mat-icon>add</mat-icon> NEW SUPPLIER
     </button>
   </div>

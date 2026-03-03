@@ -12,6 +12,8 @@
         <mat-card-title>{{ isEditing ? 'Edit Category' : 'Add New Category' }}</mat-card-title>
       </mat-card-header>
       <mat-card-content>
+        <!-- Show form for Add only if canAdd, or for Edit only if canEdit -->
+        <ng-container *ngIf="(!isEditing && canAdd) || (isEditing && canEdit)">
         <form [formGroup] = "categoryForm" (ngSubmit) = "onSubmit()" class="category-form">
           <mat-form-field appearance="outline">
             <mat-label>Category Name</mat-label>
@@ -32,6 +34,10 @@
             <button mat-button type="button" (click)="resetForm()" *ngIf="isEditing">Cancel</button>
           </div>
         </form>
+        </ng-container>
+        <div *ngIf="!canAdd && !isEditing" style="padding: 16px; color: #888; font-style: italic;">
+          You do not have permission to add categories.
+        </div>
       </mat-card-content>
     </mat-card>
 
@@ -65,10 +71,10 @@
             <th mat-header-cell *matHeaderCellDef>Actions</th>
             <td mat-cell *matCellDef="let element">
               <div class="action-buttons">
-                <button mat-icon-button color="accent" (click)="editCategory(element)">
+                <button mat-icon-button color="accent" *ngIf="canEdit" (click)="editCategory(element)">
                   <mat-icon>edit</mat-icon>
                 </button>
-                <button mat-icon-button color="warn" (click)="deleteCategory(element.id)">
+                <button mat-icon-button color="warn" *ngIf="canDelete" (click)="deleteCategory(element.id)">
                   <mat-icon>delete</mat-icon>
                 </button>
               </div>

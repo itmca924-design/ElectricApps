@@ -17,11 +17,11 @@
         Bulk Reorder ({{selectedRows.length}})
       </button>
 
-      <button *ngIf="selectedRows.length > 0" mat-raised-button color="warn" class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
+      <button *ngIf="canDelete && selectedRows.length > 0" mat-raised-button color="warn" class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
         <mat-icon>delete_sweep</mat-icon>
         Delete Selected ({{selectedRows.length}})
       </button>
-      <button mat-raised-button class="main-add-btn" routerLink="/app/master/products/add" [disabled]="loading">
+      <button mat-raised-button class="main-add-btn" *ngIf="canAdd" routerLink="/app/master/products/add" [disabled]="loading">
         <mat-icon>add</mat-icon>
         New Product
       </button>

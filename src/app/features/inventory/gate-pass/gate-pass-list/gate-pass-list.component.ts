@@ -14,6 +14,7 @@ import { MatSort, Sort } from '@angular/material/sort';
 import { FormsModule } from '@angular/forms';
 import { GatePassPrintDialogComponent } from '../gate-pass-print-dialog/gate-pass-print-dialog.component';
 import { CompanyService } from '../../../company/services/company.service';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
     selector: 'app-gate-pass-list',
@@ -36,6 +37,9 @@ export class GatePassListComponent implements OnInit {
     private dialog = inject(MatDialog);
     private notification = inject(NotificationService);
     private companyService = inject(CompanyService);
+    private permissionService = inject(PermissionService);
+
+    canAdd: boolean = true;
 
     dataSource = new MatTableDataSource<any>([]);
     companyProfile: any = null;
@@ -62,6 +66,7 @@ export class GatePassListComponent implements OnInit {
     @ViewChild(MatSort) sort!: MatSort;
 
     ngOnInit() {
+        this.canAdd = this.permissionService.hasPermission('CanAdd');
         this.loadData();
         this.loadCompanyProfile();
     }

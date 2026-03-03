@@ -2,11 +2,11 @@
   <div class="header-actions">
     <h1 class="page-title m-0">All Price Lists</h1>
     <div class="d-flex gap-2">
-      <button *ngIf="selectedRows.length > 0" mat-raised-button color="warn" class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
+      <button *ngIf="canDelete && selectedRows.length > 0" mat-raised-button color="warn" class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
         <mat-icon>delete_sweep</mat-icon>
         Delete Selected ({{selectedRows.length}})
       </button>
-      <button mat-raised-button class="main-add-btn" (click)="openCreatePage()" [disabled]="loading">
+      <button mat-raised-button class="main-add-btn" *ngIf="canAdd" (click)="openCreatePage()" [disabled]="loading">
         <mat-icon>add</mat-icon>
         New Price List
       </button>
@@ -24,6 +24,8 @@
         [data]="data" 
         [totalCount]="totalCount" 
         [loading]="loading && !isDashboardLoading"
+        [canEdit]="canEdit"
+        [canDelete]="canDelete"
         (loadData)="loadPriceLists($event)" 
         (selectionChange)="onSelectionChange($event)"
         (delete)="deletePriceList($event)"

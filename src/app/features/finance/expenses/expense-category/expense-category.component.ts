@@ -16,6 +16,7 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 import { FinanceService } from '../../service/finance.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
     selector: 'app-expense-category',
@@ -52,7 +53,8 @@ export class ExpenseCategoryComponent implements OnInit {
         private financeService: FinanceService,
         private dialog: MatDialog,
         private loadingService: LoadingService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private permissionService: PermissionService
     ) {
         this.categoryForm = this.fb.group({
             name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -61,7 +63,14 @@ export class ExpenseCategoryComponent implements OnInit {
         });
     }
 
+    canAdd: boolean = true;
+    canEdit: boolean = true;
+    canDelete: boolean = true;
+
     ngOnInit(): void {
+        this.canAdd = this.permissionService.hasPermission('CanAdd');
+        this.canEdit = this.permissionService.hasPermission('CanEdit');
+        this.canDelete = this.permissionService.hasPermission('CanDelete');
         this.loadCategories();
     }
 

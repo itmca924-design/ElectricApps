@@ -4,7 +4,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { Router, RouterLink } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-
 import { CompanyService } from '../services/company.service';
 import { CompanyProfileDto } from '../model/company.model';
 import { GridColumn } from '../../../shared/models/grid-column.model';
@@ -14,6 +13,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 import { LoadingService } from '../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../shared/components/summary-stats-component/summary-stats-component';
+import { PermissionService } from '../../../core/services/permission.service';
 
 @Component({
     selector: 'app-company-list',
@@ -35,6 +35,7 @@ export class CompanyList implements OnInit {
     private dialog = inject(MatDialog);
     private companyService = inject(CompanyService);
     private loadingService = inject(LoadingService);
+    private permissionService = inject(PermissionService);
 
     loading = false;
     data: CompanyProfileDto[] = [];
@@ -42,6 +43,9 @@ export class CompanyList implements OnInit {
     selectedRows: any[] = [];
     lastRequest!: GridRequest;
     summaryStats: SummaryStat[] = [];
+
+    canAdd: boolean = true;
+    canDelete: boolean = true;
 
     @ViewChild(ServerDatagridComponent)
     grid!: ServerDatagridComponent<any>;
@@ -62,6 +66,9 @@ export class CompanyList implements OnInit {
     ];
 
     ngOnInit(): void {
+        this.canAdd = this.permissionService.hasPermission('CanAdd');
+        this.canDelete = this.permissionService.hasPermission('CanDelete');
+
         this.loadCompanies({
             pageNumber: 1,
             pageSize: 10,

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/gaurds/auth.guard';
+import { permissionsResolver } from './core/resolvers/permissions.resolver';
 
 export const routes: Routes = [
 
@@ -13,6 +14,7 @@ export const routes: Routes = [
   {
     path: 'app',
     canActivate: [authGuard],
+    resolve: { permissions: permissionsResolver },
     data: { breadcrumb: 'Home' },
     loadComponent: () =>
       import('./layout/main-layout-component/main-layout-component')

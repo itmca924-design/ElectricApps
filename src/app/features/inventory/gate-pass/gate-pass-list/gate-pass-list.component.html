@@ -6,11 +6,11 @@
             <p class="subtitle">Review and manage all inward & outward goods transit</p>
         </div>
         <div class="header-actions">
-            <button mat-stroked-button  color="primary" class="add-btn-out" (click)="navigateToAddOutward()">
+            <button *ngIf="canAdd" mat-stroked-button color="primary" class="add-btn-out" (click)="navigateToAddOutward()">
                 <mat-icon>logout</mat-icon>
                 Generate Outward Pass
             </button>
-            <button mat-flat-button color="primary" class="add-btn" (click)="navigateToAddInward()">
+            <button *ngIf="canAdd" mat-flat-button color="primary" class="add-btn" (click)="navigateToAddInward()">
                 <mat-icon>login</mat-icon>
                 Generate Inward Pass
             </button>

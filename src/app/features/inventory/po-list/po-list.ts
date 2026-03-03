@@ -19,6 +19,7 @@ import { ActionConfirmDialog } from '../../../shared/components/action-confirm-d
 import { ReasonRejectDialog } from '../../../shared/components/reason-reject-dialog/reason-reject-dialog';
 import { PoPrintModalComponent } from './po-print-modal/po-print-modal.component';
 import { LoadingService } from '../../../core/services/loading.service';
+import { PermissionService } from '../../../core/services/permission.service';
 
 @Component({
   selector: 'app-po-list',
@@ -36,6 +37,7 @@ import { LoadingService } from '../../../core/services/loading.service';
 })
 export class PoList implements OnInit {
   private loadingService = inject(LoadingService);
+  private permissionService = inject(PermissionService);
 
   public dataSource = new MatTableDataSource<any>([]);
   public totalRecords: number = 0;
@@ -63,6 +65,11 @@ export class PoList implements OnInit {
 
   userRole: any;
 
+  // Role-based permissions from PermissionService
+  canAdd: boolean = true;
+  canEdit: boolean = true;
+  canDelete: boolean = true;
+
   @ViewChild(EnterpriseHierarchicalGridComponent) grid!: EnterpriseHierarchicalGridComponent;
 
   // Stats
@@ -87,7 +94,13 @@ export class PoList implements OnInit {
     this.initColumns();
     this.userRole = this.authService.getUserRole();
 
+    // Load permissions for Purchase Order page
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canEdit = this.permissionService.hasPermission('CanEdit');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
+
     console.log('[PoList] Current User Role:', this.userRole);
+    console.log('[PoList] Permissions -> canAdd:', this.canAdd, 'canEdit:', this.canEdit, 'canDelete:', this.canDelete);
 
     // Global loader ON - Grid component khud triggerDataLoad karega
     this.isDashboardLoading = true;

@@ -18,6 +18,7 @@ import { LoadingService } from '../../../../core/services/loading.service';
 import { GatePassService } from '../../gate-pass/services/gate-pass.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
   selector: 'app-purchase-return-list',
@@ -37,6 +38,9 @@ export class PurchaseReturnList implements OnInit {
   private companyService = inject(CompanyService);
   private datePipe = inject(DatePipe);
   private currencyPipe = inject(CurrencyPipe);
+  private permissionService = inject(PermissionService);
+
+  canAdd: boolean = true;
 
   companyInfo: CompanyProfileDto | null = null;
 
@@ -106,6 +110,8 @@ export class PurchaseReturnList implements OnInit {
   }
 
   ngOnInit(): void {
+    this.canAdd = this.permissionService.hasPermission('CanAdd');
+
     // Global loader ON - same as dashboard pattern
     this.isDashboardLoading = true;
     this.isFirstLoad = true;

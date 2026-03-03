@@ -5,11 +5,11 @@
       <h2>Company Management</h2>
     </div>
     <div class="action-section d-flex gap-3">
-      <button *ngIf="selectedRows.length > 0" mat-raised-button class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
+      <button *ngIf="canDelete && selectedRows.length > 0" mat-raised-button class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
         <mat-icon>delete_sweep</mat-icon>
         Delete Selected ({{selectedRows.length}})
       </button>
-      <button *ngIf="selectedRows.length === 0" mat-raised-button class="main-add-btn" routerLink="/app/company/add">
+      <button *ngIf="canAdd && selectedRows.length === 0" mat-raised-button class="main-add-btn" routerLink="/app/company/add">
         <mat-icon>add</mat-icon>
         Add Company
       </button>

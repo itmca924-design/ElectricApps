@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { MaterialModule } from '../../../../shared/material/material/material-module';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
@@ -13,6 +13,7 @@ import { LoadingService } from '../../../../core/services/loading.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
+import { PermissionService } from '../../../../core/services/permission.service';
 
 @Component({
     selector: 'app-warehouse-list',
@@ -41,7 +42,16 @@ export class WarehouseList implements OnInit {
         private dialog: MatDialog
     ) { }
 
+    private permissionService = inject(PermissionService);
+    canAdd: boolean = true;
+    canEdit: boolean = true;
+    canDelete: boolean = true;
+
     ngOnInit(): void {
+        this.canAdd = this.permissionService.hasPermission('CanAdd');
+        this.canEdit = this.permissionService.hasPermission('CanEdit');
+        this.canDelete = this.permissionService.hasPermission('CanDelete');
+
         this.isDashboardLoading = true;
         this.isFirstLoad = true;
         this.loadingService.setLoading(true);
