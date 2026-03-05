@@ -232,6 +232,12 @@ export class ReceiptReportComponent implements OnInit, AfterViewInit {
         });
     }
 
+    getModeClass(mode: string): string {
+        if (!mode) return '';
+        // spaces ko hyphens se replace karo - e.g. "SALES RETURN" -> "mode-sales-return"
+        return 'mode-' + mode.toLowerCase().replace(/\s+/g, '-');
+    }
+
     applyFilter(event: Event) {
         const filterValue = (event.target as HTMLInputElement).value;
         this.applyFilterValue(filterValue);

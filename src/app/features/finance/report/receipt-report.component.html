@@ -94,7 +94,7 @@
                 <ng-container matColumnDef="receiptMode">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Mode </th>
                     <td mat-cell *matCellDef="let element">
-                        <span class="badge mode-{{element.receiptMode | lowercase}}">
+                        <span class="badge" [ngClass]="getModeClass(element.receiptMode)">
                             {{element.receiptMode}}
                         </span>
                     </td>
