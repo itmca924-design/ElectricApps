@@ -225,20 +225,31 @@
                 &.fw-bold { font-weight: 600; }
 
                 .type-badge {
-                    padding: 4px 8px;
-                    border-radius: 4px;
-                    font-size: 0.75rem;
-                    font-weight: 500;
+                    display: inline-block;
+                    padding: 4px 12px;
+                    border-radius: 16px;
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.4px;
+                    white-space: nowrap;
 
                     &.payment {
-                        background-color: #c8e6c9; // Slightly deeper green
-                        color: #1b5e20;           // Darker green text
-                        border: 1px solid #a5d6a7;
+                        background-color: #e8f5e9;
+                        color: #1b5e20;
+                        border: 1px solid #c8e6c9;
                     }
 
                     &.purchase {
                         background-color: #e3f2fd;
-                        color: #1976d2;
+                        color: #1565c0;
+                        border: 1px solid #bbdefb;
+                    }
+
+                    &.debit-note {
+                        background-color: #fce4ec;
+                        color: #c62828;
+                        border: 1px solid #f8bbd0;
                     }
                 }
             }

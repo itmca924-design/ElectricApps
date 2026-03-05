@@ -221,8 +221,9 @@ export class PaymentReportComponent implements OnInit, AfterViewInit {
     ).subscribe({
       next: (response: any) => {
         const items = (response.items || []).map((item: any) => {
-          if (item.paymentDate && typeof item.paymentDate === 'string' && !item.paymentDate.includes('Z') && !item.paymentDate.includes('+')) {
-            item.paymentDate += '+05:30';
+          if (item.paymentDate && typeof item.paymentDate === 'string') {
+            const hasTimezone = /[Zz]$/.test(item.paymentDate) || /[+-]\d{2}:\d{2}$/.test(item.paymentDate);
+            if (!hasTimezone) item.paymentDate += 'Z'; // UTC se IST convert ke liye
           }
           return item;
         });
@@ -233,6 +234,11 @@ export class PaymentReportComponent implements OnInit, AfterViewInit {
         console.error('Error loading payments report', err);
       }
     });
+  }
+
+  getModeClass(mode: string): string {
+    if (!mode) return '';
+    return 'mode-' + mode.toLowerCase().replace(/\s+/g, '-');
   }
 
   applyFilter(event: Event) {
