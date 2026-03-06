@@ -4,7 +4,7 @@
       <mat-icon>arrow_back</mat-icon> Back
     </button>
     <button mat-raised-button color="primary" class="save-btn" (click)="saveDraft()" [disabled]="poForm.invalid || isLoading">
-      <mat-icon>save</mat-icon> {{ isEditMode ? 'Update Draft' : 'Save Draft' }}
+      <mat-icon>save</mat-icon> {{ isEditMode ? 'Update Draft (PO)' : 'Save Draft (PO)' }}
     </button>
   </div>
 
@@ -225,11 +225,7 @@
 
           <div class="save-btn-container">
             <button mat-raised-button color="primary" class="save-btn" (click)="saveDraft()" [disabled]="poForm.invalid || isLoading">
-              @if (isLoading) {
-              <div class="loader-overlay">
-                <mat-spinner diameter="24" style="margin-right: 8px;"></mat-spinner>
-              </div>}
-              {{ isEditMode ? 'Update Draft (PO)' : 'Save Draft (PO)' }}
+              <mat-icon>save</mat-icon> {{ isEditMode ? 'Update Draft (PO)' : 'Save Draft (PO)' }}
             </button>
           </div>
         </div>

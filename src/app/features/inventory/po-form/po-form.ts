@@ -196,8 +196,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
 
   openBulkAddDialog() {
     const dialogRef = this.dialog.open(ProductSelectionDialogComponent, {
-      width: '850px',
-      maxWidth: '95vw',
+      width: '1100px',
+      maxWidth: '96vw',
       disableClose: false
     });
 

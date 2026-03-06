@@ -119,6 +119,8 @@ import { LoadingService } from '../../../core/services/loading.service';
             <td mat-cell *matCellDef="let row">
               @if (isAlreadyInList(row.id)) {
                 <span class="status-badge added">Already Added</span>
+              } @else if (row.currentStock <= 0) {
+                <span class="status-badge na">N/A</span>
               } @else {
                 <span class="status-badge available">Available</span>
               }
@@ -348,8 +350,9 @@ import { LoadingService } from '../../../core/services/loading.service';
       padding: 2px 8px;
       border-radius: 12px;
       font-weight: 600;
-      &.added { background: #fee2e2; color: #b91c1c; }
+      &.added     { background: #fee2e2; color: #b91c1c; }
       &.available { background: #d1fae5; color: #065f46; }
+      &.na        { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; }
     }
 
     .unit-badge {
