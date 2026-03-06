@@ -294,7 +294,35 @@ table {
 .header-right-side {
   display: flex;
   align-items: center;
+  justify-content: center;
   height: 100%;
+  flex-shrink: 0;
+
+  // Filter icon button — compact and centered
+  button[mat-icon-button] {
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 50% !important;
+
+    mat-icon {
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+      line-height: 16px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.1) !important;
+    }
+  }
 }
 
 /* CHILD TABLE SECTION */

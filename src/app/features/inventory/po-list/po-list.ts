@@ -302,6 +302,8 @@ export class PoList implements OnInit {
       filter: state.globalSearch || '',
       fromDate: state.fromDate ? this.datePipe.transform(state.fromDate, 'yyyy-MM-dd') : null,
       toDate: state.toDate ? this.datePipe.transform(state.toDate, 'yyyy-MM-dd') : null,
+      // Column-level filters array → matches backend List<FilterDto>
+      filters: (state.filters || []).filter((f: any) => f.field && f.value)
     };
 
     // Load totals for stats across all pages
