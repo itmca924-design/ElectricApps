@@ -148,6 +148,10 @@ export class InwardGatePassComponent implements OnInit, OnDestroy {
 
     private handlePORedirection(params: any) {
         setTimeout(() => {
+            // If a persistent success dialog is pending (page refresh scenario),
+            // skip ALL checks — the success dialog will restore itself via App.ngOnInit.
+            if (this.persistentDialog.hasPendingDialog()) return;
+
             this.isExternalRef = true;
             this.referenceLabel = 'Link With PO No';
             const refNo = params['refNo'];
@@ -504,7 +508,7 @@ export class InwardGatePassComponent implements OnInit, OnDestroy {
                     message: message,
                     status: 'success',
                     isSuccess: true
-                }).afterClosed().subscribe(() => {
+                }, '/app/inventory/gate-pass').afterClosed().subscribe(() => {
                     // Purchase Order flow: After Gate Pass, go to GRN
                     if (!this.isEditMode && formValue.referenceType === GatePassReferenceType.PurchaseOrder) {
                         this.router.navigate(['/app/inventory/grn-list/add'], {

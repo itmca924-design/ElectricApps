@@ -1,41 +1,60 @@
 import { Injectable, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { Router } from '@angular/router';
 import { StatusDialogComponent } from '../components/status-dialog-component/status-dialog-component';
 
 const DIALOG_KEY = 'pendingStatusDialog';
 
 /**
- * Service to persist dialog state across page refreshes.
- * When a StatusDialog is opened via this service:
- *  - Data is saved to sessionStorage
- *  - On page refresh, App checks and re-opens the dialog
- *  - Only cleared when user clicks OK/button (afterClosed)
+ * Service to handle dialogs that need to prevent outside-click close.
+ * On page refresh: navigates to a safe URL and clears state silently (no dialog reopen).
+ * On normal load: dialog opens with disableClose: true, clears on OK click.
  */
 @Injectable({ providedIn: 'root' })
 export class DialogPersistenceService {
     private dialog = inject(MatDialog);
+    private router = inject(Router);
 
     /**
-     * Open a StatusDialog that persists across page refreshes.
-     * Use this instead of dialog.open(StatusDialogComponent, ...) for important success/error dialogs.
+     * Open a StatusDialog with disableClose.
+     * @param data       - StatusDialogComponent data
+     * @param restoreUrl - URL to navigate to on page refresh (clears dialog silently)
      */
-    openPersistent(data: any) {
-        this._saveState(data);
+    openPersistent(data: any, restoreUrl?: string) {
+        this._saveState({ ...data, _restoreUrl: restoreUrl ?? null });
         return this._openAndClear(data);
     }
 
     /**
-     * Called on app init — re-opens dialog if a saved state exists (after refresh).
+     * Called on App.ngOnInit.
+     * On page refresh: if a pending dialog exists, navigate to restoreUrl silently.
+     * The dialog is NOT reopened — sessionStorage clears after navigation.
+     * hasPendingDialog() stays true during the async window to block stale checks.
      */
     checkAndRestore() {
         const saved = sessionStorage.getItem(DIALOG_KEY);
         if (!saved) return;
+
         try {
-            const data = JSON.parse(saved);
-            this._openAndClear(data);
+            const { _restoreUrl } = JSON.parse(saved);
+
+            if (_restoreUrl) {
+                // Navigate to safe page, then clear — no dialog reopen
+                this.router.navigateByUrl(_restoreUrl).then(() => {
+                    sessionStorage.removeItem(DIALOG_KEY);
+                });
+            } else {
+                // No restoreUrl — just clear
+                sessionStorage.removeItem(DIALOG_KEY);
+            }
         } catch {
             sessionStorage.removeItem(DIALOG_KEY);
         }
+    }
+
+    /** Returns true if a pending dialog exists in sessionStorage. */
+    hasPendingDialog(): boolean {
+        return !!sessionStorage.getItem(DIALOG_KEY);
     }
 
     clearState() {
