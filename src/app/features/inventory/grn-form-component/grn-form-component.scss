@@ -328,3 +328,67 @@
 .replacement-row .col-product { color: #dc2626 !important; }
 .inactive-row .col-product { color: #94a3b8 !important; }
 
+/* ─── Auto-Save Countdown Banner ─── */
+.auto-save-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-bottom: 12px;
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border: 1.5px solid #34d399;
+  border-radius: 10px;
+  color: #065f46;
+  font-size: 13px;
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.5s, border-color 0.5s;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    animation: pulse 1s infinite;
+  }
+
+  span {
+    flex: 1;
+    strong { font-size: 15px; }
+  }
+
+  .countdown-bar-track {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(0,0,0,0.1);
+  }
+
+  .countdown-bar-fill {
+    height: 100%;
+    background: #10b981;
+    transition: width 1s linear, background 0.5s;
+    border-radius: 0 2px 2px 0;
+  }
+
+  // Urgent mode — last 10 seconds
+  &.urgent {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-color: #f87171;
+    color: #7f1d1d;
+
+    .countdown-bar-fill {
+      background: #ef4444;
+    }
+
+    mat-icon { color: #dc2626; }
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.15); }
+}

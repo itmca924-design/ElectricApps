@@ -11,6 +11,15 @@
     </div>
   </div>
 
+  <!-- Auto-save Countdown Banner (Gate Pass flow only) -->
+  <div *ngIf="showCountdown" class="auto-save-banner" [class.urgent]="countdown <= 10">
+    <mat-icon>timer</mat-icon>
+    <span>Auto-saving in <strong>{{ countdown }}s</strong> — Click "Save & Update Stock" to save now or "Cancel" to stop.</span>
+    <div class="countdown-bar-track">
+      <div class="countdown-bar-fill" [style.width.%]="(countdown / 30) * 100"></div>
+    </div>
+  </div>
+
   <mat-card class="compact-card mat-elevation-z2" [formGroup]="grnForm">
     <mat-card-content>
       <div class="header-grid">

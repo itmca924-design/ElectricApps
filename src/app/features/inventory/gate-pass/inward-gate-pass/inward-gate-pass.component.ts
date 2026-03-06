@@ -501,16 +501,19 @@ export class InwardGatePassComponent implements OnInit, OnDestroy {
 
                 // Defensive check for Pass No
                 const generatedPassNo = res.passNo || res.PassNo || res.data?.passNo || res.data?.PassNo || '';
-                const message = this.isEditMode ? 'Gate Pass updated successfully!' : `Inward Gate Pass Generated! Pass No: ${generatedPassNo || 'GP-IN-2026-XXXX'}`;
+                const isPOFlow = !this.isEditMode && formValue.referenceType === GatePassReferenceType.PurchaseOrder;
 
-                this.persistentDialog.openPersistent({
-                    title: 'Success',
-                    message: message,
-                    status: 'success',
-                    isSuccess: true
-                }, '/app/inventory/gate-pass').afterClosed().subscribe(() => {
-                    // Purchase Order flow: After Gate Pass, go to GRN
-                    if (!this.isEditMode && formValue.referenceType === GatePassReferenceType.PurchaseOrder) {
+                const baseMessage = this.isEditMode
+                    ? 'Gate Pass updated successfully!'
+                    : `Inward Gate Pass Generated! Pass No: ${generatedPassNo || 'GP-IN-2026-XXXX'}`;
+
+                // PO flow: hint that auto-redirect will happen
+                const displayMessage = isPOFlow
+                    ? `${baseMessage}\n\n⏱ Auto-redirecting to GRN form in 10 seconds...`
+                    : baseMessage;
+
+                const navigateAfterClose = () => {
+                    if (isPOFlow) {
                         this.router.navigate(['/app/inventory/grn-list/add'], {
                             queryParams: {
                                 poId: formValue.referenceId,
@@ -525,7 +528,30 @@ export class InwardGatePassComponent implements OnInit, OnDestroy {
                     } else {
                         this.router.navigate(['/app/inventory/gate-pass']);
                     }
+                };
+
+                const dialogRef = this.persistentDialog.openPersistent({
+                    title: 'Success',
+                    message: displayMessage,
+                    status: 'success',
+                    isSuccess: true
+                }, '/app/inventory/gate-pass');
+
+                // Auto-redirect to GRN after 10s (PO flow only)
+                let autoTimer: any = null;
+                if (isPOFlow) {
+                    autoTimer = setTimeout(() => {
+                        this.persistentDialog.clearState();
+                        this.dialog.closeAll();
+                        navigateAfterClose();
+                    }, 10000);
+                }
+
+                dialogRef.afterClosed().subscribe(() => {
+                    if (autoTimer) clearTimeout(autoTimer); // User clicked OK — cancel auto-redirect
+                    navigateAfterClose();
                 });
+
             },
             error: (err) => {
                 this.isSaving = false;

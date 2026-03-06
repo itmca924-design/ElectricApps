@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { FormGroup, FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -19,7 +19,7 @@ import { LoadingService } from '../../../core/services/loading.service';
   templateUrl: './grn-form-component.html',
   styleUrl: './grn-form-component.scss',
 })
-export class GrnFormComponent implements OnInit {
+export class GrnFormComponent implements OnInit, OnDestroy {
   grnForm!: FormGroup;
   items: any[] = [];
   poId: string = '';
@@ -35,6 +35,11 @@ export class GrnFormComponent implements OnInit {
   warehouses: Warehouse[] = [];
   racks: Rack[] = [];
   filteredRacksMap: { [productId: string]: Rack[] } = {};
+
+  // Auto-save countdown (active only in gate pass flow)
+  countdown: number = 30;
+  private countdownInterval: any = null;
+  showCountdown: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -216,6 +221,40 @@ export class GrnFormComponent implements OnInit {
 
     this.calculateGrandTotal();
     this.cdr.detectChanges();
+
+    // Start auto-save countdown only for gate pass flow (isFromPopup)
+    if (this.isFromPopup && !this.isViewMode) {
+      this.startAutoSaveCountdown();
+    }
+  }
+
+  private startAutoSaveCountdown() {
+    this.countdown = 30;
+    this.showCountdown = true;
+    this.cdr.detectChanges();
+
+    this.countdownInterval = setInterval(() => {
+      this.countdown--;
+      this.cdr.detectChanges();
+
+      if (this.countdown <= 0) {
+        this.clearCountdown();
+        this.performGRNSave(); // Auto-save on timeout
+      }
+    }, 1000);
+  }
+
+  private clearCountdown() {
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+      this.countdownInterval = null;
+    }
+    this.showCountdown = false;
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy() {
+    this.clearCountdown();
   }
 
   onQtyChange(item: any) {
@@ -269,6 +308,7 @@ export class GrnFormComponent implements OnInit {
 
   saveGRN() {
     if (this.grnForm.invalid || this.items.length === 0 || this.isViewMode) return;
+    this.clearCountdown(); // Cancel auto-save — user is saving manually
 
     const confirmDialog = this.dialog.open(StatusDialogComponent, {
       width: '400px',
@@ -509,5 +549,8 @@ export class GrnFormComponent implements OnInit {
   }
 
   goBack() { this.router.navigate(['/app/inventory/grn-list']); }
-  onCancel() { this.goBack(); }
+  onCancel() {
+    this.clearCountdown();
+    this.goBack();
+  }
 }
