@@ -11,6 +11,7 @@ import { FinanceService } from '../../finance/service/finance.service';
 import { LocationService } from '../../master/locations/services/locations.service';
 import { Warehouse, Rack } from '../../master/locations/models/locations.model';
 import { LoadingService } from '../../../core/services/loading.service';
+import { DateHelper } from '../../../shared/models/date-helper';
 
 @Component({
   selector: 'app-grn-form-component',
@@ -214,8 +215,8 @@ export class GrnFormComponent implements OnInit, OnDestroy {
         warehouseId: item.warehouseId || item.WarehouseId || null,
         rackId: item.rackId || item.RackId || null,
         isExpiryRequired: !!(item.isExpiryRequired || item.IsExpiryRequired),
-        manufacturingDate: item.manufacturingDate || item.ManufacturingDate || null,
-        expiryDate: item.expiryDate || item.ExpiryDate || null
+        manufacturingDate: DateHelper.toShortDisplayDate(item.manufacturingDate || item.ManufacturingDate),
+        expiryDate: DateHelper.toShortDisplayDate(item.expiryDate || item.ExpiryDate)
       };
     });
 
@@ -414,7 +415,7 @@ export class GrnFormComponent implements OnInit, OnDestroy {
       poHeaderId: Number(this.poId),
       supplierId: this.supplierId,
       gatePassNo: this.grnForm.getRawValue().gatePassNo,
-      receivedDate: this.grnForm.getRawValue().receivedDate,
+      receivedDate: new Date(this.grnForm.getRawValue().receivedDate).toISOString(),
       remarks: this.grnForm.value.remarks,
       totalAmount: this.calculateGrandTotal(),
       status: 'Received',
@@ -433,13 +434,13 @@ export class GrnFormComponent implements OnInit, OnDestroy {
         totalAmount: Number(item.total),
         warehouseId: item.warehouseId,
         rackId: item.rackId,
-        manufacturingDate: item.manufacturingDate || null,
-        expiryDate: item.expiryDate || null
+        manufacturingDate: DateHelper.parseToISO(item.manufacturingDate),
+        expiryDate: DateHelper.parseToISO(item.expiryDate)
       }))
     };
 
     console.log('🚀 Saving GRN Payload:', grnData);
-    this.inventoryService.saveGRN({ data: grnData }).subscribe({
+    this.inventoryService.saveGRN({ Data: grnData }).subscribe({
       next: (response: any) => {
         console.log('✅ GRN Save Success:', response);
         const grnNumber = response?.grnNumber || 'AUTO-GEN';
@@ -550,11 +551,11 @@ export class GrnFormComponent implements OnInit, OnDestroy {
               title: 'Payment Failed',
               message: `GRN saved but direct payment failed.`,
               status: 'error'
-          }
-        });
-        this.navigateBack();
-      }
-    });
+            }
+          });
+          this.navigateBack();
+        }
+      });
     }, 800);
   }
 

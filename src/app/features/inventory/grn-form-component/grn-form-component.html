@@ -30,7 +30,7 @@
 
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Received Date</mat-label>
-          <input matInput formControlName="receivedDate" readonly>
+          <input matInput [value]="grnForm.get('receivedDate')?.value | date:'dd-MM-yyyy'" readonly>
           <mat-icon matSuffix>event</mat-icon>
         </mat-form-field>
 
@@ -63,10 +63,10 @@
               <th class="text-center" style="width: 55px;">Recv. Qty</th>
               <th class="text-center" style="width: 55px;">Rej. Qty</th>
               <th class="text-center" style="width: 45px;">Accpt. Qty</th>
-              <th class="text-center" style="width: 130px;">Warehouse</th>
-              <th class="text-center" style="width: 120px;">Rack</th>
-              <th class="text-center" style="width: 110px;">Mfg Date</th>
-              <th class="text-center" style="width: 110px;">Exp Date</th>
+              <th class="text-center" style="width: 120px;">Warehouse</th>
+              <th class="text-center" style="width: 110px;">Rack</th>
+              <th class="text-center" style="width: 80px;">Mfg Date</th>
+              <th class="text-center" style="width: 80px;">Exp Date</th>
               <th class="text-right" style="width: 75px;">Unit Rate</th>
               <th class="text-center" style="width: 45px;">DISC %</th>
               <th class="text-center" style="width: 45px;">GST %</th>
@@ -133,21 +133,23 @@
               </td>
 
               <td class="text-center">
-                <mat-form-field appearance="outline" class="dense-input" subscriptSizing="dynamic">
-                  <input matInput type="date" 
+                <mat-form-field appearance="outline" class="dense-input narrow-date" subscriptSizing="dynamic" *ngIf="item.isExpiryRequired">
+                  <input matInput type="text" 
                          [(ngModel)]="item.manufacturingDate" 
                          [ngModelOptions]="{standalone: true}"
-                         [disabled]="isViewMode || !item.isExpiryRequired">
+                         [disabled]="isViewMode">
                 </mat-form-field>
+                <span class="text-muted small" *ngIf="!item.isExpiryRequired">NA</span>
               </td>
 
               <td class="text-center">
-                <mat-form-field appearance="outline" class="dense-input" subscriptSizing="dynamic">
-                  <input matInput type="date" 
+                <mat-form-field appearance="outline" class="dense-input narrow-date" subscriptSizing="dynamic" *ngIf="item.isExpiryRequired">
+                  <input matInput type="text" 
                          [(ngModel)]="item.expiryDate" 
                          [ngModelOptions]="{standalone: true}"
-                         [disabled]="isViewMode || !item.isExpiryRequired">
+                         [disabled]="isViewMode">
                 </mat-form-field>
+                <span class="text-muted small" *ngIf="!item.isExpiryRequired">NA</span>
               </td>
 
               <td class="text-right">{{item.unitRate | currency:'INR'}}</td>

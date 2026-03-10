@@ -98,10 +98,16 @@
         input { text-align: center !important; }
     }
 
+    &.narrow-date {
+        min-width: 75px !important;
+        max-width: 80px !important;
+        input { text-align: center !important; font-size: 10px !important; }
+    }
+
     &.wide {
-        min-width: 100px !important;
-        max-width: 125px !important;
-        mat-select { text-align: left !important; }
+        min-width: 90px !important;
+        max-width: 110px !important;
+        ::ng-deep .mat-mdc-select-value { font-size: 11px !important; }
     }
     
     ::v-deep .mat-mdc-text-field-wrapper {
