@@ -163,11 +163,11 @@ export class GrnListComponent implements OnInit, AfterViewInit {
           this.isLoadingResults = true;
           this.searchControl.disable({ emitEvent: false });
           this.cdr.detectChanges();
-          console.log('📋 GRN Dashboard Query - isQuick:', this.isQuick, 'Page:', this.paginator.pageIndex);
+          console.log('📋 GRN Dashboard Query - isQuick:', this.isQuick, 'Page:', this.paginator.pageIndex, 'Sort:', this.sort.active, 'Direction:', this.sort.direction);
           return forkJoin({
             grnData: this.inventoryService.getGRNPagedList(
-              this.sort.active,
-              this.sort.direction,
+              this.sort.active || 'id',
+              this.sort.direction || 'desc',
               this.paginator.pageIndex,
               this.paginator.pageSize,
               this.searchControl.value || '',

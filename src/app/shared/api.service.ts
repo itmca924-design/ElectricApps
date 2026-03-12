@@ -46,14 +46,10 @@ export class ApiService {
         Object.keys(request).forEach(key => {
             const value = request[key];
             // Skip undefined, null, and empty string values
-            // For booleans, only include if true (skip false) to avoid backend parsing issues
             if (value !== undefined && value !== null && value !== '') {
-                // Special handling for booleans: only include if true
+                // Handle booleans explicitly - always include them
                 if (typeof value === 'boolean') {
-                    if (value === true) {
-                        query.push(`${key}=true`);
-                    }
-                    // Skip false booleans to let backend default to false
+                    query.push(`${key}=${value}`);
                     return;
                 }
                 

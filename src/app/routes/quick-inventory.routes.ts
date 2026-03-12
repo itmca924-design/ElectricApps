@@ -55,6 +55,7 @@ export const QUICK_INVENTORY_ROUTES: Routes = [
         children: [
             { 
                 path: '', 
+                data: { isQuick: true },
                 loadComponent: () => import('../features/inventory/grn-list-component/grn-list-component').then(m => m.GrnListComponent) 
             },
             { 
