@@ -9,6 +9,7 @@ import { Observable, debounceTime, distinctUntilChanged, map, startWith } from '
 import { AuthService } from '../../../core/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ProductSelectionDialogComponent } from '../../../shared/components/product-selection-dialog/product-selection-dialog';
+import { BatchSelectionDialogComponent } from '../../../shared/components/batch-selection-dialog/batch-selection-dialog';
 import { PermissionService } from '../../../core/services/permission.service';
 import { UnitService } from '../../master/units/services/units.service';
 import { LocationService } from '../../master/locations/services/locations.service';
@@ -113,8 +114,14 @@ export class QuickSaleComponent implements OnInit {
                         // Populate racks if warehouseId exists
                         const whId = item.warehouseId || item.defaultWarehouseId;
                         if (whId) {
-                            this.locationService.getRacksByWarehouse(whId).subscribe((racks: any[]) => {
-                                this.racksByItem[idx] = racks;
+                            this.locationService.getRacksByWarehouse(whId).subscribe({
+                                next: (racks: any[]) => {
+                                    this.racksByItem[idx] = racks || [];
+                                },
+                                error: (err) => {
+                                    console.warn('Failed to load racks for warehouse:', whId, err);
+                                    this.racksByItem[idx] = [];
+                                }
                             });
                         }
                     });
@@ -133,8 +140,14 @@ export class QuickSaleComponent implements OnInit {
     onWarehouseChange(index: number) {
         const warehouseId = this.items.at(index).get('warehouseId')?.value;
         if (warehouseId) {
-            this.locationService.getRacksByWarehouse(warehouseId).subscribe((res: any) => {
-                this.racksByItem[index] = res;
+            this.locationService.getRacksByWarehouse(warehouseId).subscribe({
+                next: (res: any) => {
+                    this.racksByItem[index] = res || [];
+                },
+                error: (err) => {
+                    console.warn('Failed to load racks for warehouse:', warehouseId, err);
+                    this.racksByItem[index] = [];
+                }
             });
         } else {
             this.racksByItem[index] = [];
@@ -181,11 +194,17 @@ export class QuickSaleComponent implements OnInit {
                         // Auto-populate rack list for this item's default warehouse
                         const idx = this.items.length - 1;
                         if (mappedProduct.defaultWarehouseId) {
-                            this.locationService.getRacksByWarehouse(mappedProduct.defaultWarehouseId).subscribe((racks: any[]) => {
-                                this.racksByItem[idx] = racks;
-                                // Auto-select the default rack if available
-                                if (mappedProduct.defaultRackId) {
-                                    this.items.at(idx).get('rackId')?.setValue(mappedProduct.defaultRackId, { emitEvent: false });
+                            this.locationService.getRacksByWarehouse(mappedProduct.defaultWarehouseId).subscribe({
+                                next: (racks: any[]) => {
+                                    this.racksByItem[idx] = racks || [];
+                                    // Auto-select the default rack if available
+                                    if (mappedProduct.defaultRackId) {
+                                        this.items.at(idx).get('rackId')?.setValue(mappedProduct.defaultRackId, { emitEvent: false });
+                                    }
+                                },
+                                error: (err) => {
+                                    console.warn('Failed to load racks for warehouse:', mappedProduct.defaultWarehouseId, err);
+                                    this.racksByItem[idx] = [];
                                 }
                             });
                         }
@@ -202,6 +221,12 @@ export class QuickSaleComponent implements OnInit {
         const lineItemId = isExistingItem ? (product.id || 0) : 0;
         const productId = isExistingItem ? product.productId : product.id;
 
+        const formatDt = (dt: any) => {
+            if (!dt) return null;
+            if (typeof dt === 'string' && dt.length >= 10) return dt.substring(0, 10);
+            try { return new Date(dt).toISOString().substring(0, 10); } catch { return null; }
+        };
+
         const itemForm = this.fb.group({
             id: [lineItemId],
             productId: [productId, Validators.required],
@@ -217,8 +242,8 @@ export class QuickSaleComponent implements OnInit {
             gstPercent: [product.gstPercent || 18],
             total: [{ value: 0, disabled: true }],
             isExpiryRequired: [product.isExpiryRequired || false],
-            manufacturingDate: [product.manufacturingDate || null],
-            expiryDate: [product.expiryDate || null]
+            manufacturingDate: [formatDt(product.manufacturingDate)],
+            expiryDate: [formatDt(product.expiryDate)]
         });
 
         const index = this.items.length;
@@ -226,6 +251,95 @@ export class QuickSaleComponent implements OnInit {
         this.setupItemCalculations(index);
         this.calculateItemTotal(index);
         this.setupUnitFilter(index);
+
+        if (!isExistingItem) {
+             const productName = product.productName || product.name || '';
+             this.inventoryService.getCurrentStock('', '', 0, 10, productName).subscribe((res: any) => {
+                 const currentItem = this.items.at(index);
+                 const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
+                 
+                 if (currentItem && itemsArray.length > 0) {
+                     const batches = itemsArray.filter((x: any) => {
+                         const matchId = String(x.productId || x.ProductId) === String(productId);
+                         const hasStock = (x.availableStock || x.AvailableStock || 0) > 0;
+                         return matchId && hasStock;
+                     });
+                     
+                     if (batches.length > 1) {
+                         // Multiple batches available - show selection dialog
+                         const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
+                             width: '600px',
+                             disableClose: false,
+                             data: {
+                                 productName: product.productName || product.name,
+                                 batches: batches
+                             }
+                         });
+
+                         dialogRef.afterClosed().subscribe((selectedBatch: any) => {
+                             if (selectedBatch) {
+                                 this.applyBatchToForm(selectedBatch, currentItem, formatDt, index);
+                             } else {
+                                 // User cancelled - remove the item
+                                 this.notification.showStatus(false, 'Batch selection cancelled. Item not added.');
+                                 this.items.removeAt(index);
+                             }
+                         });
+                     } else if (batches.length === 1) {
+                         // Single batch available - auto-populate
+                         this.applyBatchToForm(batches[0], currentItem, formatDt, index);
+                     }
+                 }
+             });
+        }
+    }
+
+    private applyBatchToForm(batch: any, formGroup: any, formatDt: Function, index: number) {
+        const mfgDate = batch.manufacturingDate || batch.ManufacturingDate;
+        const expDate = batch.expiryDate || batch.ExpiryDate;
+        const whId = batch.warehouseId || batch.WarehouseId;
+        const rkId = batch.rackId || batch.RackId;
+        const warehouseName = batch.warehouseName || batch.WarehouseName;
+        const rackName = batch.rackName || batch.RackName;
+        const stock = batch.availableStock || batch.AvailableStock || 0;
+
+        // Update form controls with batch data
+        if (warehouseName) {
+            // Try to find the warehouse ID from our warehouses list if not provided
+            if (!whId && this.warehouses.length > 0) {
+                const foundWh = this.warehouses.find(w => w.name === warehouseName);
+                if (foundWh) {
+                    formGroup.get('warehouseId')?.setValue(foundWh.id);
+                }
+            } else if (whId) {
+                formGroup.get('warehouseId')?.setValue(whId);
+            }
+        }
+
+        if (rackName) {
+            formGroup.get('rackName')?.setValue(rackName);
+            // If we have the rack ID, set that too
+            if (rkId) {
+                formGroup.get('rackId')?.setValue(rkId);
+            }
+        }
+
+        // Set mfg and exp dates
+        if (mfgDate) {
+            formGroup.get('manufacturingDate')?.setValue(formatDt(mfgDate));
+        }
+        if (expDate) {
+            formGroup.get('expiryDate')?.setValue(formatDt(expDate));
+        }
+
+        // Update available stock
+        formGroup.get('availableStock')?.setValue(stock);
+
+        // Reload racks if warehouse was set
+        const whIdValue = formGroup.get('warehouseId')?.value;
+        if (whIdValue) {
+            this.onWarehouseChange(index);
+        }
     }
 
     get items(): FormArray {

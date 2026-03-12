@@ -18,31 +18,31 @@ import { LoadingService } from '../../../core/services/loading.service';
   template: `
     <div class="dialog-container">
       <!-- Global-style Loader inside Dialog -->
-      <div *ngIf="isLoading" class="dialog-loader-overlay">
+      <div *ngIf="isLoading" class="dialog-loader-overlay" role="status" aria-label="Loading inventory items" aria-live="polite">
         <div class="loader-content">
-          <mat-spinner diameter="50" strokeWidth="4"></mat-spinner>
+          <mat-spinner diameter="50" strokeWidth="4" aria-hidden="true"></mat-spinner>
           <p class="loader-text">Fetching Inventory Items...</p>
           <p class="loader-subtext">Optimizing selection for you</p>
         </div>
       </div>
 
-      <div class="dialog-header">
+      <div class="dialog-header" [attr.aria-hidden]="isLoading">
         <h2 class="title">Select Products</h2>
-        <button class="header-close-btn" (click)="close()"><mat-icon>close</mat-icon></button>
+        <button class="header-close-btn" (click)="close()" [disabled]="isLoading"><mat-icon>close</mat-icon></button>
       </div>
 
-      <div class="search-bar d-flex gap-4 align-items-center">
+      <div class="search-bar d-flex gap-4 align-items-center" [attr.aria-hidden]="isLoading">
         <mat-form-field appearance="outline" class="flex-grow-1 search-field" subscriptSizing="dynamic">
           <mat-label>Search by Name or SKU</mat-label>
-          <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange()" (keyup.enter)="loadProducts()" placeholder="Start typing to search...">
-          <button mat-icon-button matSuffix (click)="loadProducts()" class="search-btn">
+          <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange()" (keyup.enter)="loadProducts()" placeholder="Start typing to search..." [disabled]="isLoading">
+          <button mat-icon-button matSuffix (click)="loadProducts()" class="search-btn" [disabled]="isLoading">
             <mat-icon>search</mat-icon>
           </button>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="category-field" subscriptSizing="dynamic" style="width: 200px; margin-left: 20px;">
           <mat-label>Filter Category</mat-label>
-          <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onCategoryChange()">
+          <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onCategoryChange()" [disabled]="isLoading">
             <mat-option [value]="null">All Categories</mat-option>
             <mat-option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</mat-option>
           </mat-select>
@@ -55,8 +55,8 @@ import { LoadingService } from '../../../core/services/loading.service';
         </button>
       </div>
 
-      <div class="table-container" [class.loading]="isLoading">
-        <table mat-table [dataSource]="dataSource" class="product-table">
+      <div class="table-container" [class.loading]="isLoading" [attr.aria-hidden]="isLoading">
+        <table mat-table [dataSource]="dataSource" class="product-table" [attr.aria-hidden]="isLoading">
           <ng-container matColumnDef="select">
             <th mat-header-cell *matHeaderCellDef class="checkbox-col">
               <mat-checkbox (change)="$event ? masterToggle() : null"
@@ -135,20 +135,22 @@ import { LoadingService } from '../../../core/services/loading.service';
       <mat-paginator [length]="totalRecords"
                      [pageSize]="pageSize"
                      [pageSizeOptions]="[10, 20, 50]"
-                     (page)="onPageChange($event)">
+                     (page)="onPageChange($event)"
+                     [disabled]="isLoading"
+                     [attr.aria-hidden]="isLoading">
       </mat-paginator>
 
-      <div class="dialog-footer">
+      <div class="dialog-footer" [attr.aria-hidden]="isLoading">
         <div class="selection-info">
           <mat-icon class="info-icon">check_circle</mat-icon>
           <span class="count">{{selection.selected.length}}</span>
           <span class="text">products selected</span>
         </div>
         <div class="action-buttons">
-          <button mat-raised-button class="back-btn" (click)="close()">
+          <button mat-raised-button class="back-btn" (click)="close()" [disabled]="isLoading">
             <mat-icon>close</mat-icon> Cancel
           </button>
-          <button mat-raised-button class="save-btn" [disabled]="selection.isEmpty()" (click)="addSelected()">
+          <button mat-raised-button class="save-btn" [disabled]="selection.isEmpty() || isLoading" (click)="addSelected()">
             <mat-icon>add_shopping_cart</mat-icon> Add Selected Products
           </button>
         </div>
