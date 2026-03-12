@@ -103,12 +103,18 @@ export class GrnListComponent implements OnInit, AfterViewInit {
   private route = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    // Read isQuick from route data [cite: 2026-03-07]
-    this.isQuick = (this.route as any).snapshot.data['isQuick'] || false;
+    // Read isQuick from route data (check current route + parent routes)
+    let currentRoute = this.route;
+    while (currentRoute) {
+      if (currentRoute.snapshot.data['isQuick'] === true) {
+        this.isQuick = true;
+        break;
+      }
+      currentRoute = currentRoute.parent as any;
+    }
+    console.log('📍 GRN List Init - isQuick:', this.isQuick);
 
     this.canAdd = this.permissionService.hasPermission('CanAdd');
-
-    this.searchControl.disable({ emitEvent: false });
 
     // Search input par debounce lagaya hai taaki har word par API call na ho [cite: 2026-01-22]
     this.searchControl.valueChanges.pipe(
@@ -157,6 +163,7 @@ export class GrnListComponent implements OnInit, AfterViewInit {
           this.isLoadingResults = true;
           this.searchControl.disable({ emitEvent: false });
           this.cdr.detectChanges();
+          console.log('📋 GRN Dashboard Query - isQuick:', this.isQuick, 'Page:', this.paginator.pageIndex);
           return forkJoin({
             grnData: this.inventoryService.getGRNPagedList(
               this.sort.active,

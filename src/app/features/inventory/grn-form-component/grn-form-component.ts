@@ -64,6 +64,17 @@ export class GrnFormComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isViewMode = this.router.url.includes('/view');
 
+    // Read isQuick flag from route data (check current route + parent routes)
+    let currentRoute = this.route;
+    while (currentRoute) {
+      if (currentRoute.snapshot.data['isQuick'] === true) {
+        this.isQuick = true;
+        break;
+      }
+      currentRoute = currentRoute.parent as any;
+    }
+    console.log('📍 GRN Form Init - isQuick:', this.isQuick, 'URL:', this.router.url);
+
     this.route.params.subscribe(params => {
       if (params['id']) {
         this.resetFormBeforeLoad();
@@ -83,7 +94,12 @@ export class GrnFormComponent implements OnInit, OnDestroy {
         this.resetFormBeforeLoad();
         this.poId = params['poId'].toString();
         this.isFromPopup = true;
-        this.isQuick = params['isQuick'] === 'true' || params['isQuick'] === true;
+        // Check query params as fallback (for backward compatibility)
+        if (params['isQuick']) {
+          const isQuickParam = params['isQuick'] === 'true' || params['isQuick'] === true;
+          console.log('📍 Query param isQuick:', isQuickParam);
+          this.isQuick = this.isQuick || isQuickParam; // Merge with route data
+        }
 
         if (params['poNo']) {
           this.grnForm.patchValue({ poNumber: params['poNo'] });
@@ -335,6 +351,8 @@ export class GrnFormComponent implements OnInit, OnDestroy {
   }
 
   performGRNSave() {
+    console.log('🚀 GRN Save Initiated - isQuick:', this.isQuick);
+    
     const currentUserId = localStorage.getItem('email') || 'Admin';
 
     if (this.poId && this.poId.includes(',')) {
@@ -363,6 +381,7 @@ export class GrnFormComponent implements OnInit, OnDestroy {
           remarks: formValue.remarks,
           totalAmount: poTotal,  // ✅ was missing — caused ₹0.00 bug
           status: 'Received',
+          isQuick: this.isQuick,
           createdBy: currentUserId,
           items: poItems.map(i => ({
             productId: i.productId,
@@ -419,6 +438,7 @@ export class GrnFormComponent implements OnInit, OnDestroy {
       remarks: this.grnForm.value.remarks,
       totalAmount: this.calculateGrandTotal(),
       status: 'Received',
+      isQuick: this.isQuick,
       createdBy: currentUserId,
       items: this.items.map(item => ({
         productId: item.productId,
@@ -439,7 +459,8 @@ export class GrnFormComponent implements OnInit, OnDestroy {
       }))
     };
 
-    console.log('🚀 Saving GRN Payload:', grnData);
+    console.log('� Full GRN Payload State:', { isQuick: this.isQuick, grnData });
+    console.log('�🚀 Saving GRN Payload:', grnData);
     this.inventoryService.saveGRN({ Data: grnData }).subscribe({
       next: (response: any) => {
         console.log('✅ GRN Save Success:', response);
@@ -561,7 +582,7 @@ export class GrnFormComponent implements OnInit, OnDestroy {
 
   navigateBack() {
     if (this.isQuick) {
-      this.router.navigate(['/app/quick-inventory/purchase/list']);
+      this.router.navigate(['/app/quick-inventory/grn-list']);
     } else {
       this.router.navigate(['/app/inventory/grn-list']);
     }

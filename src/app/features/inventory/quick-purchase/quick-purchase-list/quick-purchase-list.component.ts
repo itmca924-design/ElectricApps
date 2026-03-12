@@ -480,10 +480,9 @@ export class QuickPurchaseListComponent implements OnInit {
   }
 
   onCreateGrn(row: any) {
-    // Quick PO logic: Direct Inward skipping Gatepass. 
-    // We pass poId to grn-form.
-    this.router.navigate(['/app/inventory/grn-list/add'], { 
-      queryParams: { poId: row.id, poNo: row.poNumber, isQuick: true } 
+    // Quick PO logic: Direct to Quick GRN form within quick-inventory module
+    this.router.navigate(['/app/quick-inventory/grn-list/add'], { 
+      queryParams: { poId: row.id, poNo: row.poNumber } 
     });
   }
 

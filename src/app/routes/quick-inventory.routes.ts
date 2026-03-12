@@ -52,10 +52,27 @@ export const QUICK_INVENTORY_ROUTES: Routes = [
         path: 'grn-list',
         canActivate: [PermissionGuard],
         data: { breadcrumb: 'Quick GRN List', isQuick: true },
-        loadComponent: () => import('../features/inventory/grn-list-component/grn-list-component').then(m => {
-            // We'll pass a flag to the component if needed, or wrap it
-            return m.GrnListComponent;
-        })
+        children: [
+            { 
+                path: '', 
+                loadComponent: () => import('../features/inventory/grn-list-component/grn-list-component').then(m => m.GrnListComponent) 
+            },
+            { 
+                path: 'add', 
+                data: { breadcrumb: 'Receive Stock', isQuick: true },
+                loadComponent: () => import('../features/inventory/grn-form-component/grn-form-component').then(m => m.GrnFormComponent) 
+            },
+            { 
+                path: 'edit/:id', 
+                data: { breadcrumb: 'Edit GRN', isQuick: true },
+                loadComponent: () => import('../features/inventory/grn-form-component/grn-form-component').then(m => m.GrnFormComponent) 
+            },
+            { 
+                path: 'view/:id', 
+                data: { breadcrumb: 'View GRN', isQuick: true },
+                loadComponent: () => import('../features/inventory/grn-form-component/grn-form-component').then(m => m.GrnFormComponent) 
+            }
+        ]
     },
     {
         path: 'current-stock',
