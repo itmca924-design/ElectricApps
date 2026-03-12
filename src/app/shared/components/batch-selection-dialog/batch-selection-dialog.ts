@@ -19,7 +19,8 @@ import { FormsModule } from '@angular/forms';
         <div class="batch-card" 
              *ngFor="let batch of data.batches; let i = index"
              [class.selected]="selectedBatchIndex === i"
-             (click)="selectBatch(i)">
+             [class.disabled]="isExpired(batch)"
+             (click)="!isExpired(batch) && selectBatch(i)">
           
           <div class="batch-header">
             <div class="batch-number">
@@ -73,7 +74,8 @@ import { FormsModule } from '@angular/forms';
         <button mat-stroked-button (click)="close()">
           <mat-icon>close</mat-icon> Cancel
         </button>
-        <button mat-raised-button color="primary" (click)="confirm()" [disabled]="selectedBatchIndex === null">
+        <button mat-raised-button color="primary" (click)="confirm()" 
+                [disabled]="selectedBatchIndex === null || (selectedBatchIndex !== null && isExpired(data.batches[selectedBatchIndex]))">
           <mat-icon>check_circle</mat-icon> Confirm Selection
         </button>
       </div>
@@ -128,7 +130,7 @@ import { FormsModule } from '@angular/forms';
       transition: all 0.2s ease;
       position: relative;
 
-      &:hover {
+      &:hover:not(.disabled) {
         border-color: #3b82f6;
         background: #f0f4ff;
         box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
@@ -138,6 +140,13 @@ import { FormsModule } from '@angular/forms';
         border-color: #3b82f6;
         background: #eff6ff;
         box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+      }
+
+      &.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        border-color: #fecaca;
+        background: #fef2f2;
       }
 
       .batch-header {
@@ -289,12 +298,20 @@ export class BatchSelectionDialogComponent implements OnInit {
   }
 
   selectBatch(index: number) {
-    this.selectedBatchIndex = index;
+    // Prevent selection of expired batches
+    if (index < this.data.batches.length && !this.isExpired(this.data.batches[index])) {
+      this.selectedBatchIndex = index;
+    }
   }
 
   confirm() {
     if (this.selectedBatchIndex !== null && this.selectedBatchIndex < this.data.batches.length) {
       const selectedBatch = this.data.batches[this.selectedBatchIndex];
+      // Final check: don't allow expired batches
+      if (this.isExpired(selectedBatch)) {
+        alert('❌ Cannot sell expired products. Please select a non-expired batch.');
+        return;
+      }
       this.dialogRef.close(selectedBatch);
     }
   }

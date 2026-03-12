@@ -761,6 +761,37 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
   min-height: 300px;
 }
 
+/* --- Expired & Expiring Soon Row Styling --- */
+.element-row {
+  &.expired-row {
+    background-color: #fef2f2 !important;
+    border-left: 4px solid #dc2626 !important;
+    
+    &:hover {
+      background-color: #fee2e2 !important;
+    }
+    
+    td {
+      color: #991b1b;
+      font-weight: 600;
+    }
+  }
+  
+  &.expiring-soon-row {
+    background-color: #fffbeb !important;
+    border-left: 4px solid #f59e0b !important;
+    
+    &:hover {
+      background-color: #fef3c7 !important;
+    }
+    
+    td {
+      color: #92400e;
+      font-weight: 500;
+    }
+  }
+}
+
 .empty-state-content {
   display: flex;
   flex-direction: column;

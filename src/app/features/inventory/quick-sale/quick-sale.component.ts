@@ -262,7 +262,10 @@ export class QuickSaleComponent implements OnInit {
                      const batches = itemsArray.filter((x: any) => {
                          const matchId = String(x.productId || x.ProductId) === String(productId);
                          const hasStock = (x.availableStock || x.AvailableStock || 0) > 0;
-                         return matchId && hasStock;
+                         // Exclude expired batches
+                         const expDate = x.expiryDate || x.ExpiryDate;
+                         const isNotExpired = !expDate || new Date(expDate) > new Date();
+                         return matchId && hasStock && isNotExpired;
                      });
                      
                      if (batches.length > 1) {
@@ -288,6 +291,15 @@ export class QuickSaleComponent implements OnInit {
                      } else if (batches.length === 1) {
                          // Single batch available - auto-populate
                          this.applyBatchToForm(batches[0], currentItem, formatDt, index);
+                     } else {
+                         // No valid batches available (all expired or no stock)
+                         const allItems = itemsArray.filter((x: any) => String(x.productId || x.ProductId) === String(productId));
+                         if (allItems.length > 0) {
+                             this.notification.showStatus(false, '⚠️ All available batches are expired. Cannot add this product.');
+                         } else {
+                             this.notification.showStatus(false, 'No available stock for this product.');
+                         }
+                         this.items.removeAt(index);
                      }
                  }
              });

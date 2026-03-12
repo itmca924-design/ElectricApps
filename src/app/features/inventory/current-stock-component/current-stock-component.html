@@ -285,6 +285,8 @@
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let element; columns: displayedColumns;"
           class="element-row"
+          [class.expired-row]="isExpired(element.expiryDate)"
+          [class.expiring-soon-row]="!isExpired(element.expiryDate) && isNearExpiry(element.expiryDate)"
           [class.expanded-row]="expandedElement === element"
           (click)="toggleRow(element)">
       </tr>
