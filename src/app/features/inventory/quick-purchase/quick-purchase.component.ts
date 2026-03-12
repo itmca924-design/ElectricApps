@@ -72,6 +72,20 @@ export class QuickPurchaseComponent implements OnInit {
             this.loadPODetails(id);
         } else {
             this.loadNextPoNumber();
+            // Handle refill data from Quick Current Stock using history.state
+            // Wait longer to ensure all async operations are complete
+            setTimeout(() => {
+                const state = window.history.state;
+                if (state?.refillData) {
+                    console.log('🔄 Adding refillData:', state.refillData);
+                    this.addProductToForm(state.refillData);
+                    this.cdr.detectChanges();
+                } else if (state?.refillItems) {
+                    console.log('🔄 Adding refillItems:', state.refillItems);
+                    state.refillItems.forEach((item: any) => this.addProductToForm(item));
+                    this.cdr.detectChanges();
+                }
+            }, 500);
         }
     }
 
@@ -207,44 +221,76 @@ export class QuickPurchaseComponent implements OnInit {
     }
 
     addProductToForm(product: any) {
+        // Handle both product.id and product.productId for refill data compatibility
+        const productId = product.id || product.productId;
+        
+        console.log('➕ addProductToForm called with:', { 
+            productId, 
+            productName: product.productName, 
+            qty: product.suggestedQty, 
+            availableStock: product.currentStock || product.availableStock,
+            mfgDate: product.manufacturingDate,
+            expDate: product.expiryDate,
+            isExpiryRequired: product.isExpiryRequired
+        });
+        
+        // Format dates if they exist
+        const formatDate = (dt: any) => {
+            if (!dt || dt === 'NA') return null;
+            if (typeof dt === 'string' && dt.length >= 10) return dt.substring(0, 10);
+            try { return new Date(dt).toISOString().substring(0, 10); } catch { return null; }
+        };
+
+        const mfgDate = formatDate(product.manufacturingDate);
+        const expDate = formatDate(product.expiryDate);
+
         const itemForm = this.fb.group({
-            productId: [product.id, Validators.required],
+            productId: [productId, Validators.required],
             productName: [product.productName || product.name, Validators.required],
-            availableStock: [product.currentStock || 0],
+            availableStock: [product.currentStock || product.availableStock || 0],
             rackName: [product.rackName || 'NA'],
             warehouseId: [product.defaultWarehouseId || null],
             rackId: [product.defaultRackId || null],
-            qty: [1, [Validators.required, Validators.min(0.01)]],
+            qty: [product.suggestedQty || 1, [Validators.required, Validators.min(0.01)]],
             unit: [{ value: product.unit || 'PCS', disabled: true }],
             rate: [product.basePurchasePrice || product.purchasePrice || product.basePrice || product.rate || 0, [Validators.required, Validators.min(0)]],
             discountPercent: [0],
             gstPercent: [product.gstPercent || 18],
             total: [{ value: 0, disabled: true }],
-            manufacturingDate: [null],
-            expiryDate: [null],
+            manufacturingDate: [mfgDate],
+            expiryDate: [expDate],
             isExpiryRequired: [product.isExpiryRequired || false]
         });
 
-        const priceListId = this.purchaseForm.get('priceListId')?.value;
-        if (product.id && priceListId) {
-            this.inventoryService.getProductRate(product.id, priceListId).subscribe({
-                next: (res: any) => {
-                    if (res) {
-                        itemForm.patchValue({
-                            rate: res.recommendedRate || res.rate,
-                            discountPercent: res.discount || res.discountPercent || 0
-                        });
-                    }
-                    this.calculateItemTotal(this.items.length - 1);
-                }
-            });
-        }
+        console.log('✅ Form created with isExpiryRequired:', product.isExpiryRequired, 'mfgDate:', mfgDate, 'expDate:', expDate);
 
         const index = this.items.length;
         this.items.push(itemForm);
+        console.log('✅ Product added to form. Current items count:', this.items.length);
+        
         this.setupItemCalculations(index);
         this.calculateItemTotal(index);
         this.setupUnitFilter(index);
+        this.cdr.detectChanges();
+
+        // If we have productId, try to fetch full product details and update price list rate
+        if (productId) {
+            const priceListId = this.purchaseForm.get('priceListId')?.value;
+            if (priceListId) {
+                this.inventoryService.getProductRate(productId, priceListId).subscribe({
+                    next: (res: any) => {
+                        if (res) {
+                            itemForm.patchValue({
+                                rate: res.recommendedRate || res.rate,
+                                discountPercent: res.discount || res.discountPercent || 0
+                            });
+                            this.calculateItemTotal(index);
+                            this.cdr.detectChanges();
+                        }
+                    }
+                });
+            }
+        }
     }
 
     get items(): FormArray {

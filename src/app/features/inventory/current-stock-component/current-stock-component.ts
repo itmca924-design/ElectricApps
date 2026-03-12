@@ -214,6 +214,11 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
           });
         }
 
+        // Check if dates exist (not NA) to determine if expiry is required
+        const hasMfgDate = item.manufacturingDate && item.manufacturingDate !== 'NA' && item.manufacturingDate !== null;
+        const hasExpDate = item.expiryDate && item.expiryDate !== 'NA' && item.expiryDate !== null;
+        const hasAnyDate = hasMfgDate || hasExpDate;
+
         return {
           productId: item.productId,
           productName: item.productName,
@@ -223,11 +228,14 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
           totalRejected: item.totalRejected,
           totalSold: item.totalSold || 0,
           availableStock: item.availableStock,
+          currentStock: item.availableStock || item.currentStock,
           unit: item.unit,
           lastRate: item.lastRate,
           minStockLevel: item.minStockLevel,
           manufacturingDate: item.manufacturingDate,
           expiryDate: item.expiryDate,
+          // If dates exist, set isExpiryRequired to true; otherwise use backend value
+          isExpiryRequired: hasAnyDate || item.isExpiryRequired || item.requiresExpiry || false,
           history: item.history
         };
       });
@@ -286,18 +294,42 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   }
 
   onRefillNow(item: any) {
-    this.router.navigate(['/app/inventory/polist/add'], {
-      state: {
-        refillData: {
-          productId: item.productId,
-          productName: item.productName,
-          unit: item.unit || 'PCS',
-          rate: item.lastRate || 0,
-          suggestedQty: 10,
-          lastpurchaseOrderId: this.lastpurchaseOrderId
-        }
-      }
+    console.log('🔄 Refill Data from Current Stock:', {
+      productName: item.productName,
+      mfgDate: item.manufacturingDate,
+      expDate: item.expiryDate,
+      isExpiryRequired: item.isExpiryRequired
     });
+
+    const refillData = {
+      productId: item.productId,
+      productName: item.productName,
+      unit: item.unit || 'PCS',
+      rate: item.lastRate || 0,
+      suggestedQty: 10,
+      currentStock: item.currentStock || item.availableStock || 0,
+      availableStock: item.currentStock || item.availableStock || 0,
+      isExpiryRequired: item.isExpiryRequired || false,
+      manufacturingDate: item.manufacturingDate || null,
+      expiryDate: item.expiryDate || null,
+      lastpurchaseOrderId: this.lastpurchaseOrderId
+    };
+
+    console.log('✅ Sending refillData to Quick Purchase:', refillData);
+
+    // Check if coming from Quick Inventory or Standard Inventory
+    const currentUrl = this.router.url;
+    const isQuickInventory = currentUrl.includes('/quick-inventory/');
+    
+    if (isQuickInventory) {
+      this.router.navigate(['/app/quick-inventory/purchase/add'], {
+        state: { refillData }
+      });
+    } else {
+      this.router.navigate(['/app/inventory/polist/add'], {
+        state: { refillData }
+      });
+    }
   }
 
   isAllSelected() {
@@ -318,11 +350,30 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
     const refillItems = this.selection.selected.map(item => ({
       productId: item.productId,
       productName: item.productName,
+      unit: item.unit || 'PCS',
+      rate: item.lastRate || 0,
+      suggestedQty: 10,
+      currentStock: item.currentStock || item.availableStock || 0,
+      availableStock: item.currentStock || item.availableStock || 0,
+      isExpiryRequired: item.isExpiryRequired || false,
+      manufacturingDate: item.manufacturingDate || null,
+      expiryDate: item.expiryDate || null
     }));
     this.cdr.detectChanges();
-    this.router.navigate(['/app/inventory/polist/add'], {
-      state: { refillItems: refillItems }
-    });
+
+    // Check if coming from Quick Inventory or Standard Inventory
+    const currentUrl = this.router.url;
+    const isQuickInventory = currentUrl.includes('/quick-inventory/');
+    
+    if (isQuickInventory) {
+      this.router.navigate(['/app/quick-inventory/purchase/add'], {
+        state: { refillItems: refillItems }
+      });
+    } else {
+      this.router.navigate(['/app/inventory/polist/add'], {
+        state: { refillItems: refillItems }
+      });
+    }
   }
 
   onCheckboxChange(productId: number, event: any) {
