@@ -64,7 +64,7 @@
       </div>
 
       <div class="row">
-        <div class="col-12">
+        <div class="col-6">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Expected Delivery**</mat-label>
             <input matInput [matDatepicker]="deliveryPicker" formControlName="expectedDeliveryDate">
@@ -72,13 +72,10 @@
             <mat-datepicker #deliveryPicker></mat-datepicker>
           </mat-form-field>
         </div>
-      </div>
-
-      <div class="row">
-        <div class="col-12">
+        <div class="col-6">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Remarks / Notes</mat-label>
-            <textarea matInput formControlName="remarks" rows="2" placeholder="e.g. Received via Tempo UP80-XXXX"></textarea>
+            <textarea matInput formControlName="remarks" rows="1" placeholder="e.g. Received via Tempo UP80-XXXX" style="resize: none;"></textarea>
           </mat-form-field>
         </div>
       </div>
@@ -152,6 +149,7 @@
                 <input matInput [matDatepicker]="mfgPicker" formControlName="manufacturingDate" placeholder="Mfg Date">
                 <mat-datepicker-toggle matIconSuffix [for]="mfgPicker" matTooltip="MFG DATE"></mat-datepicker-toggle>
                 <mat-datepicker #mfgPicker></mat-datepicker>
+                <mat-error *ngIf="item.get('manufacturingDate')?.hasError('required')">Required</mat-error>
               </mat-form-field>
             </div>
             <div class="col-exp">
@@ -159,6 +157,8 @@
                 <input matInput [matDatepicker]="expPicker" formControlName="expiryDate" placeholder="Exp Date">
                 <mat-datepicker-toggle matIconSuffix [for]="expPicker" matTooltip="EXP DATE"></mat-datepicker-toggle>
                 <mat-datepicker #expPicker></mat-datepicker>
+                <mat-error *ngIf="item.get('expiryDate')?.hasError('required')">Required</mat-error>
+                <mat-error *ngIf="item.get('expiryDate')?.hasError('dateRangeInvalid')">Exp > Mfg Date</mat-error>
               </mat-form-field>
             </div>
             <div class="col-total">

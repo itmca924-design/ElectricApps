@@ -37,6 +37,21 @@
           </div>
       </mat-card-content>
   </mat-card>
+
+  <mat-card class="stat-card purge" *ngIf="expiryAlertCount > 0">
+    <mat-card-content>
+        <div class="stat-icon"><mat-icon>auto_delete</mat-icon></div>
+        <div class="stat-info">
+            <span class="label">Expired Batches</span>
+            <div class="value-row">
+                <span class="value">{{expiryAlertCount}}</span>
+                <button mat-raised-button color="warn" class="stat-purge-btn" (click)="onPurgeAllExpired()" matTooltip="Purge All Expired Stock">
+                    Purge
+                </button>
+            </div>
+        </div>
+    </mat-card-content>
+</mat-card>
 </div>
 
 <div class="table-container mat-elevation-z8" [class.disabled-content]="isDashboardLoading">
@@ -53,44 +68,37 @@
       </mat-form-field>
     </div>
 
-    <div class="date-range-container">
-      <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-label>Enter a date range</mat-label>
-        <mat-date-range-input [rangePicker]="picker">
-          <input matStartDate placeholder="Start date" [value]="startDate" (dateChange)="startDate = $event.value">
-          <input matEndDate placeholder="End date" [value]="endDate" (dateChange)="endDate = $event.value">
-        </mat-date-range-input>
-        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-date-range-picker #picker></mat-date-range-picker>
-      </mat-form-field>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-filter">
+      <mat-label>Enter a date range</mat-label>
+      <mat-date-range-input [rangePicker]="picker">
+        <input matStartDate placeholder="Start date" [value]="startDate" (dateChange)="startDate = $event.value">
+        <input matEndDate placeholder="End date" [value]="endDate" (dateChange)="endDate = $event.value">
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
 
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-filter">
-        <mat-label>Warehouse</mat-label>
-        <mat-select [(ngModel)]="selectedWarehouseId" (selectionChange)="onWarehouseChange()">
-          <mat-option [value]="null">All Warehouses</mat-option>
-          <mat-option *ngFor="let w of warehouses" [value]="w.id">{{w.name}}</mat-option>
-        </mat-select>
-      </mat-form-field>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-filter">
+      <mat-label>Warehouse</mat-label>
+      <mat-select [(ngModel)]="selectedWarehouseId" (selectionChange)="onWarehouseChange()">
+        <mat-option [value]="null">All Warehouses</mat-option>
+        <mat-option *ngFor="let w of warehouses" [value]="w.id">{{w.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-filter">
-        <mat-label>Rack</mat-label>
-        <mat-select [(ngModel)]="selectedRackId" (selectionChange)="applyDateFilter()">
-          <mat-option [value]="null">All Racks</mat-option>
-          <mat-option *ngFor="let r of filteredRacks" [value]="r.id">{{r.name}}</mat-option>
-        </mat-select>
-      </mat-form-field>
-      
-      <div class="filter-actions">
-        <button mat-raised-button color="primary" class="filter-btn" (click)="applyDateFilter()" [disabled]="isLoadingResults">
-          <mat-icon>filter_alt</mat-icon>
-          Apply
-        </button>
-
-        <button mat-stroked-button color="warn" class="purge-btn-small" *ngIf="expiryAlertCount > 0" (click)="onPurgeAllExpired()" matTooltip="Purge All Expired Stock">
-          <mat-icon>delete_sweep</mat-icon>
-          Purge ({{expiryAlertCount}})
-        </button>
-      </div>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="location-filter">
+      <mat-label>Rack</mat-label>
+      <mat-select [(ngModel)]="selectedRackId" (selectionChange)="applyDateFilter()">
+        <mat-option [value]="null">All Racks</mat-option>
+        <mat-option *ngFor="let r of filteredRacks" [value]="r.id">{{r.name}}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    
+    <div class="filter-actions">
+      <button mat-raised-button color="primary" class="filter-btn" (click)="applyDateFilter()" [disabled]="isLoadingResults">
+        <mat-icon>filter_alt</mat-icon>
+        Apply
+      </button>
     </div>
   </div>
 
@@ -281,13 +289,12 @@
                       <td>{{$any(h).warehouseName}}</td>
                       <td>{{$any(h).rackName}}</td>
                       <td>{{$any(h).manufacturingDate | date:'dd MMM yyyy'}}</td>
-                      <!-- Exp Date: RED agar expired, ORANGE agar near expiry -->
                       <td>
                         <span
-                          [class.text-danger]="isExpired($any(h).expiryDate)"
-                          [class.text-warning]="!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate)"
-                          [style.font-weight]="(isExpired($any(h).expiryDate) || isNearExpiry($any(h).expiryDate)) ? '700' : 'normal'"
-                          [matTooltip]="isExpired($any(h).expiryDate) ? '⚠️ Expired Batch!' : isNearExpiry($any(h).expiryDate) ? '⏰ Expiring within 15 days!' : ''"
+                          [class.text-danger]="isExpired($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0"
+                          [class.text-warning]="!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0"
+                          [style.font-weight]="((isExpired($any(h).expiryDate) || isNearExpiry($any(h).expiryDate)) && ($any(h).receivedQty - $any(h).rejectedQty) > 0) ? '700' : 'normal'"
+                          [matTooltip]="(isExpired($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0) ? '⚠️ Expired Batch!' : (!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0) ? '⏰ Expiring within 15 days!' : ''"
                           matTooltipPosition="above">
                           {{$any(h).expiryDate | date:'dd MMM yyyy'}}
                         </span>

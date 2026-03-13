@@ -129,6 +129,36 @@
           border-left: 6px solid #3b82f6;
           .stat-icon { background: #dbeafe; color: #2563eb; }
       }
+
+      &.purge {
+          background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+          border-left: 6px solid #ef4444;
+          .stat-icon { background: #fee2e2; color: #dc2626; }
+          .value { color: #dc2626; }
+      }
+  }
+}
+
+.value-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.stat-purge-btn {
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2) !important;
+  padding: 0 12px !important;
+  
+  &:hover {
+    transform: scale(1.05);
+    background: #d32f2f !important;
   }
 }
 
@@ -582,30 +612,27 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
 /* Filter Header Layout */
 .filter-header-row {
   display: flex;
-  justify-content: flex-start; /* Unified flow from left */
-  align-items: flex-end; /* Align bottom to match button and inputs */
-  padding: 16px 16px 24px 16px;
+  justify-content: flex-start; 
+  align-items: center; 
+  padding: 16px 24px;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
-  gap: 15px;
-  flex-wrap: wrap; /* Changed to allow wrapping */
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 
 /* Search Box Container */
 .search-container {
-  flex: 0 1 300px; /* Fixed but flexible growth */
+  flex: 0 0 250px;
 }
 
-/* Date Range Container */
-.date-range-container {
-  display: flex;
-  align-items: flex-end; /* Align with search box and button */
-  gap: 12px;
-  flex-wrap: nowrap;
+.date-filter {
+  flex: 0 0 250px;
 }
 
 .location-filter {
-  min-width: 180px;
+  flex: 0 0 180px;
 }
 
 /* Material Form Field Customization */

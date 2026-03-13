@@ -171,10 +171,10 @@ export class QuickPurchaseComponent implements OnInit {
             gstPercent: [item.gstPercent || 0],
             total: [{ value: item.total, disabled: true }],
             id: [item.id || 0],
-            manufacturingDate: [item.manufacturingDate ? DateHelper.toDateObject(item.manufacturingDate) : null],
-            expiryDate: [item.expiryDate ? DateHelper.toDateObject(item.expiryDate) : null],
+            manufacturingDate: [item.manufacturingDate ? DateHelper.toDateObject(item.manufacturingDate) : null, item.isExpiryRequired ? Validators.required : []],
+            expiryDate: [item.expiryDate ? DateHelper.toDateObject(item.expiryDate) : null, item.isExpiryRequired ? Validators.required : []],
             isExpiryRequired: [item.isExpiryRequired || false]
-        });
+        }, { validators: [this.dateRangeValidator] });
         const index = this.items.length;
         this.items.push(row);
         this.setupItemCalculations(index);
@@ -258,10 +258,10 @@ export class QuickPurchaseComponent implements OnInit {
             gstPercent: [product.gstPercent || 18],
             taxAmount: [0],
             total: [{ value: 0, disabled: true }],
-            manufacturingDate: [mfgDate],
-            expiryDate: [expDate],
+            manufacturingDate: [mfgDate, product.isExpiryRequired ? Validators.required : []],
+            expiryDate: [expDate, product.isExpiryRequired ? Validators.required : []],
             isExpiryRequired: [product.isExpiryRequired || false]
-        });
+        }, { validators: [this.dateRangeValidator] });
 
         console.log('✅ Form created with isExpiryRequired:', product.isExpiryRequired, 'mfgDate:', mfgDate, 'expDate:', expDate);
 
@@ -315,12 +315,43 @@ export class QuickPurchaseComponent implements OnInit {
             manufacturingDate: [null],
             expiryDate: [null],
             isExpiryRequired: [false]
-        });
+        }, { validators: [this.dateRangeValidator] });
 
         const index = this.items.length;
         this.items.push(itemForm);
         this.setupItemCalculations(index);
         this.setupUnitFilter(index);
+    }
+
+    dateRangeValidator(group: any): any {
+        const isRequired = group.get('isExpiryRequired')?.value;
+        if (!isRequired) return null;
+
+        const mfgCtrl = group.get('manufacturingDate');
+        const expCtrl = group.get('expiryDate');
+        const mfg = mfgCtrl?.value;
+        const exp = expCtrl?.value;
+
+        if (mfg && exp) {
+            const mfgDate = new Date(mfg);
+            const expDate = new Date(exp);
+            // Reset hours to compare only dates
+            mfgDate.setHours(0, 0, 0, 0);
+            expDate.setHours(0, 0, 0, 0);
+            
+            if (expDate < mfgDate) {
+                expCtrl.setErrors({ ...expCtrl.errors, dateRangeInvalid: true });
+                return { dateRangeInvalid: true };
+            } else {
+                // Clear the error if now valid, but keep other errors like 'required'
+                if (expCtrl.hasError('dateRangeInvalid')) {
+                    const errors = { ...expCtrl.errors };
+                    delete errors['dateRangeInvalid'];
+                    expCtrl.setErrors(Object.keys(errors).length ? errors : null);
+                }
+            }
+        }
+        return null;
     }
 
     private setupUnitFilter(index: number) {

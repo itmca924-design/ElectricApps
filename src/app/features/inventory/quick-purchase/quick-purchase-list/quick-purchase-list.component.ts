@@ -170,6 +170,18 @@ export class QuickPurchaseListComponent implements OnInit {
     this.itemColumns = [
       { field: 'productName', header: 'Product Name', width: 215, sortable: true, isFilterable: false, isResizable: true },
       { field: 'qty', header: 'Ordered Qty', width: 90, align: 'left', isResizable: true },
+      { field: 'receivedQty', header: 'Received Qty', width: 100, align: 'left', isResizable: true, cell: (row: any) => row.receivedQty || 0 },
+      { 
+        field: 'pendingQty', header: 'Pending Qty', width: 90, align: 'left', isResizable: true, 
+        cell: (row: any) => {
+          const pending = (row.qty || 0) - (row.acceptedQty || 0);
+          return pending > 0 ? pending : 0;
+        }
+      },
+      { field: 'rejectedQty', header: 'Rejected Qty', width: 95, align: 'left', isResizable: true, 
+        cell: (row: any) => row.rejectedQty || 0 
+      },
+      { field: 'acceptedQty', header: 'Accepted Qty', width: 100, align: 'left', isResizable: true, cell: (row: any) => row.acceptedQty || 0 },
       { field: 'unit', header: 'Unit', width: 85, align: 'left', isResizable: false },
       { 
         field: 'mfgDate', header: 'Mfg Date', width: 120, align: 'left',
@@ -230,12 +242,29 @@ export class QuickPurchaseListComponent implements OnInit {
       next: (res) => {
         const dataRows = res.data || [];
         const items = dataRows.map((item: any) => {
-          // Normalize dates
           ['poDate', 'expectedDeliveryDate', 'CreatedAt', 'createdAt', 'CreatedDate', 'createdDate'].forEach(key => {
             if (item[key] && typeof item[key] === 'string' && !item[key].includes('Z') && !item[key].includes('+')) {
               item[key] = item[key] + 'Z';
             }
           });
+
+          // Parity with Standard PO: Calculate summary stats for the parent row
+          const poItems = item.items || [];
+          if (poItems.length > 0) {
+            item.totalOrdered = poItems.reduce((sum: number, i: any) => sum + (Number(i.qty || i.orderedQty || 0) || 0), 0);
+            item.totalReceived = poItems.reduce((sum: number, i: any) => sum + (Number(i.receivedQty || 0)), 0);
+            item.totalAccepted = poItems.reduce((sum: number, i: any) => sum + (Number(i.acceptedQty || 0)), 0);
+            item.totalRejected = poItems.reduce((sum: number, i: any) => sum + (Number(i.rejectedQty || 0)), 0);
+            item.totalReturned = poItems.reduce((sum: number, i: any) => sum + (Number(i.returnQty || i.returnedQty || 0) || 0), 0);
+            item.totalPending = Math.max(0, item.totalOrdered - item.totalAccepted);
+          } else {
+            item.totalOrdered = Number(item.totalOrdered || item.TotalOrdered || item.orderedQty || 0);
+            item.totalReceived = Number(item.totalReceived || item.TotalReceived || item.receivedQty || 0);
+            item.totalAccepted = Number(item.totalAccepted || item.TotalAccepted || item.acceptedQty || 0);
+            item.totalRejected = Number(item.totalRejected || item.TotalRejected || item.rejectedQty || 0);
+            item.totalPending = Math.max(0, item.totalOrdered - item.totalAccepted);
+          }
+
           return item;
         });
 
