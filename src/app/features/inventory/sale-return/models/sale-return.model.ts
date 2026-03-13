@@ -8,6 +8,8 @@ export interface SaleReturnListDto {
     totalAmount: number;
     status: string;
     gatePassNo?: string;
+    isQuick?: boolean;
+    IsQuick?: boolean; // Adding both for flexibility with API casing
 }
 
 export interface SaleReturnPagedResponse {

@@ -84,11 +84,11 @@ export class SaleReturnListComponent implements OnInit {
     @ViewChild(MatSort) sort!: MatSort;
 
     get pendingInwardSelected(): boolean {
-        return this.selection.selected.some(r => !r.gatePassNo);
+        return this.selection.selected.some(r => !r.gatePassNo && !r.isQuick && !r.IsQuick);
     }
 
     get pendingInwardSelectedCount(): number {
-        return this.selection.selected.filter(r => !r.gatePassNo).length;
+        return this.selection.selected.filter(r => !r.gatePassNo && !r.isQuick && !r.IsQuick).length;
     }
 
     ngOnInit(): void {
@@ -235,10 +235,10 @@ export class SaleReturnListComponent implements OnInit {
                         processedItems.forEach((item: any, index: number) => {
                             const detail = (details as any[])[index];
                             if (detail) {
-                                // Try Multiple fields as per Popup mapping [cite: 2026-02-21]
                                 const returnItems = detail.items || detail.saleReturnItems || detail.returnItems || [];
                                 item.totalQty = returnItems.reduce((sum: number, i: any) =>
                                     sum + (Number(i.qty) || Number(i.returnQty) || Number(i.returnQuantity) || 0), 0);
+                                item.isQuick = detail.isQuick !== undefined ? detail.isQuick : detail.IsQuick;
                             }
                         });
 
@@ -316,8 +316,8 @@ export class SaleReturnListComponent implements OnInit {
     createBulkInwardGatePass() {
         if (this.selection.selected.length < 2) return;
 
-        // Sirf un-inwarded rows process karein
-        const pendingRows = this.selection.selected.filter(r => !r.gatePassNo);
+        // Sirf un-inwarded rows process karein (Quick Returns ko exclude karein kyunki wo Direct Inward hote hain)
+        const pendingRows = this.selection.selected.filter(r => !r.gatePassNo && !r.isQuick && !r.IsQuick);
 
         if (pendingRows.length === 0) {
             this.dialog.open(ConfirmDialogComponent, {

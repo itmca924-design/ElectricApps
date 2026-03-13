@@ -315,8 +315,8 @@ export class PurchaseReturnList implements OnInit {
   createBulkOutwardGatePass() {
     if (this.selection.selected.length < 2) return;
 
-    // Sirf un-dispatched rows process karein
-    const pendingRows = this.selection.selected.filter(r => !r.gatePassNo);
+    // Sirf un-dispatched rows process karein (Quick Returns ko exclude karein kyunki wo Direct Outward hote hain)
+    const pendingRows = this.selection.selected.filter(r => !r.gatePassNo && !r.isQuick && !r.IsQuick);
 
     if (pendingRows.length === 0) {
       this.dialog.open(ConfirmDialogComponent, {

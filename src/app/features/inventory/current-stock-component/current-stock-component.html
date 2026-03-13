@@ -276,6 +276,7 @@
                       <th>Exp Date</th>
                       <th>Received</th>
                       <th>Rejected</th>
+                      <th>Expired</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -286,8 +287,18 @@
                       <td>{{$any(h).grnNumber}}</td>
                       <td>{{$any(h).productName}}</td> 
                       <td>{{$any(h).supplierName}}</td>
-                      <td>{{$any(h).warehouseName}}</td>
-                      <td>{{$any(h).rackName}}</td>
+                      <td>
+                        <span class="location-badge live" (click)="$event.stopPropagation(); viewLiveLocation(h)" 
+                              matTooltip="Click to track live location">
+                          <mat-icon>location_on</mat-icon>
+                          {{$any(h).warehouseName}}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="rack-badge" (click)="$event.stopPropagation(); viewLiveLocation(h)">
+                          {{$any(h).rackName}}
+                        </span>
+                      </td>
                       <td>{{ $any(element).isExpiryRequired ? (($any(h).manufacturingDate | date:'dd MMM yyyy') ?? 'NA') : 'NA' }}</td>
                       <td>
                         <span
@@ -303,6 +314,11 @@
                       <td>
                         <span [class.text-danger]="$any(h).rejectedQty > 0" [class.text-muted]="$any(h).rejectedQty === 0">
                           {{$any(h).rejectedQty}}
+                        </span>
+                      </td>
+                      <td>
+                        <span [class.text-danger]="$any(h).expiredQty > 0" [class.text-muted]="$any(h).expiredQty === 0">
+                          {{$any(h).expiredQty}}
                         </span>
                       </td>
                       <td>

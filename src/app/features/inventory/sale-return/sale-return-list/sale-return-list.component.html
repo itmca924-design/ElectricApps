@@ -145,7 +145,8 @@ class="export-action-btn" (click)="exportToExcel()" [disabled]="isExportLoading 
                                 <ng-container matColumnDef="gatePassNo">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Gate Pass </th>
                     <td mat-cell *matCellDef="let row">
-                        <ng-container *ngIf="row.gatePassNo; else noPass">
+                        <!-- Case 1: Already Inwarded with Gate Pass -->
+                        <ng-container *ngIf="row.gatePassNo; else nextCheck">
                             <div class="status-badge-container">
                                 <span class="premium-badge inwarded">
                                     <mat-icon>done_all</mat-icon>
@@ -154,10 +155,26 @@ class="export-action-btn" (click)="exportToExcel()" [disabled]="isExportLoading 
                                 <span class="pass-subtext">{{row.gatePassNo}}</span>
                             </div>
                         </ng-container>
+
+                        <!-- Case 2: Quick Sale Return (Direct Inward) -->
+                        <ng-template #nextCheck>
+                            <ng-container *ngIf="row.isQuick || row.IsQuick; else noPass">
+                                <div class="status-badge-container">
+                                    <span class="premium-badge quick-return">
+                                        <mat-icon>bolt</mat-icon>
+                                        QUICK RETURN
+                                    </span>
+                                    <span class="pass-subtext">Direct Inward</span>
+                                </div>
+                            </ng-container>
+                        </ng-template>
+
+                        <!-- Case 3: Standard Return (Needs Gate Pass) -->
                         <ng-template #noPass>
-                            <button mat-icon-button (click)="createInwardGatePass(row)" color="primary" matTooltip="Generate Inward Pass">
+                            <button mat-icon-button (click)="createInwardGatePass(row)" color="primary" matTooltip="Generate Inward Pass" *ngIf="!isQuick">
                                 <mat-icon class="pending-pass-icon">local_shipping</mat-icon>
                             </button>
+                            <span class="text-muted small" *ngIf="isQuick">Pending</span>
                         </ng-template>
                     </td>
                 </ng-container>

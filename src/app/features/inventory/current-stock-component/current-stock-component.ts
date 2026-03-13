@@ -324,5 +324,16 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   }
   navigateToPO() { this.router.navigate(['/app/inventory/polist/add']); }
   onRefillNow(item: any) { /* existing logic */ }
-  viewLiveLocation(item: any) { /* existing logic */ }
+  viewLiveLocation(item: any) {
+    const qty = item.availableStock ?? (item.receivedQty - item.rejectedQty);
+    this.dialog.open(LocationTrackerDialogComponent, {
+      width: '450px',
+      data: {
+        warehouseName: item.warehouseName,
+        rackName: item.rackName,
+        productId: item.productId,
+        description: `Current quantity at this location: ${qty}`
+      }
+    });
+  }
 }

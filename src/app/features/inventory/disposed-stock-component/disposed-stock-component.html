@@ -133,7 +133,8 @@
                         <th>Supplier</th>
                         <th>Mfg Date</th>
                         <th>Exp Date</th>
-                        <th>Qty Purged</th>
+                        <th>Rejected</th>
+                        <th>Expired</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -149,10 +150,19 @@
                             {{$any(h).isExpiryRequired || $any(h).IsExpiryRequired ? ($any(h).expiryDate | date:'dd MMM yyyy') : 'N/A'}}
                           </span>
                         </td>
-                        <td class="text-danger font-700">{{$any(h).rejectedQty}}</td>
+                        <td>
+                           <span [class.text-danger]="$any(h).rejectedQty > 0" [class.text-muted]="$any(h).rejectedQty === 0">
+                             {{$any(h).rejectedQty}}
+                           </span>
+                         </td>
+                         <td>
+                           <span [class.text-danger]="$any(h).expiredQty > 0" [class.text-muted]="$any(h).expiredQty === 0">
+                             {{$any(h).expiredQty}}
+                           </span>
+                         </td>
                       </tr>
                       <tr *ngIf="!$any(element).history || $any(element).history.length === 0">
-                        <td colspan="7" class="no-data-cell">No history found.</td>
+                        <td colspan="8" class="no-data-cell">No history found.</td>
                       </tr>
                     </tbody>
                   </table>
