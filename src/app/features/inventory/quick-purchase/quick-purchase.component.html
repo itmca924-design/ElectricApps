@@ -145,21 +145,23 @@
               </mat-form-field>
             </div>
             <div class="col-mfg">
-              <mat-form-field appearance="outline" dense *ngIf="item.get('isExpiryRequired')?.value">
+              <mat-form-field appearance="outline" dense *ngIf="item.get('isExpiryRequired')?.value; else noMfg">
                 <input matInput [matDatepicker]="mfgPicker" formControlName="manufacturingDate" placeholder="Mfg Date">
                 <mat-datepicker-toggle matIconSuffix [for]="mfgPicker" matTooltip="MFG DATE"></mat-datepicker-toggle>
                 <mat-datepicker #mfgPicker></mat-datepicker>
                 <mat-error *ngIf="item.get('manufacturingDate')?.hasError('required')">Required</mat-error>
               </mat-form-field>
+              <ng-template #noMfg><span class="na-text-grid">N/A</span></ng-template>
             </div>
             <div class="col-exp">
-              <mat-form-field appearance="outline" dense *ngIf="item.get('isExpiryRequired')?.value">
+              <mat-form-field appearance="outline" dense *ngIf="item.get('isExpiryRequired')?.value; else noExp">
                 <input matInput [matDatepicker]="expPicker" formControlName="expiryDate" placeholder="Exp Date">
                 <mat-datepicker-toggle matIconSuffix [for]="expPicker" matTooltip="EXP DATE"></mat-datepicker-toggle>
                 <mat-datepicker #expPicker></mat-datepicker>
                 <mat-error *ngIf="item.get('expiryDate')?.hasError('required')">Required</mat-error>
                 <mat-error *ngIf="item.get('expiryDate')?.hasError('dateRangeInvalid')">Exp > Mfg Date</mat-error>
               </mat-form-field>
+              <ng-template #noExp><span class="na-text-grid">N/A</span></ng-template>
             </div>
             <div class="col-total">
               <div class="total-badge">{{ item.get('total')?.value | currency:'INR':'symbol':'1.2-2' }}</div>

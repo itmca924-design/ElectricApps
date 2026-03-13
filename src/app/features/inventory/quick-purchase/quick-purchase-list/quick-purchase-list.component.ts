@@ -184,12 +184,12 @@ export class QuickPurchaseListComponent implements OnInit {
       { field: 'acceptedQty', header: 'Accepted Qty', width: 100, align: 'left', isResizable: true, cell: (row: any) => row.acceptedQty || 0 },
       { field: 'unit', header: 'Unit', width: 85, align: 'left', isResizable: false },
       { 
-        field: 'mfgDate', header: 'Mfg Date', width: 120, align: 'left',
-        cell: (row: any) => (row.isExpiryRequired || row.IsExpiryRequired) ? (this.datePipe.transform(row.mfgDate || row.MfgDate, 'dd/MM/yyyy') || 'N/A') : 'N/A'
+        field: 'manufacturingDate', header: 'Mfg Date', width: 120, align: 'left',
+        cell: (row: any) => (row.isExpiryRequired || row.IsExpiryRequired) ? (this.datePipe.transform(row.manufacturingDate || row.mfgDate || row.MfgDate, 'dd/MM/yyyy') || 'N/A') : 'N/A'
       },
       { 
-        field: 'expDate', header: 'Exp Date', width: 120, align: 'left',
-        cell: (row: any) => (row.isExpiryRequired || row.IsExpiryRequired) ? (this.datePipe.transform(row.expDate || row.ExpDate, 'dd/MM/yyyy') || 'N/A') : 'N/A'
+        field: 'expiryDate', header: 'Exp Date', width: 120, align: 'left',
+        cell: (row: any) => (row.isExpiryRequired || row.IsExpiryRequired) ? (this.datePipe.transform(row.expiryDate || row.expDate || row.ExpDate, 'dd/MM/yyyy') || 'N/A') : 'N/A'
       },
       {
         field: 'rate', header: 'Rate', width: 105, align: 'left', isResizable: false, isFilterable: false,

@@ -368,8 +368,9 @@
     border-bottom: 1px solid #f8f9fa;
   }
 
-  .text-danger { color: #d32f2f; font-weight: 600; }
-  .text-success { color: #2e7d32; font-weight: 600; }
+  .text-danger { color: #ef4444 !important; font-weight: 600; }
+  .text-warning { color: #f59e0b !important; font-weight: 600; }
+  .text-success { color: #2e7d32 !important; font-weight: 600; }
   
   .inner-table-footer {
     background: #f8fafc;

@@ -115,7 +115,7 @@ export class QuickPurchaseComponent implements OnInit {
     private initForm() {
         this.purchaseForm = this.fb.group({
             supplierId: [null, Validators.required],
-            supplierName: ['', Validators.required],
+            supplierName: [''],
             priceListId: [null, Validators.required],
             remarks: [''],
             date: [new Date()],
@@ -135,6 +135,7 @@ export class QuickPurchaseComponent implements OnInit {
                 this.currentStatus = res.status;
                 this.purchaseForm.patchValue({
                     supplierId: res.supplierId,
+                    supplierName: res.supplierName,
                     priceListId: res.priceListId,
                     poNumber: res.poNumber,
                     date: DateHelper.toDateObject(res.poDate),
@@ -157,6 +158,7 @@ export class QuickPurchaseComponent implements OnInit {
     }
 
     addEditRow(item: any): void {
+        const isExpReq = item.isExpiryRequired || item.IsExpiryRequired || false;
         const row = this.fb.group({
             productId: [item.productId, Validators.required],
             productName: [item.productName, Validators.required],
@@ -171,9 +173,9 @@ export class QuickPurchaseComponent implements OnInit {
             gstPercent: [item.gstPercent || 0],
             total: [{ value: item.total, disabled: true }],
             id: [item.id || 0],
-            manufacturingDate: [item.manufacturingDate ? DateHelper.toDateObject(item.manufacturingDate) : null, item.isExpiryRequired ? Validators.required : []],
-            expiryDate: [item.expiryDate ? DateHelper.toDateObject(item.expiryDate) : null, item.isExpiryRequired ? Validators.required : []],
-            isExpiryRequired: [item.isExpiryRequired || false]
+            manufacturingDate: [item.manufacturingDate ? DateHelper.toDateObject(item.manufacturingDate) : null, isExpReq ? Validators.required : []],
+            expiryDate: [item.expiryDate ? DateHelper.toDateObject(item.expiryDate) : null, isExpReq ? Validators.required : []],
+            isExpiryRequired: [isExpReq]
         }, { validators: [this.dateRangeValidator] });
         const index = this.items.length;
         this.items.push(row);
@@ -335,12 +337,18 @@ export class QuickPurchaseComponent implements OnInit {
         if (mfg && exp) {
             const mfgDate = new Date(mfg);
             const expDate = new Date(exp);
+            
+            // Check if dates are valid
+            if (isNaN(mfgDate.getTime()) || isNaN(expDate.getTime())) return null;
+
             // Reset hours to compare only dates
             mfgDate.setHours(0, 0, 0, 0);
             expDate.setHours(0, 0, 0, 0);
             
             if (expDate < mfgDate) {
-                expCtrl.setErrors({ ...expCtrl.errors, dateRangeInvalid: true });
+                if (!expCtrl.hasError('dateRangeInvalid')) {
+                    expCtrl.setErrors({ ...expCtrl.errors, dateRangeInvalid: true });
+                }
                 return { dateRangeInvalid: true };
             } else {
                 // Clear the error if now valid, but keep other errors like 'required'
@@ -550,6 +558,8 @@ export class QuickPurchaseComponent implements OnInit {
         }
 
         if (this.purchaseForm.invalid) {
+            console.error('❌ Form Invalid Fields:', this.getInvalidControls());
+            this.purchaseForm.markAllAsTouched();
             this.notification.showStatus(false, 'Please fill all required fields correctly.');
             return;
         }
@@ -601,6 +611,30 @@ export class QuickPurchaseComponent implements OnInit {
                 this.isSaving = false;
             }
         });
+    }
+
+    private getInvalidControls() {
+        const invalid = [];
+        const controls = this.purchaseForm.controls;
+        for (const name in controls) {
+            if (controls[name].invalid) {
+                invalid.push(name);
+            }
+        }
+        
+        const itemArray = this.items;
+        itemArray.controls.forEach((group: any, index: number) => {
+            for (const name in group.controls) {
+                if (group.controls[name].invalid) {
+                    invalid.push(`Item ${index + 1}: ${name}`);
+                }
+            }
+            if (group.errors) {
+                invalid.push(`Item ${index + 1} Group: ${JSON.stringify(group.errors)}`);
+            }
+        });
+        
+        return invalid;
     }
 
     private cdr = inject(ChangeDetectorRef);

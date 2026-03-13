@@ -24,8 +24,12 @@ export interface GRNItem {
   receivedQty: number;
   pendingQty: number;
   rejectedQty: number;
+  actualRejectedQty: number;
+  expiredQty: number;
   returnedQty?: number; // Track if already returned
   unitRate: number;
+  rackName?: string;
+  isExpired?: boolean;
 }
 
 export interface GRNListRow {
@@ -41,6 +45,8 @@ export interface GRNListRow {
   totalAmount: number;    // GRN Total Amount
   adjustedDue?: number;   // Calculated net due after ledger adjustments
   totalRejected: number;
+  totalActualRejected: number;
+  totalExpired: number;
   items: GRNItem[];
 }
 
@@ -261,19 +267,38 @@ export class GrnListComponent implements OnInit, AfterViewInit {
               this.pendingPaymentCount++;
             }
 
-            const rejQty = item.totalRejected || item.items?.reduce((acc: number, curr: any) => acc + (curr.rejectedQty || 0), 0) || 0;
-            if (rejQty > 0) {
+            // Quality Issues only count actual rejections, not expiry movements
+            const actRejQty = item.totalActualRejected ?? 0;
+            if (actRejQty > 0) {
               this.qualityIssueCount++;
-              this.totalRejectedItemsQty += rejQty;
             }
+            
+            // Total rejected quantity still includes everything for general stock loss stat
+            this.totalRejectedItemsQty += (item.totalRejected || 0);
           });
 
           return items.map((item: any): GRNListRow => {
-            const grnItems = item.items || item.Items || [];
+            const rawGrnItems = item.items || item.Items || [];
+            const grnItems = Array.isArray(rawGrnItems) ? rawGrnItems.map((gi: any) => ({
+              productName: gi.productName || gi.ProductName,
+              orderedQty: gi.orderedQty ?? gi.OrderedQty ?? 0,
+              receivedQty: gi.receivedQty ?? gi.ReceivedQty ?? 0,
+              pendingQty: gi.pendingQty ?? gi.PendingQty ?? 0,
+              rejectedQty: gi.rejectedQty ?? gi.RejectedQty ?? 0,
+              actualRejectedQty: gi.actualRejectedQty ?? gi.ActualRejectedQty ?? 0,
+              expiredQty: gi.expiredQty ?? gi.ExpiredQty ?? 0,
+              unitRate: gi.unitRate ?? gi.UnitRate ?? 0,
+              rackName: gi.rackName || gi.RackName,
+              isExpired: gi.isExpired ?? gi.IsExpired ?? false,
+              returnedQty: gi.returnedQty ?? gi.ReturnedQty ?? 0
+            })) : [];
+
             return {
               ...item,
               items: grnItems,
-              totalRejected: Array.isArray(grnItems) ? grnItems.reduce((acc: number, curr: any) => acc + (curr.rejectedQty || curr.RejectedQty || 0), 0) : 0
+              totalRejected: grnItems.reduce((acc: number, curr: any) => acc + (curr.rejectedQty || 0), 0),
+              totalActualRejected: item.totalActualRejected ?? item.TotalActualRejected ?? 0,
+              totalExpired: item.totalExpired ?? item.TotalExpired ?? 0
             };
           });
         })
