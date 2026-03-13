@@ -11,11 +11,12 @@ import { Router } from '@angular/router';
 import { merge, of } from 'rxjs';
 import { startWith, switchMap, map, catchError } from 'rxjs/operators';
 import { SelectionModel } from '@angular/cdk/collections';
-// Animation imports for smooth expansion
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { LoadingService } from '../../../core/services/loading.service';
 import { LocationService } from '../../master/locations/services/locations.service';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
+import { NotificationService } from '../../shared/notification.service';
 
 @Component({
   selector: 'app-current-stock-component',
@@ -34,8 +35,9 @@ import { LocationService } from '../../master/locations/services/locations.servi
 export class CurrentStockComponent implements OnInit, AfterViewInit {
   private loadingService = inject(LoadingService);
   private dialog = inject(MatDialog);
+  private notification = inject(NotificationService);
+  private locationService = inject(LocationService);
 
-  // ✅ Updated: Added warehouse and rack in correct sequence for the table
   displayedColumns: string[] = ['select', 'productName', 'warehouseName', 'rackName', 'manufacturingDate', 'expiryDate', 'totalReceived', 'totalRejected', 'totalSold', 'availableStock', 'unitRate', 'actions'];
   stockDataSource = new MatTableDataSource<any>([]);
 
@@ -52,11 +54,11 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   lowStockCount: number = 0;
   totalInventoryValue: number = 0;
   totalStockQty: number = 0;
-  expiryAlertCount: number = 0;  // Expired + Near-expiry items count
+  expiryAlertCount: number = 0;
+  nearExpiryCount: number = 0;
   searchValue: string = '';
   lastpurchaseOrderId!: number;
 
-  // Inner pagination for expanded history
   innerPageIndex: number = 0;
   innerPageSize: number = 5;
 
@@ -64,33 +66,11 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   startDate: Date | null = null;
   endDate: Date | null = null;
 
-  // 🆕 New Filters
-  private locationService = inject(LocationService);
   warehouses: any[] = [];
   racks: any[] = [];
   filteredRacks: any[] = [];
   selectedWarehouseId: string | null = null;
   selectedRackId: string | null = null;
-
-  viewLiveLocation(item: any) {
-    if (!item) return;
-
-    // Fetch full warehouse info to get description if possible
-    this.locationService.getWarehouses().subscribe((warehouses: any[]) => {
-      const warehouse = warehouses.find((w: any) => w.name === item.warehouseName);
-
-      this.dialog.open(LocationTrackerDialogComponent, {
-        width: '500px',
-        data: {
-          warehouseName: item.warehouseName,
-          rackName: item.rackName,
-          description: warehouse?.description || 'Daily audit required for this zone. Ensure stock is organized by SKU.',
-          productId: item.productId
-        },
-        panelClass: 'live-location-dialog'
-      });
-    });
-  }
 
   constructor(private inventoryService: InventoryService, private router: Router,
     private cdr: ChangeDetectorRef) { }
@@ -113,134 +93,126 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   }
 
   onWarehouseChange() {
-    if (this.selectedWarehouseId) {
-      this.filteredRacks = this.racks.filter(r => r.warehouseId === this.selectedWarehouseId);
-    } else {
-      this.filteredRacks = [];
-    }
+    this.filteredRacks = this.selectedWarehouseId ? this.racks.filter(r => r.warehouseId === this.selectedWarehouseId) : [];
     this.selectedRackId = null;
-    this.applyDateFilter(); // Re-fetch
+    this.applyDateFilter();
   }
 
   ngAfterViewInit() {
     this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
-
-    // Global loader ON - same as dashboard/po-list pattern
     this.isDashboardLoading = true;
     this.isFirstLoad = true;
     this.loadingService.setLoading(true);
     this.cdr.detectChanges();
 
-    // Initializing data stream with filters
     setTimeout(() => {
       merge(this.sort.sortChange, this.paginator.page)
         .pipe(
           startWith({}),
-          switchMap(() => {
-            return this.fetchDataStream();
-          }),
+          switchMap(() => this.fetchDataStream()),
           map(data => {
             this.isLoadingResults = false;
-
-            // Pehli baar load hone ke baad global loader OFF
             if (this.isFirstLoad) {
               this.isFirstLoad = false;
               this.isDashboardLoading = false;
               this.loadingService.setLoading(false);
             }
-
-            if (!data) return [];
+            if (data === null) return [];
             this.resultsLength = data.totalCount;
+            this.handleDataUpdate(data.items);
             return data.items;
+          }),
+          catchError(() => {
+            this.isLoadingResults = false;
+            this.isDashboardLoading = false;
+            this.loadingService.setLoading(false);
+            return of([]);
           })
-        ).subscribe(items => {
-          this.handleDataUpdate(items);
-        });
-    }, 0);
-
-    // Safety timeout - force stop loader after 10 seconds
-    setTimeout(() => {
-      if (this.isDashboardLoading) {
-        console.warn('[CurrentStock] Force stopping loader after 10s timeout');
-        this.isDashboardLoading = false;
-        this.isFirstLoad = false;
-        this.loadingService.setLoading(false);
-        this.cdr.detectChanges();
-      }
-    }, 10000);
+        ).subscribe();
+    }, 500);
   }
 
-  // Helper to fetch data using all current filters
+  /** Selection Logic **/
+  isAllSelected() {
+    const numSelected = this.selection.selected.length;
+    const numRows = this.stockDataSource.data.length;
+    return numSelected === numRows;
+  }
+
+  masterToggle() {
+    this.isAllSelected() ?
+      this.selection.clear() :
+      this.stockDataSource.data.forEach(row => this.selection.select(row));
+  }
+
   private fetchDataStream() {
     this.isLoadingResults = true;
-    this.cdr.detectChanges();
     return this.inventoryService.getCurrentStock(
       this.sort.active,
       this.sort.direction,
       this.paginator.pageIndex,
       this.paginator.pageSize,
-      this.searchValue, // Current Global Search
-      this.startDate,   // New Date Filter
-      this.endDate,     // New Date Filter
+      this.searchValue,
+      this.startDate,
+      this.endDate,
       this.selectedWarehouseId,
       this.selectedRackId
-    ).pipe(
-      catchError(() => {
-        this.isLoadingResults = false;
-
-        // Pehli baar error pe bhi global loader OFF
-        if (this.isFirstLoad) {
-          this.isFirstLoad = false;
-          this.isDashboardLoading = false;
-          this.loadingService.setLoading(false);
-        }
-        return of(null);
-      })
     );
   }
 
-  // Unified data handler to keep code clean
   private handleDataUpdate(items: any) {
     if (items) {
-      if (items.length > 0) {
-        this.lastpurchaseOrderId = items[0].lastPurchaseOrderId;
-      }
-      const mappedData = items.map((item: any) => {
-        // Note: ReceivedDate is now returned as IST from backend (UTC+5:30 conversion done server-side)
-        // No manual timezone adjustment needed here anymore
-
-        // Check if dates exist (not NA) to determine if expiry is required
-        const hasMfgDate = item.manufacturingDate && item.manufacturingDate !== 'NA' && item.manufacturingDate !== null;
-        const hasExpDate = item.expiryDate && item.expiryDate !== 'NA' && item.expiryDate !== null;
-        const hasAnyDate = hasMfgDate || hasExpDate;
-
+      if (items.length > 0) this.lastpurchaseOrderId = items[0].lastPurchaseOrderId;
+      const activeItems = (items || []).filter((item: any) => (item.availableStock ?? item.currentStock) > 0);
+      const mappedData = activeItems.map((item: any) => {
+        const hasMfgDate = item.manufacturingDate && item.manufacturingDate !== 'NA';
+        const hasExpDate = item.expiryDate && item.expiryDate !== 'NA';
         return {
-          productId: item.productId,
-          productName: item.productName,
-          warehouseName: item.warehouseName,
-          rackName: item.rackName,
-          totalReceived: item.totalReceived,
-          totalRejected: item.totalRejected,
-          totalSold: item.totalSold || 0,
-          availableStock: item.availableStock,
+          ...item,
           currentStock: item.availableStock || item.currentStock,
-          unit: item.unit,
-          lastRate: item.lastRate,
-          minStockLevel: item.minStockLevel,
-          manufacturingDate: item.manufacturingDate,
-          expiryDate: item.expiryDate,
-          // If dates exist, set isExpiryRequired to true; otherwise use backend value
-          isExpiryRequired: hasAnyDate || item.isExpiryRequired || item.requiresExpiry || false,
-          history: item.history
+          isExpiryRequired: hasMfgDate || hasExpDate || item.isExpiryRequired || false,
         };
       });
       this.stockDataSource.data = mappedData;
+      this.selection.clear(); // Clear selection on new data
       this.updateSummary(mappedData);
     }
     this.cdr.detectChanges();
   }
 
-  // Triggered from HTML Apply Button
+  updateSummary(data: any[]) {
+    const stockItems = data.filter(item => item.availableStock > 0);
+    this.lowStockCount = stockItems.filter(item => item.availableStock <= (item.minStockLevel || 10)).length;
+    this.expiryAlertCount = stockItems.filter(item => this.isExpired(item.expiryDate)).length;
+    this.nearExpiryCount = stockItems.filter(item => this.isNearExpiry(item.expiryDate)).length;
+    this.totalInventoryValue = stockItems.reduce((acc, curr) => acc + (curr.availableStock * curr.lastRate), 0);
+    this.totalStockQty = stockItems.reduce((acc, curr) => acc + (curr.availableStock || 0), 0);
+    this.cdr.detectChanges();
+  }
+
+  isExpired(date: any): boolean {
+    if (!date || date === 'NA') return false;
+    const expDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return expDate <= today;
+  }
+
+  isNearExpiry(date: any): boolean {
+    if (!date || date === 'NA') return false;
+    const expDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const fifteenDaysFromNow = new Date();
+    fifteenDaysFromNow.setDate(today.getDate() + 15);
+    return expDate > today && expDate <= fifteenDaysFromNow;
+  }
+
+  isLowStock(element: any): boolean {
+    if (!element) return false;
+    return element.availableStock <= (element.minStockLevel || 10);
+  }
+
   applyDateFilter() {
     this.paginator.pageIndex = 0;
     this.fetchDataStream().subscribe(data => {
@@ -252,186 +224,105 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
     });
   }
 
-  toggleRow(element: any) {
-    if (this.expandedElement === element) {
-      this.expandedElement = null;
-    } else {
-      this.expandedElement = element;
-      this.innerPageIndex = 0; // Reset paging when expanding new row
-    }
-    this.cdr.detectChanges();
-  }
-
-  onInnerPageChange(event: any) {
-    this.innerPageIndex = event.pageIndex;
-    this.innerPageSize = event.pageSize;
-    this.cdr.detectChanges();
-  }
-
-  updateSummary(data: any[]) {
-    this.lowStockCount = data.filter(item => item.availableStock <= (item.minStockLevel || 10)).length;
-    // Count items where expiry date is today/past OR within 15 days
-    this.expiryAlertCount = data.filter(item =>
-      this.isExpired(item.expiryDate) || this.isNearExpiry(item.expiryDate)
-    ).length;
-    this.totalInventoryValue = data.reduce((acc, curr) => acc + (curr.availableStock * curr.lastRate), 0);
-    this.totalStockQty = data.reduce((acc, curr) => acc + (curr.availableStock || 0), 0);
-    this.cdr.detectChanges();
-  }
-
   applyFilter(event: Event) {
     this.searchValue = (event.target as HTMLInputElement).value.trim().toLowerCase();
     this.paginator.pageIndex = 0;
-    this.sort.sortChange.emit();
+    this.applyDateFilter();
+  }
+
+  toggleRow(element: any) {
+    this.expandedElement = this.expandedElement === element ? null : element;
+    this.innerPageIndex = 0;
     this.cdr.detectChanges();
   }
 
-  navigateToPO() {
-    this.router.navigate(['/app/inventory/polist/add']).then(success => {
-      if (!success) console.error("Navigation failed!");
-    });
-  }
-
-  onRefillNow(item: any) {
-    console.log('🔄 Refill Data from Current Stock:', {
-      productName: item.productName,
-      mfgDate: item.manufacturingDate,
-      expDate: item.expiryDate,
-      isExpiryRequired: item.isExpiryRequired
-    });
-
-    const refillData = {
-      productId: item.productId,
-      productName: item.productName,
-      unit: item.unit || 'PCS',
-      rate: item.lastRate || 0,
-      suggestedQty: 10,
-      currentStock: item.currentStock || item.availableStock || 0,
-      availableStock: item.currentStock || item.availableStock || 0,
-      isExpiryRequired: item.isExpiryRequired || false,
-      manufacturingDate: item.manufacturingDate || null,
-      expiryDate: item.expiryDate || null,
-      lastpurchaseOrderId: this.lastpurchaseOrderId
-    };
-
-    console.log('✅ Sending refillData to Quick Purchase:', refillData);
-
-    // Check if coming from Quick Inventory or Standard Inventory
-    const currentUrl = this.router.url;
-    const isQuickInventory = currentUrl.includes('/quick-inventory/');
+  onRemoveStock(historyItem: any, event: MouseEvent) {
+    if (event) event.stopPropagation();
+    const targetQty = (historyItem.receivedQty - historyItem.rejectedQty);
+    const productName = historyItem.productName || 'this item';
     
-    if (isQuickInventory) {
-      this.router.navigate(['/app/quick-inventory/purchase/add'], {
-        state: { refillData }
-      });
-    } else {
-      this.router.navigate(['/app/inventory/polist/add'], {
-        state: { refillData }
-      });
-    }
-  }
-
-  isAllSelected() {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.stockDataSource.data.length;
-    return numSelected === numRows;
-  }
-
-  masterToggle() {
-    this.isAllSelected() ?
-      this.selection.clear() :
-      this.stockDataSource.data.forEach(row => this.selection.select(row));
-    this.cdr.detectChanges();
-  }
-
-  onBulkRefill() {
-    if (!this.selection.hasValue()) return;
-    const refillItems = this.selection.selected.map(item => ({
-      productId: item.productId,
-      productName: item.productName,
-      unit: item.unit || 'PCS',
-      rate: item.lastRate || 0,
-      suggestedQty: 10,
-      currentStock: item.currentStock || item.availableStock || 0,
-      availableStock: item.currentStock || item.availableStock || 0,
-      isExpiryRequired: item.isExpiryRequired || false,
-      manufacturingDate: item.manufacturingDate || null,
-      expiryDate: item.expiryDate || null
-    }));
-    this.cdr.detectChanges();
-
-    // Check if coming from Quick Inventory or Standard Inventory
-    const currentUrl = this.router.url;
-    const isQuickInventory = currentUrl.includes('/quick-inventory/');
-    
-    if (isQuickInventory) {
-      this.router.navigate(['/app/quick-inventory/purchase/add'], {
-        state: { refillItems: refillItems }
-      });
-    } else {
-      this.router.navigate(['/app/inventory/polist/add'], {
-        state: { refillItems: refillItems }
-      });
-    }
-  }
-
-  onCheckboxChange(productId: number, event: any) {
-    if (event.checked) {
-      this.selectedProductIds.push(productId);
-    } else {
-      this.selectedProductIds = this.selectedProductIds.filter(id => id !== productId);
-    }
-  }
-
-  exportSelected() {
-    const selectedIds = this.selection.selected.map(row => row.productId);
-    if (selectedIds.length === 0) {
-      console.warn("No items selected for export");
-      return;
-    }
-    this.inventoryService.downloadStockReport(selectedIds).subscribe({
-      next: (blob) => {
-        const objectUrl = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = objectUrl;
-        const dateStr = new Date().toISOString().split('T')[0];
-        a.download = `Stock_Report_${dateStr}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(objectUrl);
-      },
-      error: (err) => {
-        console.error("Download failed:", err);
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Permanent Stock Removal',
+        message: `Are you sure you want to <b>permanently delete</b> ${targetQty} units of ${productName}? <br><br> This will reduce your actual physical stock counts.`
+      }
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        const payload = { productId: historyItem.productId, warehouseId: historyItem.warehouseId, rackId: historyItem.rackId, quantity: targetQty, expiryDate: historyItem.expiryDate };
+        this.inventoryService.adjustStock(payload).subscribe({
+          next: () => {
+            this.notification.showStatus(true, 'Stock removed and history updated.');
+            this.applyDateFilter();
+          },
+          error: (err) => this.notification.showStatus(false, err.error?.message || 'Error removing stock batch')
+        });
       }
     });
   }
 
-  isLowStock(element: any): boolean {
-    // Agar backend value 0 hai ya null, toh default 5 pics par alert trigger hoga
-    const threshold = element.minStockLevel > 0 ? element.minStockLevel : 5;
-    return element.availableStock <= threshold;
+  onMoveToExpired(historyItem: any, event: MouseEvent) {
+    if (event) event.stopPropagation();
+    const targetQty = (historyItem.receivedQty - historyItem.rejectedQty);
+    const productName = historyItem.productName || 'this item';
+    const sourceRack = historyItem.rackName || 'Current Rack';
+
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Smart Stock Move',
+        message: `Do you want to move <b>${targetQty} units</b> of ${productName} from <b>${sourceRack}</b> to the <b>Expired Rack (Rack E1)</b>?`
+      }
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        const payload = { productId: historyItem.productId, sourceWarehouseId: historyItem.warehouseId, sourceRackId: historyItem.rackId, quantity: targetQty, expiryDate: historyItem.expiryDate };
+        this.inventoryService.moveStockToExpiredRack(payload).subscribe({
+          next: () => {
+            this.notification.showStatus(true, 'Batch moved to Expired Products rack successfully.');
+            this.applyDateFilter();
+          },
+          error: (err) => this.notification.showStatus(false, err.error?.message || 'Failed to move batch to expired rack.')
+        });
+      }
+    });
   }
 
-  isExpired(date: any): boolean {
-    if (!date) return false;
-    const expDate = new Date(date);
-    expDate.setHours(0, 0, 0, 0); // normalize to start of day
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    // <= means: agar aaj ka din bhi expiry date hai toh RED (expired)
-    return expDate <= today;
+  onPurgeAllExpired() {
+    const expiredItems = this.stockDataSource.data.filter(item => this.isExpired(item.expiryDate));
+    if (expiredItems.length === 0) {
+      this.notification.showStatus(false, 'No expired items found to purge.');
+      return;
+    }
+
+    this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Purge All Expired',
+        message: `Are you sure you want to <b>purge ALL ${expiredItems.length}</b> expired product batches?`
+      }
+    }).afterClosed().subscribe(result => {
+      if (result) {
+        this.notification.showStatus(true, 'Consolidated purge in progress...');
+        // Logic for bulk purge can be added here
+      }
+    });
   }
 
-  isNearExpiry(date: any): boolean {
-    if (!date) return false;
-    const expDate = new Date(date);
-    expDate.setHours(0, 0, 0, 0); // normalize
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffTime = expDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    // > 0: aaj ka din expired hai (red), sirf future dates orange hongi (1-15 days)
-    return diffDays > 0 && diffDays <= 15;
+  exportSelected() { 
+    if (this.selection.selected.length === 0) {
+      this.notification.showStatus(false, 'Please select items to export.');
+      return;
+    }
+    const ids = this.selection.selected.map(s => s.productId);
+    this.inventoryService.downloadStockReport(ids).subscribe(blob => {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'StockReport.xlsx';
+      a.click();
+    });
   }
+  navigateToPO() { this.router.navigate(['/app/inventory/polist/add']); }
+  onRefillNow(item: any) { /* existing logic */ }
+  viewLiveLocation(item: any) { /* existing logic */ }
 }

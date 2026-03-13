@@ -1,0 +1,178 @@
+<div class="stock-container">
+  <!-- 1. HEADER SECTION with Total Disposed -->
+  <div class="summary-cards">
+    <mat-card class="summary-card total">
+      <mat-card-content>
+        <div class="card-icon">
+          <mat-icon>delete_sweep</mat-icon>
+        </div>
+        <div class="card-info">
+          <span class="label">TOTAL DISPOSED QTY</span>
+          <span class="value">{{ totalDisposedQty }} Nos</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="summary-card danger">
+      <mat-card-content>
+        <div class="card-icon">
+          <mat-icon>money_off</mat-icon>
+        </div>
+        <div class="card-info">
+          <span class="label">ESTIMATED LOSS VALUE</span>
+          <span class="value">₹{{ totalDisposedValue | number:'1.2-2' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- 2. FILTER SECTION -->
+  <div class="filter-row">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search Deleted Items</mat-label>
+      <input matInput (keyup)="applyFilter($event)" placeholder="Search Products" #input />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="date-field">
+      <mat-label>Enter a date range</mat-label>
+      <mat-date-range-input [rangePicker]="picker" [max]="endDate">
+        <input matStartDate placeholder="Start date" [(ngModel)]="startDate" />
+        <input matEndDate placeholder="End date" [(ngModel)]="endDate" (dateChange)="applyDateFilter()" />
+      </mat-date-range-input>
+      <mat-datepicker-toggle matIconPrefix [for]="picker"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="location-field">
+      <mat-label>Warehouse</mat-label>
+      <mat-select [(ngModel)]="selectedWarehouseId" (selectionChange)="onWarehouseChange()">
+        <mat-option [value]="null">All Warehouses</mat-option>
+        <mat-option *ngFor="let w of warehouses" [value]="w.id">{{ w.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="location-field">
+      <mat-label>Rack</mat-label>
+      <mat-select [(ngModel)]="selectedRackId" (selectionChange)="applyDateFilter()">
+        <mat-option [value]="null">All Racks</mat-option>
+        <mat-option *ngFor="let r of filteredRacks" [value]="r.id">{{ r.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <div class="action-buttons">
+      <button mat-flat-button color="primary" class="apply-btn" (click)="applyDateFilter()">
+        <mat-icon>filter_alt</mat-icon>
+        APPLY
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. DATA TABLE SECTION -->
+  <div class="table-card mat-elevation-z3">
+    <div class="table-container">
+      <table mat-table [dataSource]="stockDataSource" matSort multiTemplateDataRows>
+        
+        <ng-container matColumnDef="productName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Product</th>
+          <td mat-cell *matCellDef="let element" class="product-cell">
+            <div class="name-box">
+              <span class="p-name">{{ element.productName }}</span>
+              <span class="p-unit">{{ element.unit }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="warehouseName">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Warehouse</th>
+          <td mat-cell *matCellDef="let element">{{ element.warehouseName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="rackName">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Rack</th>
+            <td mat-cell *matCellDef="let element">
+                <span class="rack-badge">{{ element.rackName }}</span>
+            </td>
+          </ng-container>
+
+        <ng-container matColumnDef="disposedQty">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Disposed Qty</th>
+          <td mat-cell *matCellDef="let element">
+             <span class="qty-badge warn">{{ element.totalRejected }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="disposedValue">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Loss Value</th>
+          <td mat-cell *matCellDef="let element" class="amount">₹{{ (element.totalRejected * element.lastRate) | number:'1.2-2' }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="lastPurchase">
+            <th mat-header-cell *matHeaderCellDef>Purge History</th>
+            <td mat-cell *matCellDef="let element">
+                <button mat-stroked-button color="primary" class="view-btn" (click)="toggleRow(element); $event.stopPropagation()">
+                  <mat-icon>{{ expandedElement === element ? 'expand_less' : 'history' }}</mat-icon>
+                  VIEW LOGS
+                </button>
+            </td>
+        </ng-container>
+
+        <!-- Expanded Detail Row -->
+        <ng-container matColumnDef="expandedDetail">
+          <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length">
+            <div class="element-detail" [@detailExpand]="element === expandedElement ? 'expanded' : 'collapsed'">
+              <div class="detail-container">
+                <h4 class="history-title">Transaction History for Removed Batches</h4>
+                <div class="history-table-wrapper">
+                  <table class="history-table">
+                    <thead>
+                      <tr>
+                        <th>Purge Date</th>
+                        <th>PO Ref</th>
+                        <th>GRN Ref</th>
+                        <th>Supplier</th>
+                        <th>Mfg Date</th>
+                        <th>Exp Date</th>
+                        <th>Qty Purged</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let h of $any(element).history">
+                        <td>{{$any(h).receivedDate | date:'dd MMM yyyy, hh:mm a'}}</td>
+                        <td><span class="po-link">#{{$any(h).poNumber}}</span></td>
+                        <td>{{$any(h).grnNumber}}</td>
+                        <td>{{$any(h).supplierName}}</td>
+                        <td>{{$any(h).isExpiryRequired || $any(h).IsExpiryRequired ? ($any(h).manufacturingDate | date:'dd MMM yyyy') : 'N/A'}}</td>
+                        <td>
+                          <span [class.text-danger]="$any(h).isExpiryRequired || $any(h).IsExpiryRequired" 
+                                [class.font-600]="$any(h).isExpiryRequired || $any(h).IsExpiryRequired">
+                            {{$any(h).isExpiryRequired || $any(h).IsExpiryRequired ? ($any(h).expiryDate | date:'dd MMM yyyy') : 'N/A'}}
+                          </span>
+                        </td>
+                        <td class="text-danger font-700">-{{$any(h).rejectedQty}}</td>
+                      </tr>
+                      <tr *ngIf="!$any(element).history || $any(element).history.length === 0">
+                        <td colspan="7" class="no-data-cell">No history found.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let element; columns: displayedColumns;" class="element-row" [class.expanded-row]="expandedElement === element"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
+      </table>
+
+      <div *ngIf="stockDataSource.data.length === 0" class="no-records">
+        <mat-icon>history</mat-icon>
+        <span>No disposed items found for the selected criteria.</span>
+      </div>
+
+      <mat-paginator [length]="resultsLength" [pageSize]="10" [pageSizeOptions]="[5, 10, 25, 100]"></mat-paginator>
+    </div>
+  </div>
+</div>

@@ -80,10 +80,17 @@
         </mat-select>
       </mat-form-field>
       
-      <button mat-raised-button color="primary" style="margin-bottom: 5px;" class="filter-btn" (click)="applyDateFilter()" [disabled]="isLoadingResults">
-        <mat-icon>filter_alt</mat-icon>
-        Apply
-      </button>
+      <div class="filter-actions">
+        <button mat-raised-button color="primary" class="filter-btn" (click)="applyDateFilter()" [disabled]="isLoadingResults">
+          <mat-icon>filter_alt</mat-icon>
+          Apply
+        </button>
+
+        <button mat-stroked-button color="warn" class="purge-btn-small" *ngIf="expiryAlertCount > 0" (click)="onPurgeAllExpired()" matTooltip="Purge All Expired Stock">
+          <mat-icon>delete_sweep</mat-icon>
+          Purge ({{expiryAlertCount}})
+        </button>
+      </div>
     </div>
   </div>
 
@@ -221,10 +228,17 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef> </th>
         <td mat-cell *matCellDef="let element">
-          <button mat-icon-button (click)="onRefillNow(element); $event.stopPropagation()" 
-                  matTooltip="Add to cart / Refill" color="primary">
-            <mat-icon>add_shopping_cart</mat-icon>
-          </button>
+          <div class="action-cell-container">
+            <button mat-icon-button (click)="onRefillNow(element); $event.stopPropagation()" 
+                    matTooltip="Add to cart / Refill" color="primary">
+              <mat-icon>add_shopping_cart</mat-icon>
+            </button>
+            <button mat-icon-button *ngIf="isExpired(element.expiryDate)" 
+                    (click)="onRemoveStock(element, $event); $event.stopPropagation()" 
+                    matTooltip="Remove Expired Stock" color="warn">
+              <mat-icon>delete_forever</mat-icon>
+            </button>
+          </div>
         </td>
       </ng-container>
 
@@ -254,6 +268,7 @@
                       <th>Exp Date</th>
                       <th>Received</th>
                       <th>Rejected</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -282,6 +297,19 @@
                         <span [class.text-danger]="$any(h).rejectedQty > 0" [class.text-muted]="$any(h).rejectedQty === 0">
                           {{$any(h).rejectedQty}}
                         </span>
+                      </td>
+                      <td>
+                        <!-- Smart Action: If NOT on Expired Rack, show MOVE icon -->
+                        <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0 && !$any(h).rackName.includes('Expired') && !$any(h).rackName.includes('E1')" 
+                                (click)="onMoveToExpired(h, $event)" color="primary" matTooltip="Move to Expired Rack">
+                          <mat-icon style="font-size: 18px;">move_to_inbox</mat-icon>
+                        </button>
+
+                        <!-- Smart Action: If ALREADY on Expired Rack, show DELETE icon -->
+                        <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0 && ($any(h).rackName.includes('Expired') || $any(h).rackName.includes('E1'))" 
+                                (click)="onRemoveStock(h, $event)" color="warn" matTooltip="Permanent Purge">
+                          <mat-icon style="font-size: 18px;">delete_forever</mat-icon>
+                        </button>
                       </td>
                     </tr>
                     <tr *ngIf="!$any(element).history || $any(element).history.length === 0">

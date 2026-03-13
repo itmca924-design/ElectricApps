@@ -71,7 +71,25 @@ export class MenuService {
                 const sortedTree = this.sortMenus(menuTree);
 
                 // 3. Filter by Permissions
-                return this.filterMenusByPermissions(sortedTree, permissions);
+                const filtered = this.filterMenusByPermissions(sortedTree, permissions);
+
+                // 🎯 4. HACK: Inject "Quick Disposed" item for quick access
+                const quickInv = filtered.find(m => m.title.includes('Quick Inventory'));
+                if (quickInv && quickInv.children) {
+                    const alreadyHas = quickInv.children.some(c => c.title === 'Quick Disposed');
+                    if (!alreadyHas) {
+                         quickInv.children.push({
+                            id: 9991, // Dummy ID
+                            title: 'Quick Disposed',
+                            url: '/app/quick-inventory/disposed-stock',
+                            icon: 'delete_sweep',
+                            order: 100,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+                }
+                return filtered;
               })
             );
           })

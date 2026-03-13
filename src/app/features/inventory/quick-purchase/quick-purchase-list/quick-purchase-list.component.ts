@@ -171,6 +171,14 @@ export class QuickPurchaseListComponent implements OnInit {
       { field: 'productName', header: 'Product Name', width: 215, sortable: true, isFilterable: false, isResizable: true },
       { field: 'qty', header: 'Ordered Qty', width: 90, align: 'left', isResizable: true },
       { field: 'unit', header: 'Unit', width: 85, align: 'left', isResizable: false },
+      { 
+        field: 'mfgDate', header: 'Mfg Date', width: 120, align: 'left',
+        cell: (row: any) => (row.isExpiryRequired || row.IsExpiryRequired) ? (this.datePipe.transform(row.mfgDate || row.MfgDate, 'dd/MM/yyyy') || 'N/A') : 'N/A'
+      },
+      { 
+        field: 'expDate', header: 'Exp Date', width: 120, align: 'left',
+        cell: (row: any) => (row.isExpiryRequired || row.IsExpiryRequired) ? (this.datePipe.transform(row.expDate || row.ExpDate, 'dd/MM/yyyy') || 'N/A') : 'N/A'
+      },
       {
         field: 'rate', header: 'Rate', width: 105, align: 'left', isResizable: false, isFilterable: false,
         cell: (row: any) => this.currencyPipe.transform(row.rate, 'INR', 'symbol', '1.2-2')

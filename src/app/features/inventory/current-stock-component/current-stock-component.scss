@@ -211,8 +211,10 @@ table[mat-table] {
 .mat-column-totalRejected { width: 75px !important; text-align: center !important; }
 .mat-column-totalSold { width: 85px !important; text-align: center !important; }
 .mat-column-availableStock { width: 115px !important; text-align: center !important; }
-.mat-column-unitRate { width: 110px !important; text-align: right !important; }
-.mat-column-actions { width: 70px !important; text-align: center !important; }
+.mat-column-actions { 
+  width: 95px !important; 
+  text-align: center !important; 
+}
 
 /* Force alignment for cells in specific columns */
 .mat-column-totalReceived,
@@ -286,19 +288,57 @@ tr.detail-row {
   height: 0;
 }
 
-/* Ensure the cart button is centered */
+/* Action Cell Icons Alignment */
+.action-cell-container {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px;
+  width: 100%;
+}
+
 .mat-column-actions {
   .mat-mdc-icon-button {
-    margin: 0 auto !important;
+    width: 30px !important;
+    height: 30px !important;
+    padding: 0 !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
     
     mat-icon {
-      font-size: 20px !important;
-      width: 20px !important;
-      height: 20px !important;
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
     }
+  }
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.purge-btn-small {
+  height: 48px !important;
+  border-radius: 12px !important;
+  font-weight: 600 !important;
+  padding: 0 16px !important;
+  border: 1px dashed #ff4d4f !important;
+  color: #ff4d4f !important;
+  background: #fff1f0 !important;
+  
+  &:hover {
+    background: #ffccc7 !important;
+  }
+
+  mat-icon {
+    margin-right: 4px;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
   }
 }
 

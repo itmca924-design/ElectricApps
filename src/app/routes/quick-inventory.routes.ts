@@ -104,5 +104,11 @@ export const QUICK_INVENTORY_ROUTES: Routes = [
         canActivate: [PermissionGuard],
         data: { breadcrumb: 'Add Quick SO Return', isQuick: true },
         loadComponent: () => import('../features/inventory/sale-return/sale-return-form/sale-return-form.component').then(m => m.SaleReturnFormComponent)
+    },
+    {
+        path: 'disposed-stock',
+        canActivate: [PermissionGuard],
+        data: { breadcrumb: 'Quick Disposed Stock' },
+        loadComponent: () => import('../features/inventory/disposed-stock-component/disposed-stock-component').then(m => m.DisposedStockComponent)
     }
 ];
