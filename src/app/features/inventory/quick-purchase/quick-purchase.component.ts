@@ -256,6 +256,7 @@ export class QuickPurchaseComponent implements OnInit {
             rate: [product.basePurchasePrice || product.purchasePrice || product.basePrice || product.rate || 0, [Validators.required, Validators.min(0)]],
             discountPercent: [0],
             gstPercent: [product.gstPercent || 18],
+            taxAmount: [0],
             total: [{ value: 0, disabled: true }],
             manufacturingDate: [mfgDate],
             expiryDate: [expDate],
@@ -309,6 +310,7 @@ export class QuickPurchaseComponent implements OnInit {
             rate: [0, [Validators.required, Validators.min(0)]],
             discountPercent: [0],
             gstPercent: [18],
+            taxAmount: [0],
             total: [{ value: 0, disabled: true }],
             manufacturingDate: [null],
             expiryDate: [null],
@@ -380,12 +382,42 @@ export class QuickPurchaseComponent implements OnInit {
         const total = qty * (netRate + tax);
 
         item.get('total')?.patchValue(total.toFixed(2), { emitEvent: false });
+        item.get('taxAmount')?.patchValue((qty * tax).toFixed(2), { emitEvent: false });
     }
 
     get grandTotal(): number {
         return this.items.controls.reduce((sum, ctrl) => {
             const val = parseFloat(ctrl.get('total')?.value) || 0;
             return sum + val;
+        }, 0);
+    }
+
+    // Total items quantity across all rows
+    get totalQty(): number {
+        return this.items.controls.reduce((sum, ctrl) => {
+            return sum + (Number(ctrl.get('qty')?.value) || 0);
+        }, 0);
+    }
+
+    // Sub Total = before GST (qty * rate after discount)
+    get subTotal(): number {
+        return this.items.controls.reduce((sum, ctrl) => {
+            const qty  = Number(ctrl.get('qty')?.value)  || 0;
+            const rate = Number(ctrl.get('rate')?.value) || 0;
+            const disc = Number(ctrl.get('discountPercent')?.value) || 0;
+            return sum + qty * rate * (1 - disc / 100);
+        }, 0);
+    }
+
+    // Total Tax = GST amount only
+    get totalTax(): number {
+        return this.items.controls.reduce((sum, ctrl) => {
+            const qty  = Number(ctrl.get('qty')?.value)  || 0;
+            const rate = Number(ctrl.get('rate')?.value) || 0;
+            const disc = Number(ctrl.get('discountPercent')?.value) || 0;
+            const gst  = Number(ctrl.get('gstPercent')?.value) || 0;
+            const netRate = rate * (1 - disc / 100);
+            return sum + qty * netRate * (gst / 100);
         }, 0);
     }
 
@@ -503,8 +535,9 @@ export class QuickPurchaseComponent implements OnInit {
             poNumber: formValue.poNumber,
             remarks: formValue.remarks || '',
             grandTotal: this.grandTotal,
-            subTotal: this.grandTotal, // Simplified for quick
-            totalTax: 0, // Simplified for quick
+            subTotal: this.subTotal,
+            totalTax: this.totalTax,
+            totalQuantity: this.totalQty,
             status: 'Draft',
             isQuick: true,
             createdBy: this.authService.getUserEmail(),
@@ -516,7 +549,7 @@ export class QuickPurchaseComponent implements OnInit {
                 rate: Number(i.rate),
                 discountPercent: Number(i.discountPercent),
                 gstPercent: Number(i.gstPercent),
-                taxAmount: 0,
+                taxAmount: Number(i.taxAmount || 0),
                 total: Number(i.total),
                 warehouseId: i.warehouseId || null,
                 rackId: i.rackId || null,

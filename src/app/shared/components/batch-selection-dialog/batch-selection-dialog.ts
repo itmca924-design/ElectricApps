@@ -11,8 +11,16 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="batch-selection-container">
       <div class="dialog-header">
-        <h2 class="title">Select Batch for {{ data.productName }}</h2>
-        <p class="subtitle">Multiple batches available. Please select one:</p>
+        <h2 class="title">Select Batch — {{ data.productName }}</h2>
+        <p class="subtitle" *ngIf="data.validCount > 0">
+          <span style="color: #16a34a; font-weight: 600;">{{data.validCount}} valid batch{{data.validCount > 1 ? 'es' : ''}} available</span>
+          <span *ngIf="data.batches.length > data.validCount" style="color: #dc2626; margin-left: 8px;">
+            &bull; {{data.batches.length - data.validCount}} expired (cannot select)
+          </span>
+        </p>
+        <p class="subtitle" *ngIf="!data.validCount || data.validCount === 0" style="color: #dc2626; font-weight: 600;">
+          ⚠️ All batches are expired. Cannot sell this product.
+        </p>
       </div>
 
       <div class="batches-list">
@@ -291,9 +299,10 @@ export class BatchSelectionDialogComponent implements OnInit {
   selectedBatchIndex: number | null = null;
 
   ngOnInit() {
-    // Auto-select first batch
+    // Auto-select first NON-expired batch with stock
     if (this.data.batches && this.data.batches.length > 0) {
-      this.selectedBatchIndex = 0;
+      const firstValidIdx = this.data.batches.findIndex((b: any) => !this.isExpired(b) && (b.availableStock || b.AvailableStock || 0) > 0);
+      this.selectedBatchIndex = firstValidIdx >= 0 ? firstValidIdx : null;
     }
   }
 
@@ -333,10 +342,16 @@ export class BatchSelectionDialogComponent implements OnInit {
   }
 
   isExpired(batch: any): boolean {
+    // Use pre-computed flag from parent if available
+    if (batch.isExpired !== undefined) return batch.isExpired;
     const expDate = batch.expiryDate || batch.ExpiryDate;
     if (!expDate) return false;
-    const date = typeof expDate === 'string' ? new Date(expDate) : new Date(expDate);
-    return date < new Date();
+    // Date-only comparison: today ka din bhi expired
+    const exp = new Date(expDate);
+    exp.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return exp <= today;
   }
 
   isMfgExpired(batch: any): boolean {

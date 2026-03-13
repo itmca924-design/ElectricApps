@@ -174,14 +174,27 @@
 
         <div class="summary-section">
           <div class="summary-box">
+
             <div class="summary-row">
-              <span class="label">Net Total:</span>
-              <span class="value">{{ grandTotal | currency:'INR':'symbol':'1.2-2' }}</span>
+              <span class="label">Total Qty:</span>
+              <span class="value qty-value">{{ totalQty | number:'1.0-2' }} <small>Items</small></span>
             </div>
+
+            <div class="summary-row">
+              <span class="label">Sub Total:</span>
+              <span class="value">{{ subTotal | currency:'INR':'symbol':'1.2-2' }}</span>
+            </div>
+
+            <div class="summary-row">
+              <span class="label">Total Tax (GST):</span>
+              <span class="value tax-value">{{ totalTax | currency:'INR':'symbol':'1.2-2' }}</span>
+            </div>
+
             <div class="summary-row grand-total">
               <span class="label">Grand Total:</span>
               <span class="value">{{ grandTotal | currency:'INR':'symbol':'1.2-2' }}</span>
             </div>
+
           </div>
         </div>
       </div>

@@ -136,21 +136,25 @@
                 </mat-select>
               </mat-form-field>
             </div>
-            <div class="col-mfg" *ngIf="item.get('isExpiryRequired')?.value">
-              <mat-form-field appearance="outline" dense>
-                <input matInput type="date" formControlName="manufacturingDate">
-              </mat-form-field>
+            <!-- MFG Date: compact display dd-MM-yy -->
+            <div class="col-mfg">
+              <span class="date-chip"
+                    [class.na-chip]="!item.get('manufacturingDate')?.value">
+                {{ item.get('manufacturingDate')?.value
+                    ? (item.get('manufacturingDate')?.value | date:'dd-MM-yy')
+                    : 'N/A' }}
+              </span>
             </div>
-            <div class="col-mfg" *ngIf="!item.get('isExpiryRequired')?.value">
-               <span class="text-secondary" style="font-size: 11px; margin-top: 15px; display: block">N/A</span>
-            </div>
-            <div class="col-exp" *ngIf="item.get('isExpiryRequired')?.value">
-              <mat-form-field appearance="outline" dense>
-                <input matInput type="date" formControlName="expiryDate">
-              </mat-form-field>
-            </div>
-            <div class="col-exp" *ngIf="!item.get('isExpiryRequired')?.value">
-               <span class="text-secondary" style="font-size: 11px; margin-top: 15px; display: block">N/A</span>
+            <!-- EXP Date: compact display dd-MM-yy with expiry color -->
+            <div class="col-exp">
+              <span class="date-chip"
+                    [class.na-chip]="!item.get('expiryDate')?.value"
+                    [class.expired-chip]="isItemExpired(item.get('expiryDate')?.value)"
+                    [class.near-expiry-chip]="!isItemExpired(item.get('expiryDate')?.value) && isItemNearExpiry(item.get('expiryDate')?.value)">
+                {{ item.get('expiryDate')?.value
+                    ? (item.get('expiryDate')?.value | date:'dd-MM-yy')
+                    : 'N/A' }}
+              </span>
             </div>
             <div class="col-total">
                 <div class="total-badge">{{ item.get('total')?.value | currency:'INR':'symbol':'1.2-2' }}</div>

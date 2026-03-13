@@ -52,6 +52,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   lowStockCount: number = 0;
   totalInventoryValue: number = 0;
   totalStockQty: number = 0;
+  expiryAlertCount: number = 0;  // Expired + Near-expiry items count
   searchValue: string = '';
   lastpurchaseOrderId!: number;
 
@@ -205,14 +206,8 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
         this.lastpurchaseOrderId = items[0].lastPurchaseOrderId;
       }
       const mappedData = items.map((item: any) => {
-        // Fix: History dates need same UTC-to-Local conversion as PO list
-        if (item.history && Array.isArray(item.history)) {
-          item.history.forEach((h: any) => {
-            if (h.receivedDate && typeof h.receivedDate === 'string' && !h.receivedDate.includes('Z') && !h.receivedDate.includes('+')) {
-              h.receivedDate = h.receivedDate + '+05:30';
-            }
-          });
-        }
+        // Note: ReceivedDate is now returned as IST from backend (UTC+5:30 conversion done server-side)
+        // No manual timezone adjustment needed here anymore
 
         // Check if dates exist (not NA) to determine if expiry is required
         const hasMfgDate = item.manufacturingDate && item.manufacturingDate !== 'NA' && item.manufacturingDate !== null;
@@ -275,6 +270,10 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
 
   updateSummary(data: any[]) {
     this.lowStockCount = data.filter(item => item.availableStock <= (item.minStockLevel || 10)).length;
+    // Count items where expiry date is today/past OR within 15 days
+    this.expiryAlertCount = data.filter(item =>
+      this.isExpired(item.expiryDate) || this.isNearExpiry(item.expiryDate)
+    ).length;
     this.totalInventoryValue = data.reduce((acc, curr) => acc + (curr.availableStock * curr.lastRate), 0);
     this.totalStockQty = data.reduce((acc, curr) => acc + (curr.availableStock || 0), 0);
     this.cdr.detectChanges();
@@ -417,18 +416,22 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   isExpired(date: any): boolean {
     if (!date) return false;
     const expDate = new Date(date);
+    expDate.setHours(0, 0, 0, 0); // normalize to start of day
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return expDate < today;
+    // <= means: agar aaj ka din bhi expiry date hai toh RED (expired)
+    return expDate <= today;
   }
 
   isNearExpiry(date: any): boolean {
     if (!date) return false;
     const expDate = new Date(date);
+    expDate.setHours(0, 0, 0, 0); // normalize
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diffTime = expDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 && diffDays <= 15; // 15 days window
+    // > 0: aaj ka din expired hai (red), sirf future dates orange hongi (1-15 days)
+    return diffDays > 0 && diffDays <= 15;
   }
 }

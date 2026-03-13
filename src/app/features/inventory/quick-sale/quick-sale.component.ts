@@ -227,6 +227,16 @@ export class QuickSaleComponent implements OnInit {
             try { return new Date(dt).toISOString().substring(0, 10); } catch { return null; }
         };
 
+        // ✅ Date-only expiry check (same logic as isExpired() in current-stock-component)
+        const isExpiredBatch = (expDate: any): boolean => {
+            if (!expDate) return false;
+            const exp = new Date(expDate);
+            exp.setHours(0, 0, 0, 0);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return exp <= today; // today ka din bhi expired hai
+        };
+
         const itemForm = this.fb.group({
             id: [lineItemId],
             productId: [productId, Validators.required],
@@ -257,54 +267,89 @@ export class QuickSaleComponent implements OnInit {
              this.inventoryService.getCurrentStock('', '', 0, 10, productName).subscribe((res: any) => {
                  const currentItem = this.items.at(index);
                  const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
-                 
-                 if (currentItem && itemsArray.length > 0) {
-                     const batches = itemsArray.filter((x: any) => {
-                         const matchId = String(x.productId || x.ProductId) === String(productId);
-                         const hasStock = (x.availableStock || x.AvailableStock || 0) > 0;
-                         // Exclude expired batches
-                         const expDate = x.expiryDate || x.ExpiryDate;
-                         const isNotExpired = !expDate || new Date(expDate) > new Date();
-                         return matchId && hasStock && isNotExpired;
-                     });
-                     
-                     if (batches.length > 1) {
-                         // Multiple batches available - show selection dialog
-                         const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
-                             width: '600px',
-                             disableClose: false,
-                             data: {
-                                 productName: product.productName || product.name,
-                                 batches: batches
-                             }
-                         });
 
-                         dialogRef.afterClosed().subscribe((selectedBatch: any) => {
-                             if (selectedBatch) {
-                                 this.applyBatchToForm(selectedBatch, currentItem, formatDt, index);
-                             } else {
-                                 // User cancelled - remove the item
-                                 this.notification.showStatus(false, 'Batch selection cancelled. Item not added.');
-                                 this.items.removeAt(index);
-                             }
-                         });
-                     } else if (batches.length === 1) {
-                         // Single batch available - auto-populate
-                         this.applyBatchToForm(batches[0], currentItem, formatDt, index);
-                     } else {
-                         // No valid batches available (all expired or no stock)
-                         const allItems = itemsArray.filter((x: any) => String(x.productId || x.ProductId) === String(productId));
-                         if (allItems.length > 0) {
-                             this.notification.showStatus(false, '⚠️ All available batches are expired. Cannot add this product.');
-                         } else {
-                             this.notification.showStatus(false, 'No available stock for this product.');
+                 // ✅ Find the matching product stock row
+                 const productItem = itemsArray.find((x: any) =>
+                     String(x.productId || x.ProductId) === String(productId)
+                 );
+
+                 if (!productItem) {
+                     this.notification.showStatus(false, 'No stock available for this product.');
+                     this.items.removeAt(index);
+                     return;
+                 }
+
+                 // Update available stock
+                 if (currentItem) {
+                     currentItem.get('availableStock')?.setValue(productItem.availableStock || 0);
+                 }
+
+                 // ✅ KEY FIX: Use history[] for per-GRN batch data
+                 // getCurrentStock groups by location, but history has each GRN as a separate entry
+                 const history: any[] = productItem.history || [];
+
+                 const allBatches = history
+                     .filter((h: any) => (h.receivedQty || 0) > 0)
+                     .map((h: any) => ({
+                         grnNumber: h.grnNumber || 'N/A',
+                         manufacturingDate: h.manufacturingDate,
+                         expiryDate: h.expiryDate,
+                         availableStock: (h.receivedQty || 0) - (h.rejectedQty || 0),
+                         warehouseName: h.warehouseName,
+                         rackName: h.rackName,
+                         warehouseId: productItem.warehouseId,
+                         rackId: productItem.rackId,
+                         isExpired: isExpiredBatch(h.expiryDate)
+                     }));
+
+                 // Fallback: agar history nahi hai toh stock item ka use karo
+                 if (allBatches.length === 0) {
+                     allBatches.push({
+                         grnNumber: 'N/A',
+                         manufacturingDate: productItem.manufacturingDate,
+                         expiryDate: productItem.expiryDate,
+                         availableStock: productItem.availableStock || 0,
+                         warehouseName: productItem.warehouseName,
+                         rackName: productItem.rackName,
+                         warehouseId: productItem.warehouseId,
+                         rackId: productItem.rackId,
+                         isExpired: isExpiredBatch(productItem.expiryDate)
+                     });
+                 }
+
+                 const validBatches = allBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
+
+                 if (allBatches.length === 1 && validBatches.length === 1) {
+                     // Single valid batch — auto-populate silently
+                     this.applyBatchToForm(allBatches[0], currentItem, formatDt, index);
+                 } else if (allBatches.length > 0) {
+                     // ✅ Show dialog with ALL batches — expired = disabled, valid = selectable
+                     const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
+                         width: '620px',
+                         disableClose: false,
+                         data: {
+                             productName: product.productName || product.name,
+                             batches: allBatches,
+                             validCount: validBatches.length
                          }
-                         this.items.removeAt(index);
-                     }
+                     });
+
+                     dialogRef.afterClosed().subscribe((selectedBatch: any) => {
+                         if (selectedBatch) {
+                             this.applyBatchToForm(selectedBatch, currentItem, formatDt, index);
+                         } else {
+                             this.notification.showStatus(false, 'Batch selection cancelled. Item not added.');
+                             this.items.removeAt(index);
+                         }
+                     });
+                 } else {
+                     this.notification.showStatus(false, 'No stock available for this product.');
+                     this.items.removeAt(index);
                  }
              });
         }
     }
+
 
     private applyBatchToForm(batch: any, formGroup: any, formatDt: Function, index: number) {
         const mfgDate = batch.manufacturingDate || batch.ManufacturingDate;
@@ -630,5 +675,25 @@ export class QuickSaleComponent implements OnInit {
                 this.router.navigate(['/app/quick-inventory/sale/list']);
             }
         });
+    }
+
+    // Date helpers for EXP date chip coloring in items table
+    isItemExpired(date: any): boolean {
+        if (!date) return false;
+        const exp = new Date(date);
+        exp.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return exp <= today;
+    }
+
+    isItemNearExpiry(date: any): boolean {
+        if (!date) return false;
+        const exp = new Date(date);
+        exp.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays > 0 && diffDays <= 15;
     }
 }

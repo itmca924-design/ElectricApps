@@ -187,7 +187,7 @@ input[type=number] {
   /* Grid Columns Updated for Date Tracking */
   .col-product { flex: 1.2; min-width: 180px; }
   .col-qty { flex: 0.35; min-width: 60px; margin-left: 8px; }
-  .col-unit { flex: 0.4; min-width: 70px; margin-left: 8px; }
+  .col-unit { flex: 0.4; min-width: 90px; margin-left: 8px; }
   .col-rate { flex: 0.6; min-width: 90px; margin-left: 8px; }
   .col-disc { flex: 0.4; min-width: 60px; margin-left: 8px; }
   .col-gst { flex: 0.5; min-width: 85px; margin-left: 8px; }
@@ -266,7 +266,18 @@ input[type=number] {
       font-size: 14px;
       color: #64748b;
 
-      .value { font-weight: 600; color: #1e293b; }
+      .value { 
+        font-weight: 600; 
+        color: #1e293b; 
+
+        &.qty-value {
+          color: #2563eb; /* Blue for quantity */
+        }
+
+        &.tax-value {
+          color: #ea580c; /* Orange/Red for Tax */
+        }
+      }
 
       &.grand-total {
         margin-top: 16px;

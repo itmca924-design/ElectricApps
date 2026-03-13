@@ -188,17 +188,45 @@
     &:last-child { border-bottom: none; }
   }
 
-  /* Grid Columns */
-  .col-product { flex: 1.5; min-width: 200px; }
-  .col-qty { flex: 0.4; min-width: 70px; margin-left: 12px; }
-  .col-unit { flex: 0.6; min-width: 100px; margin-left: 12px; }
-  .col-rate { flex: 0.7; min-width: 100px; margin-left: 12px; }
-  .col-disc { flex: 0.4; min-width: 70px; margin-left: 12px; }
-  .col-gst { flex: 0.6; min-width: 100px; margin-left: 12px; }
-  .col-mfg { flex: 0.8; min-width: 125px; margin-left: 12px; }
-  .col-exp { flex: 0.8; min-width: 125px; margin-left: 12px; }
-  .col-total { flex: 1.2; min-width: 160px; text-align: left; margin-left: 12px; white-space: nowrap; }
-  .col-action { flex: 0 0 48px; text-align: center; }
+  /* Grid Columns — compact so no horizontal scrollbar needed */
+  .col-product { flex: 1.5; min-width: 180px; }
+  .col-qty     { flex: 0.4; min-width: 65px;  margin-left: 8px; }
+  .col-unit    { flex: 0.6; min-width: 90px;  margin-left: 8px; }
+  .col-rate    { flex: 0.6; min-width: 80px;  margin-left: 8px; }
+  .col-disc    { flex: 0.4; min-width: 60px;  margin-left: 8px; }
+  .col-gst     { flex: 0.5; min-width: 80px;  margin-left: 8px; }
+  .col-mfg     { flex: 0.5; min-width: 72px;  margin-left: 8px; }
+  .col-exp     { flex: 0.5; min-width: 72px;  margin-left: 8px; }
+  .col-total   { flex: 1;   min-width: 110px; margin-left: 8px; white-space: nowrap; text-align: left; }
+  .col-action  { flex: 0 0 40px; text-align: center; margin-left: 4px; }
+
+  /* Date Chip — compact display for MFG / EXP dates */
+  .date-chip {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 6px;
+    border-radius: 5px;
+    background: #e8f5e9;
+    color: #1b5e20;
+    white-space: nowrap;
+
+    &.na-chip {
+      background: #f1f5f9;
+      color: #94a3b8;
+      font-weight: 400;
+    }
+
+    &.expired-chip {
+      background: #fef2f2;
+      color: #dc2626;
+    }
+
+    &.near-expiry-chip {
+      background: #fff7ed;
+      color: #c2410c;
+    }
+  }
 
   mat-form-field[dense] {
     width: 100%;

@@ -13,10 +13,18 @@
       <mat-card-content>
           <div class="stat-icon"><mat-icon>warning_amber</mat-icon></div>
           <div class="stat-info">
-              <span class="label">Low Stock Alerts</span>
-              <span class="value">{{lowStockCount}}</span>
+              <span class="label">Stock Alerts</span>
+              <span class="value">{{lowStockCount}}
+                <small style="font-size: 0.5em; color: #888;">Low Stock</small>
+              </span>
+              <!-- Expiry Alert sub-line -->
+              <span *ngIf="expiryAlertCount > 0"
+                    style="display:flex; align-items:center; gap:4px; margin-top:4px; font-size:0.78em; font-weight:700; color:#e53935;">
+                <mat-icon style="font-size:14px; height:14px; width:14px;">alarm</mat-icon>
+                {{expiryAlertCount}} Expiry Alert{{expiryAlertCount > 1 ? 's' : ''}}
+              </span>
           </div>
-          <div class="stat-badge" *ngIf="lowStockCount > 0">Action Required</div>
+          <div class="stat-badge" *ngIf="lowStockCount > 0 || expiryAlertCount > 0">Action Required</div>
       </mat-card-content>
   </mat-card>
 
@@ -258,7 +266,17 @@
                       <td>{{$any(h).warehouseName}}</td>
                       <td>{{$any(h).rackName}}</td>
                       <td>{{$any(h).manufacturingDate | date:'dd MMM yyyy'}}</td>
-                      <td>{{$any(h).expiryDate | date:'dd MMM yyyy'}}</td>
+                      <!-- Exp Date: RED agar expired, ORANGE agar near expiry -->
+                      <td>
+                        <span
+                          [class.text-danger]="isExpired($any(h).expiryDate)"
+                          [class.text-warning]="!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate)"
+                          [style.font-weight]="(isExpired($any(h).expiryDate) || isNearExpiry($any(h).expiryDate)) ? '700' : 'normal'"
+                          [matTooltip]="isExpired($any(h).expiryDate) ? '⚠️ Expired Batch!' : isNearExpiry($any(h).expiryDate) ? '⏰ Expiring within 15 days!' : ''"
+                          matTooltipPosition="above">
+                          {{$any(h).expiryDate | date:'dd MMM yyyy'}}
+                        </span>
+                      </td>
                       <td class="font-600">{{$any(h).receivedQty}}</td>
                       <td>
                         <span [class.text-danger]="$any(h).rejectedQty > 0" [class.text-muted]="$any(h).rejectedQty === 0">
