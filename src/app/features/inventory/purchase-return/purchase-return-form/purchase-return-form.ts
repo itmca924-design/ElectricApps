@@ -482,13 +482,13 @@ export class PurchaseReturnForm implements OnInit {
             ? `Purchase Return ${res.returnNumber} created successfully. Stock & Ledger updated.`
             : `Purchase Return ${res.returnNumber} created successfully. Stock & Ledger updated.\n\nOutward Gate Pass can be generated from the Purchase Return dashboard.`,
         actions: [
-          { label: this.isQuick ? 'Go to Quick Returns' : 'Go to Purchase Returns', role: 'ok' }
+          { label: this.isQuick ? 'Go to Quick Purchase' : 'Go to Purchase Returns', role: 'ok' }
         ]
       }
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      const target = this.isQuick ? '/app/quick-inventory/po-return' : '/app/inventory/purchase-return';
+      const target = this.isQuick ? '/app/quick-inventory/purchase/list' : '/app/inventory/purchase-return';
       this.router.navigate([target]);
     });
   }

@@ -84,13 +84,13 @@ export class PurchaseReturnList implements OnInit {
     return this.selection.selected.reduce((sum, item) => sum + (Number(item.totalQty) || Number(item.qty) || Number(item.quantity) || Number(item.returnQty) || Number(item.returnQuantity) || 0), 0);
   }
 
-  // Un-dispatched selected rows (جن کا gate pass نہیں ہے)
+  // Un-dispatched selected rows (جن کا gate pass نہیں ہے اور جو Quick بھی نہیں ہیں)
   get pendingOutwardSelected(): boolean {
-    return this.selection.selected.some(r => !r.gatePassNo);
+    return this.selection.selected.some(r => !r.gatePassNo && !r.isQuick && !r.IsQuick);
   }
 
   get pendingOutwardSelectedCount(): number {
-    return this.selection.selected.filter(r => !r.gatePassNo).length;
+    return this.selection.selected.filter(r => !r.gatePassNo && !r.isQuick && !r.IsQuick).length;
   }
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -218,8 +218,11 @@ export class PurchaseReturnList implements OnInit {
           forkJoin(detailRequests).subscribe((details: any) => {
             items.forEach((item: any, index: number) => {
               const detail = (details as any[])[index];
-              if (detail && detail.items) {
-                item.totalQty = detail.items.reduce((sum: number, i: any) => sum + (Number(i.returnQty) || 0), 0);
+              if (detail) {
+                if (detail.items) {
+                  item.totalQty = detail.items.reduce((sum: number, i: any) => sum + (Number(i.returnQty) || 0), 0);
+                }
+                item.isQuick = detail.isQuick !== undefined ? detail.isQuick : detail.IsQuick;
               }
             });
 

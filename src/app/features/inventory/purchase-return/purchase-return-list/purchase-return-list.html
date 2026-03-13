@@ -6,7 +6,7 @@
       <button mat-raised-button 
         class="bulk-action-btn" 
         (click)="createOutwardGatePass(selection.selected[0])" 
-        *ngIf="selection.selected.length === 1 && !selection.selected[0]?.gatePassNo && !isQuick">
+        *ngIf="selection.selected.length === 1 && !selection.selected[0]?.gatePassNo && !isQuick && !selection.selected[0]?.isQuick && !selection.selected[0]?.IsQuick">
         <mat-icon>local_shipping</mat-icon>
         Create Outward Pass
       </button>
@@ -157,9 +157,16 @@
                     </div>
                 </ng-container>
                 <ng-template #noPass>
-                    <button mat-icon-button (click)="createOutwardGatePass(row)" color="primary" matTooltip="Generate Outward Pass">
+                    <button mat-icon-button (click)="createOutwardGatePass(row)" color="primary" matTooltip="Generate Outward Pass" *ngIf="!row.isQuick && !row.IsQuick">
                         <mat-icon class="pending-pass-icon">local_shipping</mat-icon>
                     </button>
+                    <div class="status-badge-container" *ngIf="row.isQuick || row.IsQuick">
+                      <span class="premium-badge quick-return">
+                          <mat-icon>flash_on</mat-icon>
+                          QUICK RETURN
+                      </span>
+                      <span class="pass-subtext">Direct Outward</span>
+                  </div>
                 </ng-template>
             </td>
           </ng-container>

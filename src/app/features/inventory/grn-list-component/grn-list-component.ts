@@ -397,8 +397,9 @@ export class GrnListComponent implements OnInit, AfterViewInit {
   }
 
   processRejectionReturn(row: any) {
+    const target = this.isQuick ? '/app/quick-inventory/po-return/add' : '/app/inventory/purchase-return/add';
     // Navigate to Purchase Return Form with supplier pre-selected
-    this.router.navigate(['/app/inventory/purchase-return/add'], {
+    this.router.navigate([target], {
       queryParams: {
         supplierId: row.supplierId
       }
