@@ -133,23 +133,23 @@
               </td>
 
               <td class="text-center">
-                <mat-form-field appearance="outline" class="dense-input narrow-date" subscriptSizing="dynamic" *ngIf="item.isExpiryRequired">
+                <mat-form-field appearance="outline" class="dense-input narrow-date" subscriptSizing="dynamic" *ngIf="item.isExpiryRequired || item.manufacturingDate || item.expiryDate">
                   <input matInput type="text" 
                          [(ngModel)]="item.manufacturingDate" 
                          [ngModelOptions]="{standalone: true}"
                          [disabled]="isViewMode">
                 </mat-form-field>
-                <span class="text-muted small" *ngIf="!item.isExpiryRequired">NA</span>
+                <span class="text-muted small" *ngIf="!item.isExpiryRequired && !item.manufacturingDate && !item.expiryDate">NA</span>
               </td>
 
               <td class="text-center">
-                <mat-form-field appearance="outline" class="dense-input narrow-date" subscriptSizing="dynamic" *ngIf="item.isExpiryRequired">
+                <mat-form-field appearance="outline" class="dense-input narrow-date" subscriptSizing="dynamic" *ngIf="item.isExpiryRequired || item.manufacturingDate || item.expiryDate">
                   <input matInput type="text" 
                          [(ngModel)]="item.expiryDate" 
                          [ngModelOptions]="{standalone: true}"
                          [disabled]="isViewMode">
                 </mat-form-field>
-                <span class="text-muted small" *ngIf="!item.isExpiryRequired">NA</span>
+                <span class="text-muted small" *ngIf="!item.isExpiryRequired && !item.manufacturingDate && !item.expiryDate">NA</span>
               </td>
 
               <td class="text-right">{{item.unitRate | currency:'INR'}}</td>

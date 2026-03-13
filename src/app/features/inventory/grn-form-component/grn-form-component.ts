@@ -231,8 +231,12 @@ export class GrnFormComponent implements OnInit, OnDestroy {
         warehouseId: item.warehouseId || item.WarehouseId || null,
         rackId: item.rackId || item.RackId || null,
         isExpiryRequired: !!(item.isExpiryRequired || item.IsExpiryRequired),
-        manufacturingDate: DateHelper.toShortDisplayDate(item.manufacturingDate || item.ManufacturingDate),
-        expiryDate: DateHelper.toShortDisplayDate(item.expiryDate || item.ExpiryDate)
+        manufacturingDate: DateHelper.toShortDisplayDate(
+          item.manufacturingDate || item.ManufacturingDate || item.mfgDate || item.MfgDate
+        ),
+        expiryDate: DateHelper.toShortDisplayDate(
+          item.expiryDate || item.ExpiryDate || item.expDate || item.ExpDate
+        )
       };
     });
 
