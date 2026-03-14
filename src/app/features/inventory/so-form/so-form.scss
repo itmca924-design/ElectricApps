@@ -206,8 +206,8 @@ mat-card.so-card {
 
 .item-row {
   display: grid;
-  grid-template-columns: 2.2fr 0.6fr 1fr 0.8fr 0.6fr 0.6fr 1.2fr 1.2fr 0.8fr 1.1fr 48px;
-  gap: 16px; /* Increased breathing room */
+  grid-template-columns: 2fr 0.6fr 100px 100px 0.6fr 0.6fr 135px 135px 0.8fr 1.1fr 48px;
+  gap: 12px; /* Increased breathing room */
   align-items: start;
   background: white;
   padding: 16px 8px; /* Less horizontal padding, more vertical */
@@ -239,6 +239,33 @@ mat-card.so-card {
     &:hover {
       color: #f44336; /* Material Error Red */
       background-color: rgba(244, 67, 54, 0.04);
+    }
+  }
+
+  /* N/A State Styling (Premium) */
+  .na-field {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 48px;
+    padding: 0 8px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+
+    .na-label {
+      font-size: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .na-badge {
+      font-size: 11px;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.5px;
     }
   }
 }
@@ -382,8 +409,8 @@ mat-card.so-card {
 /* --- Responsive Adjustments --- */
 @media (max-width: 1400px) {
     .item-row {
-        grid-template-columns: 2fr 0.6fr 1fr 0.8fr 0.6fr 0.6fr 1.1fr 1.1fr 0.8fr 1.1fr 40px;
-        gap: 12px;
+        grid-template-columns: 1.8fr 0.6fr 90px 90px 0.6fr 0.6fr 125px 125px 0.8fr 1.1fr 40px;
+        gap: 8px;
     }
 }
 

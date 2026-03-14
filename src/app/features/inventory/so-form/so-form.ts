@@ -428,6 +428,17 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
     this.cdr.detectChanges();
   }
 
+  getMinExpDate(mfgDateValue: any): Date | null {
+    if (!mfgDateValue) return null;
+    const d = new Date(mfgDateValue);
+    if (!isNaN(d.getTime())) {
+      const minDate = new Date(d);
+      minDate.setDate(d.getDate() + 1);
+      return minDate;
+    }
+    return null;
+  }
+
   removeItem(index: number): void {
     if (this.items.length > 1) {
       this.items.removeAt(index);

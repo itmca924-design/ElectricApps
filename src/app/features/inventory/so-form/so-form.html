@@ -145,27 +145,35 @@
             </mat-form-field>
 
             <ng-container *ngIf="items.at(i).get('isExpiryRequired')?.value">
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mfg-field">
-                <mat-label>Mfg Date</mat-label>
-                <input matInput type="date" formControlName="manufacturingDate">
-                </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mfg-field">
+                <mat-label>Mfg Date *</mat-label>
+                <input matInput [matDatepicker]="mfgPickerSo" formControlName="manufacturingDate" required>
+                <mat-datepicker-toggle matIconSuffix [for]="mfgPickerSo"></mat-datepicker-toggle>
+                <mat-datepicker #mfgPickerSo></mat-datepicker>
+                <mat-error *ngIf="items.at(i).get('manufacturingDate')?.hasError('required')">Required</mat-error>
+              </mat-form-field>
 
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" class="exp-field">
-                <mat-label>Exp Date</mat-label>
-                <input matInput type="date" formControlName="expiryDate">
-                </mat-form-field>
+                <mat-label>Exp Date *</mat-label>
+                <input matInput [matDatepicker]="expPickerSo" formControlName="expiryDate" required
+                       [min]="getMinExpDate(items.at(i).get('manufacturingDate')?.value)">
+                <mat-datepicker-toggle matIconSuffix [for]="expPickerSo"></mat-datepicker-toggle>
+                <mat-datepicker #expPickerSo></mat-datepicker>
+                <mat-error *ngIf="items.at(i).get('expiryDate')?.hasError('required')">Required</mat-error>
+                <mat-error *ngIf="items.at(i).get('expiryDate')?.hasError('matDatepickerMin')">Must be after Mfg Date</mat-error>
+              </mat-form-field>
             </ng-container>
 
             <ng-container *ngIf="!items.at(i).get('isExpiryRequired')?.value">
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="mfg-field">
-                <mat-label>Mfg Date</mat-label>
-                <input matInput type="text" [disabled]="true" value="N/A">
-                </mat-form-field>
+              <div class="na-field mfg-field">
+                <span class="na-label">Mfg Date</span>
+                <span class="na-badge">N/A</span>
+              </div>
 
-                <mat-form-field appearance="outline" subscriptSizing="dynamic" class="exp-field">
-                <mat-label>Exp Date</mat-label>
-                <input matInput type="text" [disabled]="true" value="N/A">
-                </mat-form-field>
+              <div class="na-field exp-field">
+                <span class="na-label">Exp Date</span>
+                <span class="na-badge">N/A</span>
+              </div>
             </ng-container>
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="tax-field">

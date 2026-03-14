@@ -166,7 +166,7 @@ mat-card {
 .item-row {
   display: grid;
   /* Columns: Product, Qty, Unit, Rate, Disc, GST, MfgDate, ExpDate, TaxAmt, Total, Delete */
-  grid-template-columns: 2.2fr 0.6fr 0.8fr 0.6fr 0.55fr 0.55fr 1fr 1fr 0.85fr 1fr 45px;
+  grid-template-columns: 1.9fr 0.55fr 0.75fr 0.8fr 0.65fr 0.65fr 1.15fr 1.15fr 0.8fr 1fr 45px;
   gap: 10px;
   align-items: start; /* Fix: 'start' keeps inputs aligned at the top even with different hint heights */
   /* Fields ko barabar line mein lane ke liye */
@@ -416,7 +416,7 @@ input.bg-light {
 /* ================= RESPONSIVE ================= */
 @media (max-width: 1400px) {
   .item-row {
-    grid-template-columns: 2fr 0.7fr 1fr 0.7fr 0.7fr 0.7fr 1fr 1fr 0.9fr 1fr 45px;
+    grid-template-columns: 1.8fr 0.6fr 0.8fr 0.8fr 0.7fr 0.7fr 1.2fr 1.2fr 0.9fr 1fr 45px;
   }
 }
 
@@ -710,4 +710,16 @@ hr {
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.02); opacity: 0.8; }
   100% { transform: scale(1); opacity: 1; }
+}
+
+/* ================= HIDE NUMBER UP/DOWN ARROWS ================= */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+  appearance: textfield;
 }

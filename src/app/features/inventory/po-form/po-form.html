@@ -180,10 +180,11 @@
         <!-- Mfg Date: Only if IsExpiryRequired = true -->
         <ng-container *ngIf="row.get('isExpiryRequired')?.value; else mfgNA">
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
-            <mat-label>Mfg Date</mat-label>
-            <input matInput [matDatepicker]="mfgPicker" formControlName="mfgDate" placeholder="dd/mm/yyyy">
+            <mat-label>Mfg Date *</mat-label>
+            <input matInput [matDatepicker]="mfgPicker" formControlName="mfgDate" placeholder="dd/mm/yyyy" required>
             <mat-datepicker-toggle matIconSuffix [for]="mfgPicker"></mat-datepicker-toggle>
             <mat-datepicker #mfgPicker></mat-datepicker>
+            <mat-error *ngIf="row.get('mfgDate')?.hasError('required')">Required</mat-error>
           </mat-form-field>
         </ng-container>
         <ng-template #mfgNA>
@@ -196,10 +197,12 @@
         <!-- Exp Date: Only if IsExpiryRequired = true -->
         <ng-container *ngIf="row.get('isExpiryRequired')?.value; else expNA">
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
-            <mat-label>Exp Date</mat-label>
-            <input matInput [matDatepicker]="expDatePicker" formControlName="expDate" placeholder="dd/mm/yyyy">
+            <mat-label>Exp Date *</mat-label>
+            <input matInput [matDatepicker]="expDatePicker" formControlName="expDate" placeholder="dd/mm/yyyy" required [min]="getMinExpDate(row.get('mfgDate')?.value)">
             <mat-datepicker-toggle matIconSuffix [for]="expDatePicker"></mat-datepicker-toggle>
             <mat-datepicker #expDatePicker></mat-datepicker>
+            <mat-error *ngIf="row.get('expDate')?.hasError('required')">Required</mat-error>
+            <mat-error *ngIf="row.get('expDate')?.hasError('matDatepickerMin')">Must be after Mfg Date</mat-error>
           </mat-form-field>
         </ng-container>
         <ng-template #expNA>

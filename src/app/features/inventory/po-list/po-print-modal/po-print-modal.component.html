@@ -61,7 +61,12 @@
             </thead>
             <tbody>
                 <tr *ngFor="let item of data?.items">
-                    <td>{{item.productName}}</td>
+                    <td>
+                        {{item.productName}}
+                        <div *ngIf="item.mfgDate || item.expDate" style="font-size: 10px; color: #666; font-style: italic;">
+                            Mfg: {{item.mfgDate | date:'dd/MM/yyyy'}} | Exp: {{item.expDate | date:'dd/MM/yyyy'}}
+                        </div>
+                    </td>
                     <td class="text-center">{{item.qty}}</td>
                     <td class="text-right">{{item.rate | currency:'INR':'':'1.2-2'}}</td>
                     <td class="text-center">{{item.discountPercent || 0}}%</td>

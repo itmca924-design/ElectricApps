@@ -233,8 +233,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       total: [{ value: 0, disabled: true }],
       currentStock: [product.currentStock || 0],
       sku: [product.sku || ''],
-      mfgDate: [null],
-      expDate: [null],
+      mfgDate: [null, product.isExpiryRequired ? Validators.required : null],
+      expDate: [null, product.isExpiryRequired ? Validators.required : null],
       isExpiryRequired: [product.isExpiryRequired ?? false],
       id: [0]
     });
@@ -276,8 +276,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       total: [{ value: 0, disabled: true }],
       currentStock: [data.currentStock || 0],
       sku: [data.sku || ''],
-      mfgDate: [null],
-      expDate: [null],
+      mfgDate: [null, data.isExpiryRequired ? Validators.required : null],
+      expDate: [null, data.isExpiryRequired ? Validators.required : null],
       isExpiryRequired: [data.isExpiryRequired ?? false],
       id: [0]
     });
@@ -443,6 +443,16 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       expDate: null
     });
 
+    if (product.isExpiryRequired) {
+      row.get('mfgDate')?.setValidators(Validators.required);
+      row.get('expDate')?.setValidators(Validators.required);
+    } else {
+      row.get('mfgDate')?.clearValidators();
+      row.get('expDate')?.clearValidators();
+    }
+    row.get('mfgDate')?.updateValueAndValidity();
+    row.get('expDate')?.updateValueAndValidity();
+
     if (product.id && priceListId) {
       this.inventoryService.getProductRate(product.id, priceListId).subscribe({
         next: (res: any) => {
@@ -583,6 +593,16 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
 
   loadUnits() {
     this.unitService.getAll().pipe(takeUntil(this.destroy$)).subscribe(data => this.allUnits = data || []);
+  }
+
+  getMinExpDate(mfgDateValue: any): Date | null {
+    if (!mfgDateValue) return null;
+    const d = new Date(mfgDateValue);
+    if (!isNaN(d.getTime())) {
+      d.setDate(d.getDate() + 1); // Exact next day
+      return d;
+    }
+    return null;
   }
 
   ngOnDestroy() {
