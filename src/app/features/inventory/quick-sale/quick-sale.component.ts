@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { InventoryService } from '../service/inventory.service';
 import { NotificationService } from '../../shared/notification.service';
@@ -49,7 +49,10 @@ export class QuickSaleComponent implements OnInit {
 
     saleForm!: FormGroup;
     isSaving = false;
+    isLoadingCustomers = false;
     customers: any[] = [];
+    filteredCustomers!: Observable<any[]>;
+    customerSearchCtrl = new FormControl<any>('');
     units: any[] = [];
     warehouses: any[] = [];
     racksByItem: any[][] = [];
@@ -79,12 +82,14 @@ export class QuickSaleComponent implements OnInit {
             next: (res) => {
                 this.saleForm.patchValue({
                     customerId: res.customerId,
-                    customerName: res.customerName,
+                    customerName: (res.customerName || '').replace(/^"|"$/g, ''),
                     remarks: res.remarks || '',
                     date: res.soDate,
                     expectedDeliveryDate: res.expectedDeliveryDate || res.ExpectedDeliveryDate || null,
                     status: res.status
                 });
+                const sanitizedName = (res.customerName || '').replace(/^"|"$/g, '');
+                this.customerSearchCtrl.setValue({ id: res.customerId, customerName: sanitizedName });
 
                 // Clear existing items
                 while (this.items.length) {
@@ -95,17 +100,20 @@ export class QuickSaleComponent implements OnInit {
                 if (res.items && res.items.length > 0) {
                     res.items.forEach((item: any, idx: number) => {
                         this.addProductToForm(item);
-                        // Fetch stock for existing items - Use stockResult.data for ApiResponse wrapper
+                        // Fetch stock for existing items
                         this.inventoryService.getProductById(item.productId || item.id).subscribe((stockResult: any) => {
                            const currentItem = this.items.at(idx);
                            // Handle both ApiResponse wrapper and direct DTO, and naming cases
-                           const stock = stockResult?.data?.currentStock ?? 
+                           const stockInWarehouse = stockResult?.data?.currentStock ?? 
                                          stockResult?.currentStock ?? 
                                          stockResult?.data?.CurrentStock ?? 
                                          stockResult?.CurrentStock ?? 0;
                            
                            if (currentItem) {
-                               currentItem.get('availableStock')?.setValue(stock);
+                               // 🧠 APPROACH: Effective Stock = Stock in Warehouse + Original Qty in this SO
+                               // This allows the user to see that their 2 items are available for adjustment.
+                               const originalQty = item.qty || 0;
+                               currentItem.get('availableStock')?.setValue(stockInWarehouse + originalQty);
                                // Trigger calculation again just in case
                                this.calculateItemTotal(idx);
                            }
@@ -166,7 +174,7 @@ export class QuickSaleComponent implements OnInit {
             customerName: ['Cash Customer', Validators.required],
             remarks: [''],
             date: [new Date()],
-            expectedDeliveryDate: [null],
+            expectedDeliveryDate: [new Date()],
             status: ['Confirmed'],
             items: this.fb.array([], Validators.required)
         });
@@ -248,12 +256,13 @@ export class QuickSaleComponent implements OnInit {
             qty: [product.qty || 1, [Validators.required, Validators.min(0.01)]],
             unit: [{ value: product.unit || 'PCS', disabled: true }],
             rate: [product.rate || product.Rate || product.saleRate || product.salePrice || product.price || product.mrp || 0, [Validators.required, Validators.min(0)]],
-            discountPercent: [0],
+            discountPercent: [product.discountPercent || product.discount || 0],
             gstPercent: [product.gstPercent || 18],
             total: [{ value: 0, disabled: true }],
             isExpiryRequired: [product.isExpiryRequired || false],
             manufacturingDate: [formatDt(product.manufacturingDate)],
-            expiryDate: [formatDt(product.expiryDate)]
+            expiryDate: [formatDt(product.expiryDate)],
+            originalQty: [isExistingItem ? (product.qty || 0) : 0]
         });
 
         const index = this.items.length;
@@ -425,7 +434,8 @@ export class QuickSaleComponent implements OnInit {
             total: [{ value: 0, disabled: true }],
             isExpiryRequired: [false],
             manufacturingDate: [null],
-            expiryDate: [null]
+            expiryDate: [null],
+            originalQty: [0] // 🧠 Store original qty for edit mode stock adjustments
         });
 
         const index = this.items.length;
@@ -501,6 +511,28 @@ export class QuickSaleComponent implements OnInit {
         item.get('total')?.patchValue(total.toFixed(2), { emitEvent: false });
     }
 
+    get subTotal(): number {
+        return this.items.controls.reduce((sum, ctrl) => {
+            const qty = parseFloat(ctrl.get('qty')?.value) || 0;
+            const rate = parseFloat(ctrl.get('rate')?.value) || 0;
+            const disc = parseFloat(ctrl.get('discountPercent')?.value) || 0;
+            const netRate = rate * (1 - disc / 100);
+            return sum + (qty * netRate);
+        }, 0);
+    }
+
+    get totalTax(): number {
+        return this.items.controls.reduce((sum, ctrl) => {
+            const qty = parseFloat(ctrl.get('qty')?.value) || 0;
+            const rate = parseFloat(ctrl.get('rate')?.value) || 0;
+            const disc = parseFloat(ctrl.get('discountPercent')?.value) || 0;
+            const gst = parseFloat(ctrl.get('gstPercent')?.value) || 0;
+            const netRate = rate * (1 - disc / 100);
+            const tax = netRate * (gst / 100);
+            return sum + (qty * tax);
+        }, 0);
+    }
+
     get grandTotal(): number {
         return this.items.controls.reduce((sum, ctrl) => {
             const val = parseFloat(ctrl.get('total')?.value) || 0;
@@ -509,21 +541,81 @@ export class QuickSaleComponent implements OnInit {
     }
 
     loadCustomers() {
-        this.customerService.getAllCustomers().subscribe((res: any) => {
-            this.customers = res;
-            // Pre-select if needed, for now use default 0
-        });
+        this.isLoadingCustomers = true;
+        this.customerService.getAllCustomers().subscribe({
+            next: (res: any) => {
+                // Sanitize names to remove any unexpected double quotes
+                let loadedCustomers = (res || []).map((c: any) => ({
+                    ...c,
+                    customerName: (c.customerName || c.name || '').replace(/^"|"$/g, ''),
+                    name: (c.name || c.customerName || '').replace(/^"|"$/g, '')
+                }));
+
+                // Sort array to keep Walk-in customer at the top
+                loadedCustomers.sort((a: any, b: any) => {
+                    const aIsWalkIn = this.isWalkIn(a);
+                    const bIsWalkIn = this.isWalkIn(b);
+                    if (aIsWalkIn && !bIsWalkIn) return -1;
+                    if (!aIsWalkIn && bIsWalkIn) return 1;
+                    return 0;
+                });
+
+                this.customers = loadedCustomers;
+                
+                if (!this.isEdit) {
+                const walkIn = this.customers.find(c => this.isWalkIn(c));
+                if (walkIn) {
+                    this.customerSearchCtrl.setValue({ id: walkIn.id, customerName: walkIn.customerName });
+                    this.saleForm.patchValue({ customerId: walkIn.id, customerName: walkIn.customerName });
+                } else if (this.customers.length > 0) {
+                    this.customerSearchCtrl.setValue({ id: this.customers[0].id, customerName: this.customers[0].customerName });
+                    this.saleForm.patchValue({ customerId: this.customers[0].id, customerName: this.customers[0].customerName });
+                }
+            }
+
+            this.filteredCustomers = this.customerSearchCtrl.valueChanges.pipe(
+                startWith(''),
+                map(value => {
+                    const name = typeof value === 'string' ? value : (value?.customerName || value?.name || '');
+                    return name ? this._filterCustomers(name) : this.customers;
+                })
+            );
+            this.isLoadingCustomers = false;
+        },
+        error: () => {
+            this.isLoadingCustomers = false;
+        }});
     }
 
-    onCustomerSelect(event: any) {
-        if (event.value === 0) {
-            this.saleForm.patchValue({ customerName: 'Cash Customer' });
-        } else {
-            const cust = this.customers.find(c => c.id === event.value);
-            if (cust) {
-                this.saleForm.patchValue({ customerName: cust.customerName || cust.name });
-            }
+    isWalkIn(customer: any): boolean {
+        if (!customer) return false;
+        const name = (customer.customerName || customer.name || '').toLowerCase();
+        return name.includes('walk-in') || name.includes('walk in') || name.includes('cash');
+    }
+
+    displayCustomer(customer: any): string {
+        if (!customer) return '';
+        return customer.customerName || customer.name || '';
+    }
+
+    private _filterCustomers(name: string): any[] {
+        const filterValue = name.toLowerCase();
+        return this.customers.filter(c => (c.customerName || c.name || '').toLowerCase().includes(filterValue));
+    }
+
+    onCustomerAutoSelect(event: any) {
+        const cust = event.option.value;
+        if (cust) {
+            this.saleForm.patchValue({ 
+                customerId: cust.id, 
+                customerName: cust.customerName || cust.name 
+            });
         }
+    }
+
+    clearCustomer() {
+        this.customerSearchCtrl.setValue('');
+        this.saleForm.patchValue({ customerId: null, customerName: '' });
     }
 
     save() {
@@ -568,7 +660,11 @@ export class QuickSaleComponent implements OnInit {
                     status: formRaw.status,
                     soDate: formRaw.date,
                     expectedDeliveryDate: formRaw.expectedDeliveryDate,
+                    subTotal: this.subTotal,
+                    totalTax: this.totalTax,
+                    grandTotal: this.grandTotal,
                     createdBy: this.authService.getUserEmail(),
+                    isQuick: true,
                     items: this.items.getRawValue().map((i: any) => ({
                         id: i.id || 0,
                         productId: i.productId,
@@ -578,6 +674,8 @@ export class QuickSaleComponent implements OnInit {
                         rate: i.rate,
                         discountPercent: i.discountPercent,
                         gstPercent: i.gstPercent,
+                        taxAmount: (i.rate * (1 - (i.discountPercent || 0) / 100)) * ((i.gstPercent || 0) / 100) * i.qty,
+                        total: i.total,
                         warehouseId: i.warehouseId || null,
                         rackId: i.rackId || null,
                         manufacturingDate: i.manufacturingDate || null,

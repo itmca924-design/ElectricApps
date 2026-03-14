@@ -170,7 +170,7 @@ export class InventoryService {
     }
 
     quickSale(payload: any): Observable<any> {
-        return this.api.post('QuickTransaction/quick-sale', payload);
+        return this.api.post('SaleOrder/save', payload);
     }
 
     getSuppliers(): Observable<any[]> {

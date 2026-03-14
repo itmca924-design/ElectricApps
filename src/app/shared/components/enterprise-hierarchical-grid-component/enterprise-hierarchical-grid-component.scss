@@ -362,8 +362,8 @@ th.child-th {
   // First column (checkbox)
   &:first-child {
     text-align: left;
-    width: 50px;
-    padding-left: 15px !important;
+    width: 48px;
+    padding-left: 12px !important;
   }
 }
 
@@ -390,8 +390,8 @@ th.child-th {
   &:first-child {
     text-align: left;
     vertical-align: middle;
-    padding-left: 15px !important;
-    width: 50px;
+    padding-left: 12px !important;
+    width: 48px;
   }
 }
 
@@ -416,7 +416,7 @@ th.child-th {
   max-height: 5000px; /* Increased to accommodate large orders and footer */
   opacity: 1;
   border-left: 4px solid #3b82f6;
-  padding: 15px;
+  padding: 15px 15px 15px 0; /* Remove left padding to align with parent */
   overflow: visible; /* Ensure footer isn't clipped by panel */
 }
 
@@ -687,7 +687,7 @@ th.child-th {
   justify-content: space-between;
   align-items: center;
   /* Vertical centering */
-  padding: 8px 16px;
+  padding: 8px 16px 8px 12px;
   /* Header ko thoda space dene ke liye */
   background-color: #f8f9fa;
   /* Light background for header bar */

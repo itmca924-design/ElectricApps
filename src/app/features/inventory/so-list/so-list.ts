@@ -31,7 +31,7 @@ import { PermissionService } from '../../../core/services/permission.service';
 export class SoList implements OnInit {
   private loadingService = inject(LoadingService);
 
-  displayedColumns: string[] = ['select', 'soNumber', 'gatePassNo', 'soDate', 'customerName', 'totalQty', 'grandTotal', 'status', 'paymentStatus', 'actions'];
+  displayedColumns: string[] = ['select', 'soNumber', 'gatePassNo', 'soDate', 'customerName', 'totalQty', 'grandTotal', 'status', 'paymentStatus', 'createdBy', 'remarks', 'actions'];
   dataSource = new MatTableDataSource<any>([]);
   isAdmin: boolean = false;
   isLoading: boolean = true;

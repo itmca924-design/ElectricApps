@@ -75,12 +75,18 @@
 
   .row {
     display: flex;
+    flex-wrap: wrap;
     gap: 24px;
     margin-bottom: 16px;
 
-    .col-6 { flex: 0 0 calc(50% - 12px); }
-    .col-3 { flex: 0 0 calc(25% - 18px); }
-    .col-12 { flex: 0 0 100%; }
+    .col-6 { flex: 0 0 calc(50% - 12px); max-width: calc(50% - 12px); }
+    .col-3 { flex: 0 0 calc(25% - 18px); max-width: calc(25% - 18px); }
+    .col-12 { flex: 0 0 100%; max-width: 100%; }
+
+    /* Custom column widths for the top row */
+    .col-cust  { flex: 0 0 calc(35% - 18px); max-width: calc(35% - 18px); } 
+    .col-status{ flex: 0 0 calc(17% - 18px); max-width: calc(17% - 18px); } 
+    .col-date  { flex: 0 0 calc(24% - 18px); max-width: calc(24% - 18px); }
   }
 
 .full-width { width: 100%; }
@@ -137,9 +143,9 @@
 }
 
 .items-section {
-  margin-top: 32px;
+  margin-top: 8px;
   border-top: 1px solid #ebf2ee;
-  padding-top: 24px;
+  padding-top: 16px;
 
   .section-title {
     display: flex;
@@ -189,7 +195,7 @@
   }
 
   /* Grid Columns — compact so no horizontal scrollbar needed */
-  .col-product { flex: 1.5; min-width: 180px; }
+  .col-product { flex: 2; min-width: 240px; }
   .col-qty     { flex: 0.4; min-width: 65px;  margin-left: 8px; }
   .col-unit    { flex: 0.6; min-width: 90px;  margin-left: 8px; }
   .col-rate    { flex: 0.6; min-width: 80px;  margin-left: 8px; }
@@ -247,6 +253,16 @@
     }
   }
 
+  .hide-arrows {
+    appearance: none;
+    -moz-appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
+
   .stock-display {
       font-size: 13px;
       font-weight: 600;
@@ -273,18 +289,31 @@
   }
 
   .product-hints {
-    font-size: 11px;
-    color: #64748b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 12px;
+    color: #4b5563;
     display: block;
     padding-left: 2px;
+    margin-top: 2px;
+    line-height: 1.4;
 
-    .stock { color: #10b981; font-weight: 600; }
-    .rack { color: #8b5cf6; font-weight: 600; }
-    .wh-hint { color: #3b82f6; font-weight: 600; }
-    .rack-hint { color: #8b5cf6; font-weight: 600; }
+    .stock { 
+        color: #10b981; 
+        font-weight: 700; 
+    }
+    .wh-hint { 
+        color: #2563eb; 
+        font-weight: 700; 
+        background: #eff6ff;
+        padding: 0 4px;
+        border-radius: 3px;
+    }
+    .rack-hint { 
+        color: #7c3aed; 
+        font-weight: 700; 
+        background: #f5f3ff;
+        padding: 0 4px;
+        border-radius: 3px;
+    }
   }
 
   .total-badge {
