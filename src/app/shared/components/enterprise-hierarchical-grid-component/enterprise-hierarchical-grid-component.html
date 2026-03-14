@@ -132,17 +132,17 @@
 
             <ng-container *ngIf="col.field === 'status'">
               <span class="status-badge" 
-                    [ngClass]="getStatusBadgeClass(col.cell ? col.cell(row) : row[col.field])"
-                    [innerHTML]="col.cell ? col.cell(row) : row[col.field]">
+                    [ngClass]="getStatusBadgeClass(col.cell ? col.cell(row, dataSource.data.indexOf(row)) : row[col.field])"
+                    [innerHTML]="col.cell ? col.cell(row, dataSource.data.indexOf(row)) : row[col.field]">
               </span>
             </ng-container>
 
             <ng-container *ngIf="col.field !== 'paymentStatus' && col.field !== 'status'">
-              <ng-container *ngTemplateOutlet="normalCell; context: { $implicit: row, col: col }"></ng-container>
+              <ng-container *ngTemplateOutlet="normalCell; context: { $implicit: row, col: col, index: dataSource.data.indexOf(row) }"></ng-container>
             </ng-container>
 
-            <ng-template #normalCell let-row let-col="col">
-              {{ col.cell ? col.cell(row) : row[col.field] }}
+            <ng-template #normalCell let-row let-col="col" let-idx="index">
+              {{ col.cell ? col.cell(row, idx) : row[col.field] }}
             </ng-template>
           </td>
         </ng-container>
@@ -337,23 +337,23 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let childRow of element[childDataField]" class="child-row">
-                        <td style="text-align: center;">
-                          <mat-checkbox (click)="$event.stopPropagation()"
-                            (change)="$event ? onChildCheck(childRow) : null"
-                            [checked]="childSelection.isSelected(childRow)" [disabled]="showSimpleActions || element.status !== 'Draft'">
-                          </mat-checkbox>
-                        </td>
-                        <td *ngFor="let cCol of childColumns" [style.text-align]="cCol.align">
-                          <span [ngClass]="{
-                            'qty-success': (cCol.field === 'receivedQty' && childRow.receivedQty >= childRow.qty && childRow.qty > 0) || (cCol.field === 'acceptedQty' && childRow.acceptedQty > 0),
-                            'qty-warning': cCol.field === 'receivedQty' && childRow.receivedQty > 0 && childRow.receivedQty < childRow.qty,
-                            'qty-danger': cCol.field === 'rejectedQty' && childRow.rejectedQty > 0,
-                            'qty-pending': cCol.field === 'pendingQty' && (childRow.pendingQty > 0 || childRow.qty > childRow.receivedQty)
-                          }">
-                            {{ cCol.cell ? cCol.cell(childRow) : childRow[cCol.field] }}
-                          </span>
-                        </td>
+                        <tr *ngFor="let childRow of element[childDataField]; let idx = index" class="child-row">
+                          <td style="text-align: center;">
+                            <mat-checkbox (click)="$event.stopPropagation()"
+                              (change)="$event ? onChildCheck(childRow) : null"
+                              [checked]="childSelection.isSelected(childRow)" [disabled]="showSimpleActions || element.status !== 'Draft'">
+                            </mat-checkbox>
+                          </td>
+                          <td *ngFor="let cCol of childColumns" [style.text-align]="cCol.align">
+                            <span [ngClass]="{
+                              'qty-success': (cCol.field === 'receivedQty' && childRow.receivedQty >= childRow.qty && childRow.qty > 0) || (cCol.field === 'acceptedQty' && childRow.acceptedQty > 0),
+                              'qty-warning': cCol.field === 'receivedQty' && childRow.receivedQty > 0 && childRow.receivedQty < childRow.qty,
+                              'qty-danger': cCol.field === 'rejectedQty' && childRow.rejectedQty > 0,
+                              'qty-pending': cCol.field === 'pendingQty' && (childRow.pendingQty > 0 || childRow.qty > childRow.receivedQty)
+                            }">
+                              {{ cCol.cell ? cCol.cell(childRow, idx) : childRow[cCol.field] }}
+                            </span>
+                          </td>
                         <td *ngIf="!showSimpleActions">
                           <div *ngIf="!childSelection.hasValue()"
                             style="display: flex; gap: 4px; justify-content: center;">
@@ -376,32 +376,29 @@
                         </td>
                       </tr>
                     </tbody>
-                    <tfoot>
-                      <tr class="child-footer-row">
-                        <td [attr.colspan]="childColumns.length" class="footer-spacer"></td>
-                        <td class="footer-summary-container" colspan="2">
-                          <div class="summary-box">
-                            <div class="summary-item">
-                              <span class="label">Total Qty:</span>
-                              <span class="value">{{ calculateTotalQty(element) }}</span>
-                            </div>
-                            <div class="summary-item">
-                              <span class="label">Sub-Total:</span>
-                              <span class="value">{{ calculateSubTotal(element) | currency:'INR' }}</span>
-                            </div>
-                            <div class="summary-item">
-                              <span class="label">Total Tax:</span>
-                              <span class="value">{{ (element.totalTax || 0) | currency:'INR' }}</span>
-                            </div>
-                            <div class="summary-item grand-total-section">
-                              <span class="label">GRAND TOTAL:</span>
-                              <span class="value">{{ (element.grandTotal || 0) | currency:'INR' }}</span>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    </tfoot>
                   </table>
+                </div>
+
+                <!-- Footer Summary Box: Moved outside table for better layout control -->
+                <div class="child-footer-summary">
+                  <div class="summary-box">
+                    <div class="summary-item">
+                      <span class="label">Total Qty:</span>
+                      <span class="value">{{ calculateTotalQty(element) }}</span>
+                    </div>
+                    <div class="summary-item">
+                      <span class="label">Sub-Total:</span>
+                      <span class="value">{{ calculateSubTotal(element) | currency:'INR' }}</span>
+                    </div>
+                    <div class="summary-item">
+                      <span class="label">Total Tax:</span>
+                      <span class="value">{{ (element.totalTax || 0) | currency:'INR' }}</span>
+                    </div>
+                    <div class="summary-item grand-total-section">
+                      <span class="label">GRAND TOTAL:</span>
+                      <span class="value">{{ (element.grandTotal || 0) | currency:'INR' }}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

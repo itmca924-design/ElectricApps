@@ -192,10 +192,10 @@ export class SoList implements OnInit {
         this.totalRecords = orderData.totalCount;
         const items = orderData.data || [];
 
-        // 🚛 Dispatch Check: Mark orders that have an Outward Gate Pass already
         items.forEach((item: any) => {
-          // Using the new linked GatePassNo from DB for more reliable tracking
-          item.isDispatchPending = !item.gatePassNo;
+          // QuickOrders (SO-Q) ka gatepass se koi matlab nahi, wo hamesha dispatched maane jayenge
+          const isQuick = item.soNumber?.includes('-Q-');
+          item.isDispatchPending = !isQuick && !item.gatePassNo;
         });
 
         // 🧠 FIFO LOGIC for Customer Payment Status (Mirroring GRN logic)

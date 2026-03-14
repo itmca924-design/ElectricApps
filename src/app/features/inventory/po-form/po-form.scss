@@ -165,9 +165,9 @@ mat-card {
 
 .item-row {
   display: grid;
-  /* Columns: Product, Qty, Unit, Rate, Disc, GST, TaxAmt, Total, Delete */
-  grid-template-columns: 2.8fr 0.7fr 0.9fr 0.7fr 0.6fr 0.6fr 0.9fr 1.1fr 45px;
-  gap: 12px;
+  /* Columns: Product, Qty, Unit, Rate, Disc, GST, MfgDate, ExpDate, TaxAmt, Total, Delete */
+  grid-template-columns: 2.2fr 0.6fr 0.8fr 0.6fr 0.55fr 0.55fr 1fr 1fr 0.85fr 1fr 45px;
+  gap: 10px;
   align-items: start; /* Fix: 'start' keeps inputs aligned at the top even with different hint heights */
   /* Fields ko barabar line mein lane ke liye */
   background: #fcfcfc;
@@ -416,7 +416,43 @@ input.bg-light {
 /* ================= RESPONSIVE ================= */
 @media (max-width: 1400px) {
   .item-row {
-    grid-template-columns: 2fr 0.9fr 1.2fr 0.7fr 0.8fr 0.8fr 1fr 1fr 45px;
+    grid-template-columns: 2fr 0.7fr 1fr 0.7fr 0.7fr 0.7fr 1fr 1fr 0.9fr 1fr 45px;
+  }
+}
+
+.date-field {
+  ::ng-deep .mat-mdc-text-field-wrapper {
+    background: #f0f9ff !important; // Light blue tint for date fields
+  }
+}
+
+.na-field {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  height: 52px; // Match standard input height roughly
+  margin-top: 2px; // Align nicely with adjacent form-fields
+  
+  .na-label {
+    font-size: 10px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+  
+  .na-badge {
+    background-color: #e2e8f0;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
   }
 }
 

@@ -228,11 +228,14 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [product.unit || 'PCS', Validators.required],
       price: [product.basePurchasePrice || 0, [Validators.required, Validators.min(1)]],
       discountPercent: [0],
-      gstPercent: [product.defaultGst || product.gstPercent || 0], // GST Product Master se
+      gstPercent: [product.defaultGst || product.gstPercent || 0],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
       currentStock: [product.currentStock || 0],
       sku: [product.sku || ''],
+      mfgDate: [null],
+      expDate: [null],
+      isExpiryRequired: [product.isExpiryRequired ?? false],
       id: [0]
     });
 
@@ -268,11 +271,14 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [{ value: data.unit || 'PCS', disabled: false }],
       price: [data.rate || 0, [Validators.required, Validators.min(1)]],
       discountPercent: [0],
-      gstPercent: [data.gstPercent || 18], // GST from Master
+      gstPercent: [data.gstPercent || 18],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
       currentStock: [data.currentStock || 0],
       sku: [data.sku || ''],
+      mfgDate: [null],
+      expDate: [null],
+      isExpiryRequired: [data.isExpiryRequired ?? false],
       id: [0]
     });
 
@@ -352,6 +358,9 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       total: [{ value: item.total, disabled: true }],
       currentStock: [item.currentStock || 0],
       sku: [item.sku || ''],
+      mfgDate: [item.mfgDate ? new Date(item.mfgDate) : null],
+      expDate: [item.expDate ? new Date(item.expDate) : null],
+      isExpiryRequired: [item.isExpiryRequired ?? false],
       id: [item.id || 0]
     });
     this.items.push(row);
@@ -428,7 +437,10 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       discountPercent: 0,
       qty: 1,
       currentStock: product.currentStock || 0,
-      sku: product.sku || ''
+      sku: product.sku || '',
+      isExpiryRequired: product.isExpiryRequired ?? false,
+      mfgDate: null,
+      expDate: null
     });
 
     if (product.id && priceListId) {
@@ -494,6 +506,9 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       total: [{ value: 0, disabled: true }],
       currentStock: [0],
       sku: [''],
+      mfgDate: [null],
+      expDate: [null],
+      isExpiryRequired: [false],
       id: [0]
     });
     this.items.push(row);
@@ -650,7 +665,11 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
             gstPercent: Number(item.gstPercent), // Saved from Master
             discountPercent: Number(item.discountPercent), // Saved from PriceList
             taxAmount: Number(item.taxAmount),
-            total: Number(item.total)
+            total: Number(item.total),
+            mfgDate: item.mfgDate ? DateHelper.toLocalISOString(item.mfgDate) : null,
+            expDate: item.expDate ? DateHelper.toLocalISOString(item.expDate) : null,
+            manufacturingDate: item.mfgDate ? DateHelper.toLocalISOString(item.mfgDate) : null,
+            expiryDate: item.expDate ? DateHelper.toLocalISOString(item.expDate) : null
           }))
         };
 

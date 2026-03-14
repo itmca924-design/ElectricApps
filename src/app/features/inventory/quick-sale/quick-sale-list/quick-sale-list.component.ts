@@ -121,10 +121,10 @@ export class QuickSaleListComponent implements OnInit {
         header: 'Date',
         sortable: true,
         isResizable: true,
-        width: 145,
+        width: 165,
         cell: (row: any) => this.datePipe.transform(row.soDate, 'dd/MM/yyyy hh:mm a', '+0530')
       },
-      { field: 'customerName', header: 'Customer', sortable: true, isResizable: true, width: 180, isFilterable: true },
+      { field: 'customerName', header: 'Customer', sortable: true, isResizable: true, width: 220, isFilterable: true },
       {
         field: 'grandTotal',
         header: 'Grand Total',
@@ -150,10 +150,14 @@ export class QuickSaleListComponent implements OnInit {
         width: 130
       },
       { field: 'createdBy', header: 'Created By', sortable: true, width: 150 },
-      { field: 'remarks', header: 'Remarks', sortable: false, width: 180 }
+      { 
+        field: 'remarks', header: 'Remarks', sortable: false, width: 180,
+        cell: (row: any) => (row.remarks === 'Q Draft' && row.status === 'Confirmed') ? 'Confirmed' : (row.remarks || '—')
+      }
     ];
 
     this.itemColumns = [
+      { field: 'sno', header: '#', width: 50, cell: (row: any, index: number) => index + 1 },
       { field: 'productName', header: 'Product Name', width: 215, sortable: true },
       { field: 'qty', header: 'Qty', width: 90, align: 'left' },
       { field: 'unit', header: 'Unit', width: 85 },
@@ -173,11 +177,11 @@ export class QuickSaleListComponent implements OnInit {
       { field: 'rackName', header: 'Rack', width: 110 },
       {
         field: 'manufacturingDate', header: 'Mfg Date', width: 110,
-        cell: (row: any) => row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yyyy') : '—'
+        cell: (row: any) => row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yyyy') : 'N/A'
       },
       {
         field: 'expiryDate', header: 'Exp Date', width: 110,
-        cell: (row: any) => row.expiryDate ? this.datePipe.transform(row.expiryDate, 'dd/MM/yyyy') : '—'
+        cell: (row: any) => row.expiryDate ? this.datePipe.transform(row.expiryDate, 'dd/MM/yyyy') : 'N/A'
       },
       {
         field: 'total', header: 'Total', width: 110,

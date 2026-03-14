@@ -4,7 +4,7 @@ export interface GridColumn {
   sortable?: boolean;
 
   // Custom cell rendering ke liye
-  cell?: (row: any) => string | number | null;
+  cell?: (row: any, index?: any) => string | number | null;
 
   // Pixel mein width handle karne ke liye (Aapne number manga tha)
   width?: number;

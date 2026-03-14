@@ -117,7 +117,7 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <span class="gate-pass-badge" *ngIf="row.gatePassNo">{{row.gatePassNo}}</span>
-            <span class="pending-label" *ngIf="!row.gatePassNo && row.status?.toLowerCase() === 'confirmed'">Pending</span>
+            <span class="pending-label" *ngIf="!row.gatePassNo && row.status?.toLowerCase() === 'confirmed' && !row.soNumber?.includes('-Q-')">Pending</span>
           </td>
         </ng-container>
 

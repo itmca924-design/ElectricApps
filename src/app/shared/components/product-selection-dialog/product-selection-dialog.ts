@@ -1,20 +1,20 @@
 import { Component, inject, OnInit, ViewChild, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../material/material/material-module';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ProductService } from '../../../features/master/product/service/product.service';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
-import { finalize, Subject, debounceTime, distinctUntilChanged, takeUntil, firstValueFrom, timeout, catchError, of } from 'rxjs';
+import { finalize, Subject, debounceTime, distinctUntilChanged, takeUntil, firstValueFrom, timeout, catchError, of, Observable, startWith, map, switchMap } from 'rxjs';
 import { ProductLookUpService } from '../../../features/master/product/service/product.lookup.sercice';
 import { LoadingService } from '../../../core/services/loading.service';
 
 @Component({
   selector: 'app-product-selection-dialog',
   standalone: true,
-  imports: [CommonModule, MaterialModule, FormsModule],
+  imports: [CommonModule, MaterialModule, FormsModule, ReactiveFormsModule],
   template: `
     <div class="dialog-container">
       <!-- Global-style Loader inside Dialog -->
@@ -31,25 +31,54 @@ import { LoadingService } from '../../../core/services/loading.service';
         <button class="header-close-btn" (click)="close()" [disabled]="isLoading"><mat-icon>close</mat-icon></button>
       </div>
 
-      <div class="search-bar d-flex gap-4 align-items-center" [attr.aria-hidden]="isLoading">
-        <mat-form-field appearance="outline" class="flex-grow-1 search-field" subscriptSizing="dynamic">
-          <mat-label>Search by Name or SKU</mat-label>
-          <input matInput [(ngModel)]="searchQuery" (input)="onSearchChange()" (keyup.enter)="loadProducts()" placeholder="Start typing to search..." [disabled]="isLoading">
-          <button mat-icon-button matSuffix (click)="loadProducts()" class="search-btn" [disabled]="isLoading">
+      <div class="search-bar d-flex gap-3 align-items-center flex-wrap" [attr.aria-hidden]="isLoading">
+        <!-- Category Autocomplete -->
+        <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+          <mat-label>Category</mat-label>
+          <input type="text" matInput [formControl]="categoryCtrl" [matAutocomplete]="autoCat" placeholder="Select Category" [disabled]="isLoading">
+          <button mat-icon-button matSuffix *ngIf="categoryCtrl.value" (click)="clearCategory()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          <mat-autocomplete #autoCat="matAutocomplete" [displayWith]="displayCategory" (optionSelected)="onCategorySelect($event.option.value)">
+            <mat-option *ngFor="let cat of filteredCategories$ | async" [value]="cat">
+              {{cat.name}}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- SubCategory Autocomplete -->
+        <mat-form-field appearance="outline" class="filter-field" subscriptSizing="dynamic">
+          <mat-label>Sub Category</mat-label>
+          <input type="text" matInput [formControl]="subCategoryCtrl" [matAutocomplete]="autoSubCat" placeholder="Select Sub Category" [disabled]="isLoading">
+          <button mat-icon-button matSuffix *ngIf="subCategoryCtrl.value" (click)="clearSubCategory()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          <mat-autocomplete #autoSubCat="matAutocomplete" [displayWith]="displaySubCategory" (optionSelected)="onSubCategorySelect($event.option.value)">
+            <mat-option *ngFor="let sub of filteredSubCategories$ | async" [value]="sub">
+              {{sub.subcategoryName || sub.name}}
+            </mat-option>
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <!-- Product Autocomplete -->
+        <mat-form-field appearance="outline" class="flex-grow-1 filter-field" subscriptSizing="dynamic">
+          <mat-label>Product Name / SKU</mat-label>
+          <input type="text" matInput [formControl]="productCtrl" [matAutocomplete]="autoProd" placeholder="Search Product..." [disabled]="isLoading" (keyup.enter)="loadProducts()">
+          <button mat-icon-button matSuffix *ngIf="productCtrl.value" (click)="clearProduct()">
+            <mat-icon>clear</mat-icon>
+          </button>
+          <mat-autocomplete #autoProd="matAutocomplete" [displayWith]="displayProduct" (optionSelected)="onProductSelect($event.option.value)">
+            <mat-option *ngFor="let prod of filteredProducts$ | async" [value]="prod">
+               {{prod.productName || prod.name}} <small class="text-muted ms-2">(SKU: {{prod.sku}})</small>
+            </mat-option>
+          </mat-autocomplete>
+          <!-- Additional Search trigger button if user prefers clicking -->
+          <button mat-icon-button matSuffix (click)="loadProducts()" class="search-btn" [disabled]="isLoading" *ngIf="!productCtrl.value">
             <mat-icon>search</mat-icon>
           </button>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="category-field" subscriptSizing="dynamic" style="width: 200px; margin-left: 20px;">
-          <mat-label>Filter Category</mat-label>
-          <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onCategoryChange()" [disabled]="isLoading">
-            <mat-option [value]="null">All Categories</mat-option>
-            <mat-option *ngFor="let cat of categories" [value]="cat.id">{{cat.name}}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
         <button mat-stroked-button color="primary" class="bulk-select-btn" (click)="selectAllMatching()" 
-                style="margin-left: 20px;"
                 [disabled]="isLoading || totalRecords <= dataSource.data.length">
            Select All ({{totalRecords}})
         </button>
@@ -114,6 +143,17 @@ import { LoadingService } from '../../../core/services/loading.service';
                 </span>
             </td>
           </ng-container>
+
+          <ng-container matColumnDef="expiry">
+            <th mat-header-cell *matHeaderCellDef> Expiry Track </th>
+            <td mat-cell *matCellDef="let row"> 
+                <span class="expiry-badge" [class.required]="row.isExpiryRequired" [class.not-required]="!row.isExpiryRequired">
+                  <mat-icon inline="true">{{row.isExpiryRequired ? 'check_circle' : 'cancel'}}</mat-icon>
+                  {{row.isExpiryRequired ? 'Required' : 'No'}}
+                </span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef> Status </th>
             <td mat-cell *matCellDef="let row">
@@ -265,10 +305,16 @@ import { LoadingService } from '../../../core/services/loading.service';
     }
 
     .search-bar {
-      padding: 12px 24px;
+      padding: 16px 24px 4px 24px;
       background: #ffffff;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
 
-      .search-field {
+      .filter-field {
+        min-width: 220px;
+        flex: 1 1 auto;
         ::ng-deep .mat-mdc-text-field-wrapper {
           background-color: #f1f5f9 !important;
           border-radius: 10px !important;
@@ -376,6 +422,28 @@ import { LoadingService } from '../../../core/services/loading.service';
       &.success { background: #f0fdf4; color: #22c55e; border: 1px solid #dcfce7; }
     }
 
+    .expiry-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      mat-icon { font-size: 14px; width: 14px; height: 14px; }
+      
+      &.required {
+        background: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fde68a;
+      }
+      &.not-required {
+        background: #f1f5f9;
+        color: #64748b;
+        border: 1px solid #e2e8f0;
+      }
+    }
+
     .bulk-select-btn {
       height: 48px !important;
       border-radius: 10px !important;
@@ -465,7 +533,7 @@ import { LoadingService } from '../../../core/services/loading.service';
         align-items: stretch !important;
         gap: 6px !important;
 
-        .search-field, .category-field {
+        .filter-field {
           width: 100% !important;
           margin: 0 !important;
           ::ng-deep .mat-mdc-text-field-wrapper {
@@ -553,13 +621,30 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
 
   existingIds: any[] = [];
-  displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'location', 'stock', 'status'];
+  displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'location', 'stock', 'expiry', 'status'];
   dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
 
-  searchQuery: string = '';
-  selectedCategoryId: any = null;
+  // Form Controls
+  categoryCtrl = new FormControl();
+  subCategoryCtrl = new FormControl({value: null, disabled: true});
+  productCtrl = new FormControl();
+
+  // Observables
+  filteredCategories$!: Observable<any[]>;
+  filteredSubCategories$!: Observable<any[]>;
+  filteredProducts$!: Observable<any[]>;
+
   categories: any[] = [];
+  subCategories: any[] = [];
+  productsAutocomplete: any[] = []; // For the autocomplete list
+
+  // Active filters
+  selectedCategoryId: any = null;
+  selectedSubCategoryId: any = null;
+  searchQuery: string = '';
+  selectedProductId: any = null;
+
   isLoading: boolean = false;
   totalRecords: number = 0;
   pageSize: number = 10;
@@ -570,56 +655,187 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
     this.loadCategories();
     this.loadProducts();
 
-    // 🔍 Reactive Search Logic
-    this.searchSubject.pipe(
-      debounceTime(400),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.pageIndex = 0;
-      this.loadProducts();
+    // Setup Category Autocomplete
+    this.filteredCategories$ = this.categoryCtrl.valueChanges.pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value : (value as any)?.name),
+      map(name => name ? this._filterCategories(name) : this.categories.slice())
+    );
+
+    // Setup SubCategory Autocomplete
+    this.filteredSubCategories$ = this.subCategoryCtrl.valueChanges.pipe(
+      startWith(''),
+      map(value => typeof value === 'string' ? value : (value as any)?.subcategoryName || (value as any)?.name),
+      map(name => name ? this._filterSubCategories(name) : this.subCategories.slice())
+    );
+
+    // Setup Product Autocomplete (Local filtering)
+    this.filteredProducts$ = this.productCtrl.valueChanges.pipe(
+      startWith(''),
+      map(value => {
+        const nameStr = typeof value === 'string' ? value : (value as any)?.productName || (value as any)?.name || '';
+        if (typeof value === 'string') {
+          this.searchQuery = value;
+          this.selectedProductId = null;
+        }
+        return nameStr;
+      }),
+      map(name => name ? this._filterProducts(name) : this.productsAutocomplete.slice())
+    );
+  }
+
+  // Value Display formatters
+  displayCategory(cat: any): string { return cat && cat.name ? cat.name : ''; }
+  displaySubCategory(sub: any): string { return sub && (sub.subcategoryName || sub.name) ? (sub.subcategoryName || sub.name) : ''; }
+  displayProduct(prod: any): string { return prod && (prod.productName || prod.name) ? (prod.productName || prod.name) : ''; }
+
+  private _filterCategories(name: string): any[] {
+    const filterValue = name.toLowerCase();
+    return this.categories.filter(option => (option.name || '').toLowerCase().includes(filterValue));
+  }
+
+  private _filterSubCategories(name: string): any[] {
+    const filterValue = name.toLowerCase();
+    return this.subCategories.filter(option => (option.subcategoryName || option.name || '').toLowerCase().includes(filterValue));
+  }
+
+  private _filterProducts(name: string): any[] {
+    const filterValue = name.toLowerCase();
+    return this.productsAutocomplete.filter(option => (option.productName || option.name || '').toLowerCase().includes(filterValue));
+  }
+
+  // Handle Selections
+  onCategorySelect(cat: any) {
+    this.selectedCategoryId = cat.id;
+    this.subCategoryCtrl.enable();
+    this.subCategoryCtrl.setValue(null);
+    this.selectedSubCategoryId = null;
+    this.productCtrl.setValue(null);
+    this.selectedProductId = null;
+    this.searchQuery = '';
+    
+    // Fetch SubCategories
+    this.lookupService.getSubcategoriesByCategory(cat.id).subscribe((res: any) => {
+      this.subCategories = res || [];
+      this.subCategoryCtrl.updateValueAndValidity();
     });
-  }
 
-  onSearchChange() {
-    this.searchSubject.next(this.searchQuery);
-  }
-
-  onCategoryChange() {
     this.pageIndex = 0;
+    this.loadProducts();
+    this.fetchProductsForAutocomplete();
+  }
+
+  onSubCategorySelect(sub: any) {
+    this.selectedSubCategoryId = sub.id;
+    this.productCtrl.setValue(null);
+    this.selectedProductId = null;
+    this.searchQuery = '';
+
+    this.pageIndex = 0;
+    this.loadProducts();
+    this.fetchProductsForAutocomplete();
+  }
+
+  onProductSelect(prod: any) {
+    this.selectedProductId = prod.id;
+    this.searchQuery = prod.productName || prod.name;
+    this.pageIndex = 0;
+    this.loadProducts();
+  }
+
+  // Clear Handlers
+  clearCategory() {
+    this.categoryCtrl.setValue(null);
+    this.selectedCategoryId = null;
+    this.clearSubCategory();
+    this.loadProducts();
+    this.fetchProductsForAutocomplete();
+  }
+
+  clearSubCategory() {
+    this.subCategoryCtrl.setValue(null);
+    this.subCategoryCtrl.disable();
+    this.selectedSubCategoryId = null;
+    this.subCategories = [];
+    this.clearProduct();
+    this.loadProducts();
+    this.fetchProductsForAutocomplete();
+  }
+
+  clearProduct() {
+    this.productCtrl.setValue('');
+    this.selectedProductId = null;
+    this.searchQuery = '';
     this.loadProducts();
   }
 
   loadCategories() {
     this.lookupService.getLookups().pipe(takeUntil(this.destroy$)).subscribe((res: any) => {
       this.categories = res.categories || [];
+      this.categoryCtrl.setValue(this.categoryCtrl.value);
+    });
+    this.fetchProductsForAutocomplete();
+  }
+
+  // Fetch products into a local array so Product autocomplete doesn't need to ask backend for every keystroke
+  fetchProductsForAutocomplete() {
+    const request = {
+      pageIndex: 0,
+      pageNumber: 1,
+      pageSize: 500, // Fetch up to 500 matching products for immediate autocomplete
+      search: '',
+      categoryId: this.selectedCategoryId || null,
+      filters: {} as Record<string, string>,
+      sortBy: 'ProductName',
+      sortDirection: 'asc' as 'asc' | 'desc'
+    };
+
+    if (this.selectedSubCategoryId) {
+      request.filters['subCategoryId'] = this.selectedSubCategoryId;
+    }
+
+    this.productService.getPaged(request).pipe(takeUntil(this.destroy$)).subscribe(res => {
+      this.productsAutocomplete = res.items || [];
+      this.productCtrl.setValue(this.productCtrl.value); // Trigger re-evaluation of filteredProducts$
     });
   }
 
-  loadProducts() {
-    this.isLoading = true;
-    this.loadingService.setLoading(true);
-    this.cdr.detectChanges(); // Force internal loader to show immediately
+  loadProducts(isSilent: boolean = false) {
+    if (!isSilent) {
+      this.isLoading = true;
+      this.loadingService.setLoading(true);
+      this.cdr.detectChanges(); // Force internal loader to show immediately
+    }
+    
     const request = {
       pageIndex: this.pageIndex, // 0-based
       pageNumber: this.pageIndex + 1, // 1-based
       pageSize: this.pageSize,
       search: this.searchQuery || '',
-      filter: this.searchQuery || '', // fallback key
-      term: this.searchQuery || '',   // another fallback key
-      termSearch: this.searchQuery || '',
-      searchTerm: this.searchQuery || '',
       categoryId: this.selectedCategoryId || null,
+      filters: {} as Record<string, string>,
       sortBy: 'ProductName',
       sortDirection: 'asc' as 'asc' | 'desc'
     };
 
+    // If subcategory is selected, pass it via filters object since grid request might not have a direct property
+    if (this.selectedSubCategoryId) {
+      request.filters['subCategoryId'] = this.selectedSubCategoryId;
+    }
+    
+    // If specific product selected, we can constrain search
+    if (this.selectedProductId) {
+       request.filters['id'] = this.selectedProductId;
+    }
+
     this.productService.getPaged(request).pipe(
       timeout(15000), // Safety Timeout
       finalize(() => {
-        this.isLoading = false;
-        this.loadingService.setLoading(false);
-        this.cdr.detectChanges();
+        if (!isSilent) {
+          this.isLoading = false;
+          this.loadingService.setLoading(false);
+          this.cdr.detectChanges();
+        }
       }),
       takeUntil(this.destroy$)
     ).subscribe({
@@ -690,14 +906,18 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
       pageNumber: 1,
       pageSize: this.totalRecords, // Get everything
       search: this.searchQuery || '',
-      filter: this.searchQuery || '',
-      term: this.searchQuery || '',
-      termSearch: this.searchQuery || '',
-      searchTerm: this.searchQuery || '',
       categoryId: this.selectedCategoryId || null,
+      filters: {} as Record<string, string>,
       sortBy: 'ProductName',
       sortDirection: 'asc' as 'asc' | 'desc'
     };
+
+    if (this.selectedSubCategoryId) {
+      fullRequest.filters['subCategoryId'] = this.selectedSubCategoryId;
+    }
+    if (this.selectedProductId) {
+       fullRequest.filters['id'] = this.selectedProductId;
+    }
 
     this.productService.getPaged(fullRequest).pipe(
       timeout(20000), // Bulk selection takes a bit longer

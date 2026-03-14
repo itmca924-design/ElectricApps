@@ -177,6 +177,38 @@
           <input matInput type="number" formControlName="gstPercent" (input)="updateTotal(i)" readonly style="color:#888;">
         </mat-form-field>
 
+        <!-- Mfg Date: Only if IsExpiryRequired = true -->
+        <ng-container *ngIf="row.get('isExpiryRequired')?.value; else mfgNA">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
+            <mat-label>Mfg Date</mat-label>
+            <input matInput [matDatepicker]="mfgPicker" formControlName="mfgDate" placeholder="dd/mm/yyyy">
+            <mat-datepicker-toggle matIconSuffix [for]="mfgPicker"></mat-datepicker-toggle>
+            <mat-datepicker #mfgPicker></mat-datepicker>
+          </mat-form-field>
+        </ng-container>
+        <ng-template #mfgNA>
+          <div class="na-field">
+            <span class="na-label">Mfg Date</span>
+            <span class="na-badge">N/A</span>
+          </div>
+        </ng-template>
+
+        <!-- Exp Date: Only if IsExpiryRequired = true -->
+        <ng-container *ngIf="row.get('isExpiryRequired')?.value; else expNA">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
+            <mat-label>Exp Date</mat-label>
+            <input matInput [matDatepicker]="expDatePicker" formControlName="expDate" placeholder="dd/mm/yyyy">
+            <mat-datepicker-toggle matIconSuffix [for]="expDatePicker"></mat-datepicker-toggle>
+            <mat-datepicker #expDatePicker></mat-datepicker>
+          </mat-form-field>
+        </ng-container>
+        <ng-template #expNA>
+          <div class="na-field">
+            <span class="na-label">Exp Date</span>
+            <span class="na-badge">N/A</span>
+          </div>
+        </ng-template>
+
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>Tax Amt</mat-label>
           <input matInput formControlName="taxAmount" readonly class="bg-light">
