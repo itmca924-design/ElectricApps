@@ -29,8 +29,8 @@ export class GatePassService {
         return this.api.get(`GatePass/CheckDuplicate?referenceNo=${referenceNo}&passType=${passType}`);
     }
 
-    getVehicleSuggestions(search: string): Observable<VehicleSuggestion[]> {
-        return this.api.get<VehicleSuggestion[]>(`GatePass/VehicleSuggestions?search=${encodeURIComponent(search)}`);
+    getVehicleSuggestions(searchTerm: string): Observable<VehicleSuggestion[]> {
+        return this.api.get<VehicleSuggestion[]>(`GatePass/GetVehicleAutocomplete?searchTerm=${encodeURIComponent(searchTerm)}`);
     }
 }
 
@@ -39,4 +39,5 @@ export interface VehicleSuggestion {
     driverName: string;
     driverPhone: string;
     transporterName: string;
+    vehicleType?: string;
 }

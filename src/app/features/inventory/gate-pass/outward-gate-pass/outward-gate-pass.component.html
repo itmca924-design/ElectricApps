@@ -65,7 +65,7 @@
                                    required
                                    autocomplete="off"
                                    (input)="onVehicleSearch($event)"
-                                   (blur)="vehicleSuggestions = []">
+                                   (blur)="onVehicleBlur()">
                             <mat-hint>Format: AA-00-AA-0000</mat-hint>
                             <mat-error *ngIf="gatePassForm.get('vehicleNo')?.hasError('pattern')">Invalid Format (Ex: MH-12-AB-1234)</mat-error>
                             <mat-error *ngIf="gatePassForm.get('vehicleNo')?.hasError('required')">Vehicle No is required</mat-error>

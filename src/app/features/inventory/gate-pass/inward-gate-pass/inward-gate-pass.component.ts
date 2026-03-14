@@ -13,7 +13,7 @@ import { POService } from '../../service/po.service';
 import { SaleReturnService } from '../../sale-return/services/sale-return.service';
 import { PurchaseReturnService } from '../../purchase-return/services/purchase-return.service';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog-component/confirm-dialog-component';
-import { Subject, Subscription } from 'rxjs';
+import { Subject, Subscription, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { DialogPersistenceService } from '../../../../shared/services/dialog-persistence.service';
 
@@ -405,7 +405,12 @@ export class InwardGatePassComponent implements OnInit, OnDestroy {
         this.vehicleSearchSub = this.vehicleSearchSubject.pipe(
             debounceTime(300),
             distinctUntilChanged(),
-            switchMap(term => this.gatePassService.getVehicleSuggestions(term))
+            switchMap(term => {
+                if (!term || term.trim().length === 0) {
+                    return of([]);
+                }
+                return this.gatePassService.getVehicleSuggestions(term);
+            })
         ).subscribe({
             next: (results) => {
                 this.vehicleSuggestions = results;
@@ -420,11 +425,20 @@ export class InwardGatePassComponent implements OnInit, OnDestroy {
         this.vehicleSearchSubject.next(value);
     }
 
+    onVehicleBlur() {
+        // Using timeout to allow mousedown event on suggestions to trigger before suggestions are cleared
+        setTimeout(() => {
+            this.vehicleSuggestions = [];
+            this.cdr.detectChanges();
+        }, 200);
+    }
+
     onVehicleSelected(suggestion: VehicleSuggestion) {
         this.gatePassForm.patchValue({
             vehicleNo: suggestion.vehicleNo,
             driverName: suggestion.driverName,
-            driverPhone: suggestion.driverPhone
+            driverPhone: suggestion.driverPhone,
+            vehicleType: suggestion.vehicleType || this.gatePassForm.get('vehicleType')?.value
         });
         this.vehicleSuggestions = [];
     }

@@ -73,7 +73,7 @@
                                    required
                                    autocomplete="off"
                                    (input)="onVehicleSearch($event)"
-                                   (blur)="vehicleSuggestions = []">
+                                   (blur)="onVehicleBlur()">
                             <mat-error *ngIf="gatePassForm.get('vehicleNo')?.hasError('pattern')">Invalid Format</mat-error>
                         </mat-form-field>
                         <!-- Autocomplete Dropdown -->
