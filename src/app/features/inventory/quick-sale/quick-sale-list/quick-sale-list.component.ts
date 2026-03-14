@@ -169,6 +169,8 @@ export class QuickSaleListComponent implements OnInit {
         field: 'gstPercent', header: 'GST%', width: 80,
         cell: (row: any) => `${row.gstPercent}%`
       },
+      { field: 'warehouseName', header: 'Warehouse', width: 140 },
+      { field: 'rackName', header: 'Rack', width: 110 },
       {
         field: 'manufacturingDate', header: 'Mfg Date', width: 110,
         cell: (row: any) => row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yyyy') : '—'
