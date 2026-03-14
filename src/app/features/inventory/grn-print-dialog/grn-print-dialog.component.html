@@ -18,16 +18,19 @@
     <div *ngIf="!loading && grnData" id="printable-area" class="print-preview">
       <!-- Header Section -->
       <div class="print-header">
-        <div class="company-info">
-          <h1>{{companyInfo?.name || 'Electric Inventory System'}}</h1>
-          <p *ngIf="companyInfo?.address">
-            {{companyInfo?.address?.addressLine1}}, 
-            {{companyInfo?.address?.addressLine2 ? companyInfo?.address?.addressLine2 + ', ' : ''}}
-            {{companyInfo?.address?.city}}, {{companyInfo?.address?.state}} - {{companyInfo?.address?.pinCode}}
-          </p>
-          <p>
-            Contact: {{companyInfo?.primaryPhone}} | Email: {{companyInfo?.primaryEmail}}
-          </p>
+        <div class="company-info-wrapper">
+          <img *ngIf="companyInfo?.logoUrl" [src]="getImgUrl(companyInfo?.logoUrl)" class="company-logo" alt="Logo">
+          <div class="company-info">
+            <h1>{{companyInfo?.name || 'Electric Inventory System'}}</h1>
+            <p *ngIf="companyInfo?.address">
+              {{companyInfo?.address?.addressLine1}}, 
+              {{companyInfo?.address?.addressLine2 ? companyInfo?.address?.addressLine2 + ', ' : ''}}
+              {{companyInfo?.address?.city}}, {{companyInfo?.address?.state}} - {{companyInfo?.address?.pinCode}}
+            </p>
+            <p>
+              Contact: {{companyInfo?.primaryPhone}} | Email: {{companyInfo?.primaryEmail}}
+            </p>
+          </div>
         </div>
         <div class="grn-title">
           <h2>GOODS RECEIVED NOTE</h2>
@@ -43,6 +46,7 @@
       </div>
 
       <!-- Info Grid -->
+      <div class="print-body">
       <div class="details-grid">
         <div class="detail-section">
           <h3>Supplier Details</h3>
@@ -52,7 +56,7 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">PO Reference:</span>
-            <span>#{{grnData.purchaseOrderId || '--'}}</span>
+            <span>{{grnData.poNumber || grnData.purchaseOrderId || '--'}}</span>
           </div>
         </div>
         <div class="detail-section">
@@ -128,6 +132,7 @@
           <div class="sig-line"></div>
           <p>Store Keeper Signature</p>
         </div>
+      </div>
       </div>
     </div>
   </div>

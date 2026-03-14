@@ -259,6 +259,22 @@ export class PoList implements OnInit {
       },
       { field: 'rejectedQty', header: 'Rejected Qty', width: 90, align: 'left', isResizable: true, cell: (row) => row.rejectedQty || 0 },
       { field: 'acceptedQty', header: 'Accepted Qty', width: 90, align: 'left', isResizable: true, cell: (row) => row.acceptedQty || 0 },
+      {
+        field: 'manufacturingDate',
+        header: 'Mfg Date',
+        width: 100,
+        isResizable: true,
+        cell: (row: any) => row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yyyy') : '-'
+      },
+      {
+        field: 'expiryDate',
+        header: 'Exp Date',
+        width: 100,
+        isResizable: true,
+        cell: (row: any) => row.expiryDate ? this.datePipe.transform(row.expiryDate, 'dd/MM/yyyy') : '-'
+      },
+      { field: 'warehouseName', header: 'Warehouse', width: 120, isResizable: true, cell: (row: any) => row.warehouseName || '-' },
+      { field: 'rackName', header: 'Rack', width: 100, isResizable: true, cell: (row: any) => row.rackName || '-' },
       { field: 'unit', header: 'Unit', width: 85, align: 'left', isResizable: false },
       {
         field: 'rate', header: 'Rate', width: 105, align: 'left', isResizable: false, isFilterable: false,
@@ -323,6 +339,14 @@ export class PoList implements OnInit {
 
           // 1. Calculate summary stats (Prioritize existing header fields if items are missing)
           const poItems = item.items || [];
+          poItems.forEach((pi: any) => {
+            ['manufacturingDate', 'expiryDate'].forEach(k => {
+              if (pi[k] && typeof pi[k] === 'string' && !pi[k].includes('Z') && !pi[k].includes('+')) {
+                pi[k] = pi[k] + 'Z';
+              }
+            });
+          });
+
           if (poItems.length > 0) {
             item.totalOrdered = poItems.reduce((sum: number, i: any) => sum + (Number(i.qty || i.orderedQty || 0) || 0), 0);
             item.totalReceived = poItems.reduce((sum: number, i: any) => sum + (Number(i.receivedQty || 0)), 0);
