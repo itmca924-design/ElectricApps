@@ -360,14 +360,21 @@ export class GrnFormComponent implements OnInit, OnDestroy {
     console.log('🚀 GRN Save Initiated - isQuick:', this.isQuick);
     
     const currentUserId = localStorage.getItem('email') || 'Admin';
+    const formValue = this.grnForm.getRawValue();
 
-    if (this.poId && this.poId.includes(',')) {
-      const ids = this.poId.split(',').map(id => Number(id.trim())).filter(id => id > 0);
-      const formValue = this.grnForm.getRawValue();
+    // Determine if this is a bulk operation based on items' PO IDs or the poId parameter
+    const uniquePoIdsInGrid = [...new Set(this.items.map(i => Number(i.poId || i.POId || 0)).filter(id => id > 0))];
+    const isMultiPO = uniquePoIdsInGrid.length > 1 || (this.poId && this.poId.includes(','));
 
+    if (isMultiPO) {
+      console.log('📦 Processing Bulk GRN Save for POs:', uniquePoIdsInGrid);
       const itemsByPo = new Map<number, any[]>();
+      
+      const paramIds = this.poId ? this.poId.split(',').map(id => Number(id.trim())).filter(id => id > 0) : [];
+      const defaultPoId = paramIds.length > 0 ? paramIds[0] : (uniquePoIdsInGrid[0] || 0);
+
       this.items.forEach(item => {
-        const pId = Number(item.poId || ids[0]);
+        const pId = Number(item.poId || item.POId || defaultPoId);
         if (!itemsByPo.has(pId)) itemsByPo.set(pId, []);
         itemsByPo.get(pId)?.push(item);
       });
