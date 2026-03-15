@@ -62,7 +62,7 @@
         </button>
       </div>
       
-      <button mat-raised-button color="primary" *ngIf="canAdd && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onAddNewClick()" class="main-add-btn">
+      <button mat-raised-button color="primary" *ngIf="canAdd && selection.selected.length < 2 && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onAddNewClick()" class="main-add-btn">
         <mat-icon>add</mat-icon>
         {{ addNewLabel }}
       </button>

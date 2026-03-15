@@ -1,3 +1,17 @@
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .page-title {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+    }
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
