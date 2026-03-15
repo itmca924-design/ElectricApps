@@ -264,14 +264,20 @@ export class PoList implements OnInit {
         header: 'Mfg Date',
         width: 100,
         isResizable: true,
-        cell: (row: any) => row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yyyy') : '-'
+        cell: (row: any) => {
+          if (row.isExpiryRequired === false) return 'NA';
+          return row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yy') : '-';
+        }
       },
       {
         field: 'expiryDate',
         header: 'Exp Date',
         width: 100,
         isResizable: true,
-        cell: (row: any) => row.expiryDate ? this.datePipe.transform(row.expiryDate, 'dd/MM/yyyy') : '-'
+        cell: (row: any) => {
+          if (row.isExpiryRequired === false) return 'NA';
+          return row.expiryDate ? this.datePipe.transform(row.expiryDate, 'dd/MM/yy') : '-';
+        }
       },
       { field: 'warehouseName', header: 'Warehouse', width: 120, isResizable: true, cell: (row: any) => row.warehouseName || '-' },
       { field: 'rackName', header: 'Rack', width: 100, isResizable: true, cell: (row: any) => row.rackName || '-' },

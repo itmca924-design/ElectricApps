@@ -36,11 +36,11 @@
     <h3 class="page-title">Sale Order Management</h3>
     <div class="d-flex gap-2">
       <button mat-raised-button color="warn" class="export-action-btn" 
-              (click)="selection.hasValue() ? DownloadMultipleOrders(getSelectedIds()) : exportOrders()" 
+              (click)="onBulkDelete()" 
               [disabled]="isLoading"
-              *ngIf="dataSource.data.length > 0 && canShowExport">
-        <mat-icon>download</mat-icon> 
-        {{ selection.hasValue() ? 'Export (' + selection.selected.length + ')' : 'Export Excel' }}
+              *ngIf="canShowBulkDelete">
+        <mat-icon>delete_sweep</mat-icon> 
+        Bulk Delete ({{ selection.selected.length }})
       </button>
       <button mat-raised-button color="accent" class="bulk-action-btn" 
               (click)="bulkCreateGatePass()" 
@@ -49,7 +49,7 @@
         <mat-icon>local_shipping</mat-icon> 
         Bulk Dispatch ({{ selection.selected.length }})
       </button>
-      <button mat-raised-button color="primary" class="main-add-btn" *ngIf="canAdd && !selection.hasValue()" (click)="createNewOrder()" [disabled]="isLoading">
+      <button mat-raised-button color="primary" class="main-add-btn" *ngIf="canAdd" (click)="createNewOrder()" [disabled]="isLoading">
         <mat-icon>add</mat-icon> New Sale Order
       </button>
       <!-- <button mat-flat-button class="quick-sale-btn" style="background-color: #3f51b5; color: white;" *ngIf="canAdd && !selection.hasValue()" (click)="router.navigate(['/app/quick-inventory/sale/list'])" [disabled]="isLoading">
@@ -200,9 +200,10 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <span class="payment-badge" [ngClass]="{
-              'payment-paid': row.paymentStatus === 'Paid',
-              'payment-partial': row.paymentStatus === 'Partial',
-              'payment-unpaid': row.paymentStatus === 'Unpaid'
+              'payment-paid': row.paymentStatus === 'Paid' && row.status?.toLowerCase() !== 'draft',
+              'payment-partial': row.paymentStatus === 'Partial' && row.status?.toLowerCase() !== 'draft',
+              'payment-unpaid': row.paymentStatus === 'Unpaid' && row.status?.toLowerCase() !== 'draft',
+              'payment-draft': row.status?.toLowerCase() === 'draft'
             }">
               {{row.paymentStatus || 'Checking...'}}
             </span>
@@ -231,12 +232,26 @@
           <th mat-header-cell *matHeaderCellDef> Actions </th>
           <td mat-cell *matCellDef="let row">
             <div class="d-flex align-items-center">
-              <button mat-icon-button color="primary" 
-                      *ngIf="row.status?.toLowerCase() === 'draft'" 
-                      (click)="confirmOrder(row)" 
-                      matTooltip="Confirm Order & Reduce Stock">
-                <mat-icon>check_circle</mat-icon>
-              </button>
+                <button mat-icon-button color="primary" 
+                        *ngIf="row.status?.toLowerCase() === 'draft'" 
+                        (click)="confirmOrder(row)" 
+                        matTooltip="Confirm Order & Reduce Stock">
+                  <mat-icon>check_circle</mat-icon>
+                </button>
+
+                <button mat-icon-button color="primary" 
+                        *ngIf="row.status?.toLowerCase() === 'draft'" 
+                        (click)="editOrder(row)" 
+                        matTooltip="Edit Draft Order">
+                  <mat-icon>edit</mat-icon>
+                </button>
+
+                <button mat-icon-button color="warn" 
+                        *ngIf="row.status?.toLowerCase() === 'draft'" 
+                        (click)="deleteOrder(row)" 
+                        matTooltip="Delete Draft Order">
+                  <mat-icon>delete</mat-icon>
+                </button>
 
               <button mat-icon-button color="success"
                       *ngIf="row.paymentStatus !== 'Paid' && row.status?.toLowerCase() === 'confirmed'"

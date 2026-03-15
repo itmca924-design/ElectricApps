@@ -10,6 +10,15 @@ export class SaleOrderService {
         return this.api.post('SaleOrder/save', orderData);
     }
 
+    deleteSaleOrder(id: number): Observable<any> {
+        return this.api.delete(`saleorder/${id}`);
+    }
+
+    updateSaleOrder(orderData: any): Observable<any> {
+        // Backend 'save' endpoint handles both create and update based on Id
+        return this.api.post('SaleOrder/save', orderData);
+    }
+
     exportSaleOrderList(): Observable<Blob> {
         return this.api.getBlob('saleorder/export-list');
     }

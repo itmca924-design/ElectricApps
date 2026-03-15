@@ -19,6 +19,9 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { FinanceService } from '../../finance/service/finance.service';
 import { SoSuccessDialogComponent } from '../so-success-dialog/so-success-dialog.component';
 import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
+import { InventoryService } from '../service/inventory.service';
+import { BatchSelectionDialogComponent } from '../../../shared/components/batch-selection-dialog/batch-selection-dialog';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-so-form',
@@ -82,6 +85,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
   private router = inject(Router);
   private barcodeHelper = inject(BarcodeReaderHelper);
+  private inventoryService = inject(InventoryService);
 
   soForm!: FormGroup;
   isLoading = false;
@@ -98,13 +102,121 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   customers: any = [];
   public generatedSoNumber: string = 'NEW ORDER';
   minDate: Date = new Date();
+  
+  // Edit mode properties
+  private activatedRoute = inject(ActivatedRoute);
+  isEdit = false;
+  orderId: number | null = null;
 
   ngOnInit(): void {
     this.initForm();
     this.loadCustomers();
     this.loadUnits();
-    this.addRow();
+
+    this.activatedRoute.params.subscribe(params => {
+      if (params['id']) {
+        this.isEdit = true;
+        this.orderId = +params['id'];
+        this.loadOrderForEdit(this.orderId);
+      } else {
+        this.addRow();
+      }
+    });
+
     this.initBarcodeListener();
+  }
+
+  private loadOrderForEdit(id: number) {
+    this.isLoading = true;
+    this.soService.getSaleOrderById(id).subscribe({
+      next: (order) => {
+        this.isLoading = false;
+        this.generatedSoNumber = order.soNumber;
+        
+        // Fix dates if they don't have timezone info
+        const parseDt = (d: any) => {
+          if (!d) return null;
+          return (typeof d === 'string' && !d.includes('Z') && !d.includes('+')) ? d + 'Z' : d;
+        };
+
+        this.soForm.patchValue({
+          customerId: order.customerId,
+          soDate: parseDt(order.soDate),
+          expectedDeliveryDate: parseDt(order.expectedDeliveryDate),
+          remarks: order.remarks,
+          status: order.status,
+          subTotal: order.subTotal,
+          totalTax: order.totalTax,
+          grandTotal: order.grandTotal
+        });
+
+        // Clear initial dummy row
+        this.items.clear();
+        this.filteredProducts = [];
+        this.filteredUnits = [];
+        this.isProductLoading = [];
+
+        // Add saved items
+        order.items.forEach((item: any, idx: number) => {
+          const row = this.fb.group({
+            productSearch: [{ id: item.productId, productName: item.productName }, Validators.required],
+            productId: [item.productId, Validators.required],
+            qty: [item.qty, [Validators.required, Validators.min(1)]],
+            unit: [item.unit || 'PCS'],
+            rate: [item.rate, [Validators.required, Validators.min(0.01)]],
+            discountPercent: [item.discountPercent || 0],
+            gstPercent: [item.gstPercent || 0],
+            taxAmount: [item.taxAmount],
+            total: [{ value: item.total, disabled: true }],
+            availableStock: [0], 
+            warehouseId: [item.warehouseId],
+            rackId: [item.rackId],
+            rackName: [item.rackName || ''],
+            isExpiryRequired: [!!item.expiryDate],
+            manufacturingDate: [item.manufacturingDate],
+            expiryDate: [item.expiryDate]
+          });
+
+          this.items.push(row);
+          const index = this.items.length - 1;
+          this.filteredProducts.push(of([]));
+          this.filteredUnits.push(of([]));
+          this.isProductLoading.push(false);
+          this.setupFilter(index);
+          this.updateTotal(index);
+
+          // Fetch real stock for this product
+          this.inventoryService.getCurrentStock('', '', 0, 10, item.productName).subscribe((res: any) => {
+            const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
+            const productStock = itemsArray.find((x: any) => String(x.productId || x.ProductId) === String(item.productId));
+            if (productStock) {
+              // For Drafts, total available stock is just what's in the warehouse
+              const currentStock = productStock.availableStock || 0;
+              row.get('availableStock')?.setValue(currentStock);
+
+              // If Rack Name is missing (common in Drafts), pick from current stock
+              if (!row.get('rackName')?.value) {
+                row.patchValue({
+                  rackName: productStock.rackName || 'Not Assigned',
+                  warehouseId: row.get('warehouseId')?.value || productStock.warehouseId,
+                  rackId: row.get('rackId')?.value || productStock.rackId
+                }, { emitEvent: false });
+              }
+            }
+          });
+        });
+
+        this.calculateGrandTotal();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.dialog.open(StatusDialogComponent, {
+          width: '350px',
+          data: { type: 'error', title: 'Load Failed', message: "An error occurred while loading the order data." }
+        });
+      }
+    });
   }
 
   private initBarcodeListener() {
@@ -151,31 +263,158 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
         if (this.items.length === 1 && !this.items.at(0).get('productId')?.value) {
           this.items.removeAt(0);
         }
-
-        const row = this.fb.group({
-          productSearch: [match, Validators.required],
-          productId: [match.id, Validators.required],
-          qty: [1, [Validators.required, Validators.min(1)]],
-          unit: [match.unit || 'PCS'],
-          rate: [match.rate || match.saleRate || 0, [Validators.required, Validators.min(0.01)]],
-          discountPercent: [match.discount || match.discountPercent || 0],
-          gstPercent: [match.defaultGst || match.gstPercent || 0],
-          taxAmount: [0],
-          total: [{ value: 0, disabled: true }],
-          availableStock: [match.currentStock || 0],
-          rackName: [match.defaultRackName || ''],
-          isExpiryRequired: [(match as any).isExpiryRequired || false],
-          manufacturingDate: [(match as any).manufacturingDate || null],
-          expiryDate: [(match as any).expiryDate || null]
-        });
-
-        this.items.push(row);
-        const index = this.items.length - 1;
-        this.setupFilter(index);
-        this.updateTotal(index);
-        this.cdr.detectChanges();
+        this.addProductToForm(match);
       }
     });
+  }
+
+  addProductToForm(product: any, targetIndex: number | null = null) {
+    const isExistingItem = !!(product as any).productId;
+    const productId = isExistingItem ? (product as any).productId : product.id;
+
+    const formatDt = (dt: any) => {
+      if (!dt) return null;
+      if (typeof dt === 'string' && dt.length >= 10) return dt.substring(0, 10);
+      try { return new Date(dt).toISOString().substring(0, 10); } catch { return null; }
+    };
+
+    const isExpiredBatch = (expDate: any): boolean => {
+      if (!expDate) return false;
+      const exp = new Date(expDate);
+      exp.setHours(0, 0, 0, 0);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return exp <= today;
+    };
+
+    const row = this.fb.group({
+      productSearch: [product, Validators.required],
+      productId: [productId, Validators.required],
+      qty: [product.qty || 1, [Validators.required, Validators.min(1)]],
+      unit: [product.unit || 'PCS'],
+      rate: [product.rate || product.saleRate || 0, [Validators.required, Validators.min(0.01)]],
+      discountPercent: [product.discount || product.discountPercent || 0],
+      gstPercent: [product.defaultGst || product.gstPercent || 0],
+      taxAmount: [0],
+      total: [{ value: 0, disabled: true }],
+      availableStock: [product.currentStock || product.availableStock || 0],
+      warehouseId: [product.warehouseId || null],
+      rackId: [product.rackId || null],
+      rackName: [product.defaultRackName || product.rackName || ''],
+      isExpiryRequired: [product.isExpiryRequired || false],
+      manufacturingDate: [null],
+      expiryDate: [null]
+    });
+
+    let index: number;
+    if (targetIndex !== null) {
+      this.items.insert(targetIndex, row);
+      index = targetIndex;
+      // Sync metadata arrays
+      this.filteredProducts.splice(index, 0, of([]));
+      this.filteredUnits.splice(index, 0, of([]));
+      this.isProductLoading.splice(index, 0, false);
+    } else {
+      this.items.push(row);
+      index = this.items.length - 1;
+    }
+
+    this.setupFilter(index);
+    this.updateTotal(row);
+
+    if (!isExistingItem) {
+      const productName = product.productName || product.name || '';
+      this.inventoryService.getCurrentStock('', '', 0, 10, productName).subscribe((res: any) => {
+        const currentItem = row;
+        const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
+        const productItem = itemsArray.find((x: any) => String(x.productId || x.ProductId) === String(productId));
+
+        if (!productItem) {
+          this.dialog.open(StatusDialogComponent, { width: '350px', data: { isSuccess: false, title: 'Out of Stock', message: 'No stock available for this product.' } });
+          const idx = this.items.controls.indexOf(row);
+          if (idx > -1) this.removeItem(idx);
+          return;
+        }
+
+        currentItem.get('availableStock')?.setValue(productItem.availableStock || 0);
+
+        // ✅ Now using backend-calculated 'AvailableQty' for each batch
+        const allBatches = (productItem.history || []).map((h: any) => ({
+          grnNumber: h.grnNumber || 'N/A',
+          manufacturingDate: h.manufacturingDate,
+          expiryDate: h.expiryDate,
+          availableStock: h.availableQty ?? h.AvailableQty ?? 0,
+          warehouseName: h.warehouseName,
+          rackName: h.rackName,
+          warehouseId: h.warehouseId,
+          rackId: h.rackId,
+          isExpired: isExpiredBatch(h.expiryDate)
+        }));
+
+        if (allBatches.length === 0) {
+          allBatches.push({
+            grnNumber: 'N/A',
+            manufacturingDate: productItem.manufacturingDate,
+            expiryDate: productItem.expiryDate,
+            availableStock: productItem.availableStock || 0,
+            warehouseName: productItem.warehouseName,
+            rackName: productItem.rackName,
+            warehouseId: productItem.warehouseId,
+            rackId: productItem.rackId,
+            isExpired: isExpiredBatch(productItem.expiryDate)
+          });
+        }
+
+        // Show batches that have stock OR are expired OR are valid but 0 stock (so they are visible)
+        const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired || b.manufacturingDate); 
+        const validBatches = allBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
+
+        if (validBatches.length === 1 && allBatches.filter((b: any) => b.availableStock > 0).length === 1) {
+          this.applyBatchToForm(validBatches[0], currentItem);
+        } else if (validBatches.length > 0 || selectableBatches.length > 0) {
+          const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
+            width: '620px',
+            disableClose: false,
+            data: { productName: product.productName || product.name, batches: selectableBatches, validCount: validBatches.length }
+          });
+
+          dialogRef.afterClosed().subscribe((selectedBatch: any) => {
+            if (selectedBatch) {
+              this.applyBatchToForm(selectedBatch, currentItem);
+            } else {
+              const idx = this.items.controls.indexOf(row);
+              if (idx > -1) this.removeItem(idx);
+            }
+          });
+        } else {
+          this.dialog.open(StatusDialogComponent, { width: '350px', data: { isSuccess: false, title: 'Out of Stock', message: 'No stock available for this product.' } });
+          const idx = this.items.controls.indexOf(row);
+          if (idx > -1) this.removeItem(idx);
+        }
+      });
+    }
+  }
+
+  applyBatchToForm(batch: any, formGroup: any) {
+    if (!batch || !formGroup) return;
+
+    const mfgDate = batch.manufacturingDate || batch.ManufacturingDate;
+    const expDate = batch.expiryDate || batch.ExpiryDate;
+    const whId = batch.warehouseId || batch.WarehouseId;
+    const rkId = batch.rackId || batch.RackId;
+    const rackName = batch.rackName || batch.RackName;
+    const stock = batch.availableStock || batch.AvailableStock || 0;
+
+    formGroup.patchValue({
+      warehouseId: whId,
+      rackId: rkId,
+      rackName: rackName,
+      manufacturingDate: mfgDate ? new Date(mfgDate) : null,
+      expiryDate: expDate ? new Date(expDate) : null,
+      availableStock: stock
+    });
+    this.updateTotal(formGroup);
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {
@@ -255,26 +494,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
           const exists = this.items.controls.some(control => control.get('productId')?.value === product.id);
 
           if (!exists) {
-            const row = this.fb.group({
-              productSearch: [product, Validators.required],
-              productId: [product.id, Validators.required],
-              qty: [1, [Validators.required, Validators.min(1)]],
-              unit: [product.unit || 'PCS'],
-              rate: [product.rate || product.saleRate || 0, [Validators.required, Validators.min(0.01)]],
-              discountPercent: [product.discount || product.discountPercent || 0],
-              gstPercent: [product.defaultGst || product.gstPercent || 0],
-              taxAmount: [0],
-              total: [{ value: 0, disabled: true }],
-              availableStock: [product.currentStock || product.availableStock || 0],
-              rackName: [product.defaultRackName || ''],
-              isExpiryRequired: [product.isExpiryRequired || false],
-              manufacturingDate: [product.manufacturingDate || null],
-              expiryDate: [product.expiryDate || null]
-            });
-            this.items.push(row);
-            const index = this.items.length - 1;
-            this.setupFilter(index);
-            this.updateTotal(index);
+            this.addProductToForm(product);
           }
         });
 
@@ -282,7 +502,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
         if (this.items.length > 1) {
           const firstRow = this.items.at(0);
           if (!firstRow.get('productId')?.value) {
-            this.items.removeAt(0);
+            this.removeItem(0);
           }
         }
 
@@ -366,24 +586,15 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       }
 
       const row = this.items.at(index);
-      row.patchValue({
-        productId: p.id,
-        unit: p.unit || 'PCS',
-        rate: p.rate || p.saleRate || p.price || 0,
-        discountPercent: p.discount || p.discountPercent || 0,
-        gstPercent: p.defaultGst || p.gstPercent || 0,
-        availableStock: p.currentStock || 0,
-        rackName: p.defaultRackName || '',
-        isExpiryRequired: (p as any).isExpiryRequired || false,
-        manufacturingDate: (p as any).manufacturingDate || null,
-        expiryDate: (p as any).expiryDate || null
-      });
-      this.updateTotal(index);
+      // Remove the dummy row created by autocomplete and use addProductToForm at the same index
+      this.removeItem(index);
+      this.addProductToForm(p, index);
     }
   }
 
-  updateTotal(index: number): void {
-    const row = this.items.at(index);
+  updateTotal(indexOrRow: number | FormGroup): void {
+    const row = typeof indexOrRow === 'number' ? (this.items.at(indexOrRow) as FormGroup) : (indexOrRow as FormGroup);
+    if (!row) return;
     const qty = +row.get('qty')?.value || 0;
     const rate = +row.get('rate')?.value || 0;
     const disc = +row.get('discountPercent')?.value || 0;
@@ -440,8 +651,11 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   }
 
   removeItem(index: number): void {
-    if (this.items.length > 1) {
+    if (this.items.length > 0) { // Allowed 0 items if we are about to add/replace
       this.items.removeAt(index);
+      this.filteredProducts.splice(index, 1);
+      this.filteredUnits.splice(index, 1);
+      this.isProductLoading.splice(index, 1);
       this.calculateGrandTotal();
     }
   }
@@ -536,9 +750,11 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
         const successMessageText = currentStatus === 'Confirmed'
           ? 'Sale Order saved and inventory adjusted successfully.'
-          : 'Sale Order saved as Draft. Inventory was not affected.';
+          : (this.isEdit ? 'Sale Order updated successfully.' : 'Sale Order saved as Draft. Inventory was not affected.');
 
         const payload = {
+          id: this.isEdit ? this.orderId : 0,
+          soNumber: this.isEdit ? this.generatedSoNumber : null,
           customerId: formValues.customerId,
           status: currentStatus,
           soDate: formValues.soDate,
@@ -586,7 +802,8 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
                 soNumber: orderNo,
                 grandTotal: Number(formValues.grandTotal) || 0,
                 customerId: formValues.customerId,
-                customerName: customerName
+                customerName: customerName,
+                status: currentStatus
               }
             });
 

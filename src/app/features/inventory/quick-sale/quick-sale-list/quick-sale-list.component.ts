@@ -229,8 +229,14 @@ export class QuickSaleListComponent implements OnInit {
           let runningDue = customerDue ? customerDue.pendingAmount : 0;
 
           // Newest orders first for FIFO tracking
-          const custItems = items.filter((i: any) => i.customerId === cid)
+          const custItems = items.filter((i: any) => i.customerId === cid && i.status?.toLowerCase() !== 'draft')
             .sort((a: any, b: any) => new Date(b.soDate).getTime() - new Date(a.soDate).getTime());
+
+          // Initialize Draft orders payment status to '-'
+          items.filter((i: any) => i.customerId === cid && i.status?.toLowerCase() === 'draft').forEach((item: any) => {
+            item.paymentStatus = '—';
+            item.pendingAmount = item.grandTotal;
+          });
 
           custItems.forEach((item: any) => {
             if (runningDue < -0.01) {

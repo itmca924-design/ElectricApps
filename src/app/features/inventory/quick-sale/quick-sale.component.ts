@@ -289,27 +289,21 @@ export class QuickSaleComponent implements OnInit {
                  }
 
                  // Update available stock
-                 if (currentItem) {
-                     currentItem.get('availableStock')?.setValue(productItem.availableStock || 0);
-                 }
+                if (currentItem) {
+                    currentItem.get('availableStock')?.setValue(productItem.availableStock || 0);
+                }
 
-                 // ✅ KEY FIX: Use history[] for per-GRN batch data
-                 // getCurrentStock groups by location, but history has each GRN as a separate entry
-                 const history: any[] = productItem.history || [];
-
-                 const allBatches = history
-                     .filter((h: any) => (h.receivedQty || 0) > 0)
-                     .map((h: any) => ({
+                const allBatches = (productItem.history || []).map((h: any) => {
+                     return {
                          grnNumber: h.grnNumber || 'N/A',
                          manufacturingDate: h.manufacturingDate,
                          expiryDate: h.expiryDate,
-                         availableStock: (h.receivedQty || 0) - (h.rejectedQty || 0),
-                         warehouseName: h.warehouseName,
-                         rackName: h.rackName,
-                         warehouseId: productItem.warehouseId,
-                         rackId: productItem.rackId,
+                         availableStock: h.availableQty ?? h.AvailableQty ?? 0,
+                         warehouseName: h.warehouseName, warehouseId: productItem.warehouseId,
+                         rackName: h.rackName, rackId: productItem.rackId,
                          isExpired: isExpiredBatch(h.expiryDate)
-                     }));
+                     };
+                 });
 
                  // Fallback: agar history nahi hai toh stock item ka use karo
                  if (allBatches.length === 0) {
@@ -326,19 +320,20 @@ export class QuickSaleComponent implements OnInit {
                      });
                  }
 
+                 const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired || b.manufacturingDate);
                  const validBatches = allBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
 
-                 if (allBatches.length === 1 && validBatches.length === 1) {
-                     // Single valid batch — auto-populate silently
-                     this.applyBatchToForm(allBatches[0], currentItem, formatDt, index);
-                 } else if (allBatches.length > 0) {
-                     // ✅ Show dialog with ALL batches — expired = disabled, valid = selectable
+                 if (validBatches.length === 1 && allBatches.filter((b: any) => b.availableStock > 0).length === 1) {
+                     // Single valid batch
+                     this.applyBatchToForm(validBatches[0], currentItem, formatDt, index);
+                 } else if (validBatches.length > 0 || selectableBatches.length > 0) {
+                     // ✅ Show dialog with FIFO filtered batches
                      const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
                          width: '620px',
                          disableClose: false,
                          data: {
                              productName: product.productName || product.name,
-                             batches: allBatches,
+                             batches: selectableBatches,
                              validCount: validBatches.length
                          }
                      });
@@ -355,7 +350,7 @@ export class QuickSaleComponent implements OnInit {
                      this.notification.showStatus(false, 'No stock available for this product.');
                      this.items.removeAt(index);
                  }
-             });
+            });
         }
     }
 
@@ -699,7 +694,8 @@ export class QuickSaleComponent implements OnInit {
                                 soNumber: orderNo,
                                 grandTotal: Number(this.grandTotal) || 0,
                                 customerId: formRaw.customerId,
-                                customerName: customerName
+                                customerName: customerName,
+                                status: formRaw.status
                             }
                         });
 

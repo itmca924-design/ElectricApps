@@ -8,6 +8,7 @@ export interface SoSuccessData {
     grandTotal: number;
     customerId: number;
     customerName: string;
+    status: string;
 }
 
 @Component({
@@ -48,7 +49,7 @@ export interface SoSuccessData {
           <mat-icon>list</mat-icon>
           View Sale Order List
         </button>
-        <button mat-flat-button color="primary" (click)="onMakePayment()">
+        <button mat-flat-button color="primary" (click)="onMakePayment()" *ngIf="data.status.toLowerCase() !== 'draft'">
           <mat-icon>payment</mat-icon>
           Make Payment Now
         </button>

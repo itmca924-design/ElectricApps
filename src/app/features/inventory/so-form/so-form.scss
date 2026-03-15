@@ -206,7 +206,7 @@ mat-card.so-card {
 
 .item-row {
   display: grid;
-  grid-template-columns: 2fr 0.6fr 100px 100px 0.6fr 0.6fr 135px 135px 0.8fr 1.1fr 48px;
+  grid-template-columns: 2fr 0.6fr 100px 100px 0.75fr 0.75fr 135px 135px 0.8fr 1.1fr 48px;
   gap: 12px; /* Increased breathing room */
   align-items: start;
   background: white;
@@ -229,6 +229,18 @@ mat-card.so-card {
     
     .mat-mdc-form-field-subscript-wrapper {
         height: 1.5em; /* Prevent layout jumping on errors */
+    }
+
+    /* Hide Up/Down spin buttons for number inputs */
+    input[type='number']::-webkit-outer-spin-button,
+    input[type='number']::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type='number'] {
+      -moz-appearance: textfield;
+      appearance: textfield;
     }
   }
 
@@ -409,7 +421,7 @@ mat-card.so-card {
 /* --- Responsive Adjustments --- */
 @media (max-width: 1400px) {
     .item-row {
-        grid-template-columns: 1.8fr 0.6fr 90px 90px 0.6fr 0.6fr 125px 125px 0.8fr 1.1fr 40px;
+        grid-template-columns: 1.8fr 0.6fr 90px 90px 0.75fr 0.75fr 125px 125px 0.8fr 1.1fr 40px;
         gap: 8px;
     }
 }

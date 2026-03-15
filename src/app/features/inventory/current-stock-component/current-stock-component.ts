@@ -163,13 +163,12 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   private handleDataUpdate(items: any) {
     if (items) {
       if (items.length > 0) this.lastpurchaseOrderId = items[0].lastPurchaseOrderId;
-      const activeItems = (items || []).filter((item: any) => (item.availableStock ?? item.currentStock) > 0);
-      const mappedData = activeItems.map((item: any) => {
+      const mappedData = (items || []).map((item: any) => {
         const hasMfgDate = item.manufacturingDate && item.manufacturingDate !== 'NA';
         const hasExpDate = item.expiryDate && item.expiryDate !== 'NA';
         return {
           ...item,
-          currentStock: item.availableStock || item.currentStock,
+          currentStock: item.availableStock || item.currentStock || 0,
           isExpiryRequired: hasMfgDate || hasExpDate || item.isExpiryRequired || false,
         };
       });
@@ -323,7 +322,27 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
     });
   }
   navigateToPO() { this.router.navigate(['/app/inventory/polist/add']); }
-  onRefillNow(item: any) { /* existing logic */ }
+  onRefillNow(item: any) {
+    if (!item) return;
+    
+    // Mapping CurrentStock item format to what PO Form addRefillRow expects
+    const refillPayload = {
+      productId: item.productId,
+      productName: item.productName,
+      sku: item.sku,
+      unit: item.unit,
+      rate: item.lastRate || 0,
+      gstPercent: item.gstPercent || 0,
+      currentStock: item.availableStock || item.currentStock || 0,
+      isExpiryRequired: item.isExpiryRequired || false,
+      suggestedQty: item.minStockLevel ? Math.max(item.minStockLevel * 2, 10) : 10
+    };
+
+    console.log('🔄 Refilling Item:', refillPayload);
+    this.router.navigate(['/app/inventory/polist/add'], { 
+      state: { refillData: refillPayload } 
+    });
+  }
   viewLiveLocation(item: any) {
     const qty = item.availableStock ?? (item.receivedQty - item.rejectedQty);
     this.dialog.open(LocationTrackerDialogComponent, {

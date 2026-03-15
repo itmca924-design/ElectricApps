@@ -271,7 +271,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [{ value: data.unit || 'PCS', disabled: false }],
       price: [data.rate || 0, [Validators.required, Validators.min(1)]],
       discountPercent: [0],
-      gstPercent: [data.gstPercent || 18],
+      gstPercent: [data.gstPercent ?? 18],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
       currentStock: [data.currentStock || 0],

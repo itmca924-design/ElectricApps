@@ -159,10 +159,14 @@ export class SoList implements OnInit {
     );
   }
 
+  get canShowBulkDelete(): boolean {
+    return this.selection.selected.length > 1 && this.selection.selected.every(r =>
+      r.status?.toLowerCase() === 'draft'
+    );
+  }
+
   get canShowExport(): boolean {
-    if (!this.selection.hasValue()) return true;
-    // Hide Export if any selected order is eligible for bulk dispatch
-    return !this.canShowBulkDispatch;
+    return false; // User requested to replace Export Excel with Bulk Delete
   }
 
   // --- Existing Methods (Exactly as you provided) ---
@@ -207,8 +211,14 @@ export class SoList implements OnInit {
           let runningDue = customerDue ? customerDue.pendingAmount : 0;
 
           // Newest orders first for FIFO tracking
-          const custItems = items.filter((i: any) => i.customerId === cid)
+          const custItems = items.filter((i: any) => i.customerId === cid && i.status?.toLowerCase() !== 'draft')
             .sort((a: any, b: any) => new Date(b.soDate).getTime() - new Date(a.soDate).getTime());
+
+          // Initialize Draft orders payment status
+          items.filter((i: any) => i.customerId === cid && i.status?.toLowerCase() === 'draft').forEach((item: any) => {
+            item.paymentStatus = 'Unpaid';
+            item.pendingAmount = item.grandTotal;
+          });
 
           custItems.forEach((item: any) => {
             if (runningDue < -0.01) {
@@ -285,6 +295,64 @@ export class SoList implements OnInit {
           this.loadingService.setLoading(false);
         }
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onBulkDelete() {
+    if (!this.canShowBulkDelete) {
+      this.dialog.open(StatusDialogComponent, {
+        width: '350px',
+        data: { isSuccess: false, title: 'Action Denied', message: 'Only Draft orders can be deleted in bulk.' }
+      });
+      return;
+    }
+
+    const selectedRows = this.selection.selected;
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Bulk Delete Draft Orders',
+        message: `Are you sure you want to delete ${selectedRows.length} selected draft orders? This action cannot be undone.`,
+        confirmText: 'Yes, Delete All',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoading = true;
+        const ids = selectedRows.map(r => r.id);
+        
+        // Use a loop to delete since service might not have bulk delete for SO yet, 
+        // or check if inventoryService has bulkDeleteSaleOrders. 
+        // Based on previous contexts, we usually have a bulk method or we loop.
+        // Let's check inventoryService first or just loop forkJoin.
+        const deleteTasks = ids.map(id => this.saleOrderService.deleteSaleOrder(id));
+        
+        forkJoin(deleteTasks).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.dialog.open(StatusDialogComponent, {
+              width: '350px',
+              data: {
+                type: 'success',
+                title: 'Orders Deleted',
+                message: `${selectedRows.length} Draft orders have been successfully deleted.`
+              }
+            });
+            this.selection.clear();
+            this.loadOrders();
+          },
+          error: (err) => {
+            this.isLoading = false;
+            console.error('Bulk delete failed:', err);
+            this.dialog.open(StatusDialogComponent, {
+              width: '350px',
+              data: { isSuccess: false, title: 'Delete Failed', message: 'Some orders could not be deleted.' }
+            });
+          }
+        });
       }
     });
   }
@@ -442,6 +510,55 @@ export class SoList implements OnInit {
     this.router.navigate(['/app/inventory/solist/add']);
   }
 
+  editOrder(row: any) {
+    this.router.navigate(['/app/inventory/solist/edit', row.id]);
+  }
+
+  deleteOrder(row: any) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: "Delete Draft Order",
+        message: `Are you sure you want to delete Order #${row.soNumber}? This action cannot be undone.`,
+        confirmText: "Delete",
+        confirmColor: "warn"
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        this.saleOrderService.deleteSaleOrder(row.id).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.dialog.open(StatusDialogComponent, {
+              width: '350px',
+              data: {
+                type: 'success',
+                title: 'Order Deleted',
+                message: `Order #${row.soNumber} has been successfully deleted.`
+              }
+            });
+            this.loadOrders();
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.dialog.open(StatusDialogComponent, {
+              width: '350px',
+              data: {
+                type: 'error',
+                title: 'Delete Failed',
+                message: err.error?.message || "Order delete karne mein error aaya."
+              }
+            });
+            this.cdr.detectChanges();
+          }
+        });
+      }
+    });
+  }
+
   collectPayment(row: any) {
     if (!row.customerId) return;
 
@@ -544,7 +661,7 @@ export class SoList implements OnInit {
       data: {
         type: 'info',
         title: 'No Receipt History',
-        message: `Order #${soNumber} ya is customer ke liye koi bhi payment receipt nahi mili. Kripya ensure karein ki payment record ho chuki hai.`
+        message: `No payment receipt found for Order #${soNumber} or this customer. Please ensure the payment has been recorded.`
       }
     });
   }
@@ -556,7 +673,7 @@ export class SoList implements OnInit {
       data: {
         type: 'error',
         title: 'System Error',
-        message: 'Receipt details fetch karne mein taklif ho rahi hai. Kripya network connection check karein.'
+        message: 'There was a problem fetching the receipt details. Please check your network connection.'
       }
     });
     this.cdr.detectChanges();
@@ -652,7 +769,7 @@ export class SoList implements OnInit {
     if (!productIds || productIds.length === 0) {
       this.dialog.open(StatusDialogComponent, {
         width: '350px',
-        data: { type: 'error', title: 'Selection Required', message: 'Kripya products select karein.' }
+        data: { type: 'error', title: 'Selection Required', message: 'Please select products to download the report.' }
       });
       return;
     }

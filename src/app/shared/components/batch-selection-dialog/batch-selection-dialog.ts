@@ -14,12 +14,12 @@ import { FormsModule } from '@angular/forms';
         <h2 class="title">Select Batch — {{ data.productName }}</h2>
         <p class="subtitle" *ngIf="data.validCount > 0">
           <span style="color: #16a34a; font-weight: 600;">{{data.validCount}} valid batch{{data.validCount > 1 ? 'es' : ''}} available</span>
-          <span *ngIf="data.batches.length > data.validCount" style="color: #dc2626; margin-left: 8px;">
-            &bull; {{data.batches.length - data.validCount}} expired (cannot select)
+          <span *ngIf="getUnselectableCount() > 0" style="color: #dc2626; margin-left: 8px;">
+            &bull; {{getUnselectableCount()}} unavailable (expired or 0 stock)
           </span>
         </p>
         <p class="subtitle" *ngIf="!data.validCount || data.validCount === 0" style="color: #dc2626; font-weight: 600;">
-          ⚠️ All batches are expired. Cannot sell this product.
+          ⚠️ No selectable batches available.
         </p>
       </div>
 
@@ -27,8 +27,8 @@ import { FormsModule } from '@angular/forms';
         <div class="batch-card" 
              *ngFor="let batch of data.batches; let i = index"
              [class.selected]="selectedBatchIndex === i"
-             [class.disabled]="isExpired(batch)"
-             (click)="!isExpired(batch) && selectBatch(i)">
+             [class.disabled]="isDisabled(batch)"
+             (click)="!isDisabled(batch) && selectBatch(i)">
           
           <div class="batch-header">
             <div class="batch-number">
@@ -56,7 +56,8 @@ import { FormsModule } from '@angular/forms';
             <div class="detail-row">
               <span class="label">Exp Date:</span>
               <span class="value date" [class.expired]="isExpired(batch)">
-                {{ formatDate(batch.expiryDate || batch.ExpiryDate) }}
+                {{ formatDate(batch.expiryDate || batch.ExpiryDate) }} 
+                <span *ngIf="isExpired(batch)" style="font-size: 0.7rem; display: block; line-height: 1;">(Expired)</span>
               </span>
             </div>
             <div class="detail-row">
@@ -71,6 +72,10 @@ import { FormsModule } from '@angular/forms';
             <mat-icon class="warning-icon">warning</mat-icon>
             <span class="warning-text">Expired</span>
           </div>
+          <div class="batch-expiry-warning" *ngIf="!isExpired(batch) && (batch.availableStock || batch.AvailableStock || 0) <= 0">
+            <mat-icon class="warning-icon">block</mat-icon>
+            <span class="warning-text">Out of Stock</span>
+          </div>
           <div class="batch-low-stock-warning" *ngIf="!isExpired(batch) && (batch.availableStock || batch.AvailableStock || 0) <= 5 && (batch.availableStock || batch.AvailableStock || 0) > 0">
             <mat-icon class="warning-icon">info</mat-icon>
             <span class="warning-text">Low Stock</span>
@@ -83,7 +88,7 @@ import { FormsModule } from '@angular/forms';
           <mat-icon>close</mat-icon> Cancel
         </button>
         <button mat-raised-button color="primary" (click)="confirm()" 
-                [disabled]="selectedBatchIndex === null || (selectedBatchIndex !== null && isExpired(data.batches[selectedBatchIndex]))">
+                [disabled]="selectedBatchIndex === null || (selectedBatchIndex !== null && isDisabled(data.batches[selectedBatchIndex]))">
           <mat-icon>check_circle</mat-icon> Confirm Selection
         </button>
       </div>
@@ -307,8 +312,8 @@ export class BatchSelectionDialogComponent implements OnInit {
   }
 
   selectBatch(index: number) {
-    // Prevent selection of expired batches
-    if (index < this.data.batches.length && !this.isExpired(this.data.batches[index])) {
+    // Prevent selection of disabled batches
+    if (index < this.data.batches.length && !this.isDisabled(this.data.batches[index])) {
       this.selectedBatchIndex = index;
     }
   }
@@ -316,9 +321,9 @@ export class BatchSelectionDialogComponent implements OnInit {
   confirm() {
     if (this.selectedBatchIndex !== null && this.selectedBatchIndex < this.data.batches.length) {
       const selectedBatch = this.data.batches[this.selectedBatchIndex];
-      // Final check: don't allow expired batches
-      if (this.isExpired(selectedBatch)) {
-        alert('❌ Cannot sell expired products. Please select a non-expired batch.');
+      // Final check: don't allow disabled batches
+      if (this.isDisabled(selectedBatch)) {
+        alert('❌ This batch cannot be selected (Expired or No Stock).');
         return;
       }
       this.dialogRef.close(selectedBatch);
@@ -331,14 +336,14 @@ export class BatchSelectionDialogComponent implements OnInit {
 
   formatDate(date: any): string {
     if (!date) return 'N/A';
-    if (typeof date === 'string' && date.length >= 10) {
-      return date.substring(0, 10);
-    }
-    try {
-      return new Date(date).toISOString().substring(0, 10);
-    } catch {
-      return 'N/A';
-    }
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return 'N/A';
+    
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear()).slice(-2);
+    
+    return `${day}/${month}/${year}`;
   }
 
   isExpired(batch: any): boolean {
@@ -362,5 +367,15 @@ export class BatchSelectionDialogComponent implements OnInit {
     const twoYearsAgo = new Date();
     twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
     return date < twoYearsAgo;
+  }
+
+  isDisabled(batch: any): boolean {
+    const stock = batch.availableStock || batch.AvailableStock || 0;
+    return this.isExpired(batch) || stock <= 0;
+  }
+
+  getUnselectableCount(): number {
+    if (!this.data.batches) return 0;
+    return this.data.batches.filter((b: any) => this.isDisabled(b)).length;
   }
 }

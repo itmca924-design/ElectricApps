@@ -171,13 +171,13 @@
         </button>
 
         <button mat-icon-button color="primary"
-                *ngIf="canEdit"
+                *ngIf="canEdit && row.status?.toLowerCase() === 'draft'"
                 (click)="$event.stopPropagation(); handleAction('EDIT', row)"
                 matTooltip="Edit">
           <mat-icon>edit</mat-icon>
         </button>
         <button mat-icon-button color="warn"
-                *ngIf="canDelete"
+                *ngIf="canDelete && row.status?.toLowerCase() === 'draft'"
                 (click)="$event.stopPropagation(); handleAction('DELETE', row)"
                 matTooltip="Delete">
           <mat-icon>delete</mat-icon>
@@ -187,7 +187,7 @@
      <!-- PO WORKFLOW ACTIONS (Standard Purchase/Sale) -->
      <ng-container *ngIf="!showSimpleActions">
 
-      <ng-container *ngIf="(row.status === 'Draft' || row.status === 'Rejected') && (userRole === 'User' || userRole === 'Super Admin')">
+      <ng-container *ngIf="(row.status?.toLowerCase() === 'draft' || row.status?.toLowerCase() === 'rejected') && (userRole === 'User' || userRole === 'Super Admin')">
        <!-- Edit button: canEdit permission required -->
        <button mat-icon-button color="primary" 
                *ngIf="canEdit"
