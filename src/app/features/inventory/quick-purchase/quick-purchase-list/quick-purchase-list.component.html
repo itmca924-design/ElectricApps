@@ -81,6 +81,10 @@
       (bulkDeleteChildItems)="onBulkDeleteChildItems($event)"
       (selectionChanged)="onGridSelectionChange($event)"
       (bulkDeleteParentOrders)="onBulkDeleteParentOrders($event)"
+      (bulkApproveOrders)="onBulkApproveOrders($event)"
+      (bulkDraftApproved)="onBulkDraftApprovedGrid($event)"
+      (bulkPORejected)="onBulkPORejectedGrid($event)"
+      (bulkCreateGrn)="onBulkCreateGrnGrid($event)"
       (actionClicked)="handleGridAction($event)">
     </app-enterprise-hierarchical-grid>
 

@@ -137,13 +137,13 @@ export class QuickPurchaseListComponent implements OnInit {
         }
       },
       { field: 'createdBy', header: 'Created By', sortable: true, isFilterable: true, isResizable: true, width: 150 },
-      { field: 'supplierName', header: 'Supplier Name', sortable: true, isResizable: true, width: 150, isFilterable: true },
+      { field: 'supplierName', header: 'Supplier Name', sortable: true, isResizable: true, width: 180, isFilterable: true },
       {
         field: 'grandTotal',
         header: 'Grand Total',
         sortable: true,
         isResizable: true,
-        width: 120,
+        width: 140,
         align: 'left',
         cell: (row: any) => this.currencyPipe.transform(row.grandTotal, 'INR', 'symbol', '1.2-2')
       },
@@ -152,7 +152,7 @@ export class QuickPurchaseListComponent implements OnInit {
         header: 'Status',
         sortable: true,
         isResizable: true,
-        width: 130,
+        width: 180,
         isFilterable: true,
         cell: (row: any) => row.status || '-'
       },
@@ -161,7 +161,7 @@ export class QuickPurchaseListComponent implements OnInit {
         header: 'Remarks',
         sortable: false,
         isResizable: true,
-        width: 180,
+        width: 200,
         isFilterable: false,
         cell: (row: any) => row.remarks || ''
       }
@@ -456,6 +456,173 @@ export class QuickPurchaseListComponent implements OnInit {
         console.warn(`Action ${event.action} is not handled in Quick Purchase List.`);
         break;
     }
+  }
+
+  onBulkApproveOrders(selectedRows: any[]) {
+    // Users: Submit for Approval (Draft or Rejected -> Submitted)
+    const validRows = selectedRows.filter((row: any) => {
+      const s = String(row.status || '').toLowerCase();
+      return s === 'draft' || s === 'rejected';
+    });
+
+    if (validRows.length === 0) {
+      this.notification.showStatus(false, 'Selected items must be in "Draft" or "Rejected" status to submit.');
+      return;
+    }
+
+    if (validRows.length !== selectedRows.length) {
+      this.notification.showStatus(false, 'Some items were skipped. Only Draft or Rejected orders can be submitted.');
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Bulk Approval Submission',
+        message: `Are you sure you want to send ${validRows.length} POs for approval?`,
+        confirmText: 'Yes, Send All',
+        confirmColor: 'primary'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        const ids = validRows.map((row: any) => row.id);
+
+        this.poActionService.bulkSentForDraftApproval(ids).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.notification.showStatus(true, 'Selected POs sent for approval successfully.');
+            if (this.grid) this.grid.selection.clear();
+            this.loadData(this.currentGridState);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.notification.showStatus(false, err.error?.message || 'Bulk submission failed.');
+            this.cdr.detectChanges();
+          }
+        });
+      }
+    });
+  }
+
+  onBulkDraftApprovedGrid(selectedRows: any[]) {
+    // Managers: Massive Approve
+    const validRows = selectedRows.filter((row: any) => row.status !== 'Approved');
+
+    if (validRows.length === 0) {
+      this.notification.showStatus(false, 'Selected items are already Approved.');
+      return;
+    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Bulk Approve',
+        message: `Are you sure you want to Approve ${validRows.length} POs?`,
+        confirmText: 'Yes, Approve All',
+        confirmColor: 'primary'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        const ids = validRows.map((row: any) => row.id);
+
+        this.poActionService.bulkDraftApprove(ids).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.notification.showStatus(true, 'Selected POs Approved successfully.');
+            if (this.grid) this.grid.selection.clear();
+            this.loadData(this.currentGridState);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.notification.showStatus(false, err.error?.message || 'Bulk approval failed.');
+            this.cdr.detectChanges();
+          }
+        });
+      }
+    });
+  }
+
+  onBulkPORejectedGrid(selectedRows: any[]) {
+    // Managers: Mass Reject
+    if (!selectedRows || selectedRows.length === 0) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Bulk Reject',
+        message: `Are you sure you want to Reject ${selectedRows.length} POs?`,
+        confirmText: 'Yes, Reject All',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        const ids = selectedRows.map((row: any) => row.id);
+
+        this.poActionService.bulkPOReject(ids).subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.notification.showStatus(true, 'Selected POs Rejected successfully.');
+            if (this.grid) this.grid.selection.clear();
+            this.loadData(this.currentGridState);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.notification.showStatus(false, err.error?.message || 'Bulk rejection failed.');
+            this.cdr.detectChanges();
+          }
+        });
+      }
+    });
+  }
+
+  onBulkCreateGrnGrid(selectedRows: any[]) {
+    if (!selectedRows || selectedRows.length === 0) return;
+
+    const eligibleOrders = selectedRows.filter(r =>
+      ['approved', 'received', 'partially received'].includes(r.status?.toLowerCase())
+    );
+
+    if (eligibleOrders.length === 0) {
+      this.notification.showStatus(false, 'Only Approved or Partially Received orders can be processed.');
+      return;
+    }
+
+    const totalQty = eligibleOrders.reduce((sum, r) => sum + (Number(r.totalPending || 0)), 0);
+    const breakdown = eligibleOrders.map(r => `${r.poNumber} (${r.totalPending || 0})`).join(', ');
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Bulk Receive Items',
+        message: `Do you want to create a Bulk GRN for ${eligibleOrders.length} selected POs?`,
+        confirmText: 'Yes, Proceed',
+        confirmColor: 'primary'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        // CHANGED: Direct to Quick GRN form, skipping Gate Pass for Quick Inventory
+        this.router.navigate(['/app/quick-inventory/grn-list/add'], {
+          queryParams: {
+            poId: eligibleOrders.map(r => r.id).join(','),
+            poNo: 'BULK-PURCHASE',
+            qty: totalQty
+          }
+        });
+      }
+    });
   }
 
   onSubmitApproval(row: any) {

@@ -98,10 +98,12 @@
         </ng-container>
 
         <ng-container *ngFor="let col of columns" [matColumnDef]="col.field">
-          <th mat-header-cell *matHeaderCellDef cdkDrag [style.width.px]="col.width" [mat-sort-header]="col.field"
+          <th mat-header-cell *matHeaderCellDef cdkDrag [style.width.px]="col.width"
             [style.display]="col.visible === false ? 'none' : 'table-cell'">
             <div class="header-main-container">
-              <span class="header-label">{{ col.header }}</span>
+              <div class="header-label-group" [mat-sort-header]="col.field">
+                <span class="header-label">{{ col.header }}</span>
+              </div>
               <div class="header-right-side">
                 <button *ngIf="col.isFilterable" mat-icon-button [matMenuTriggerFor]="filterMenu"
                   (click)="$event.stopPropagation()">

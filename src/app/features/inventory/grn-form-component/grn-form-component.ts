@@ -224,6 +224,8 @@ export class GrnFormComponent implements OnInit, OnDestroy {
         rejectedQty: rejected,
         acceptedQty: accepted,
         unitRate: rate,
+        supplierId: item.supplierId || item.SupplierId || 0,
+        supplierName: item.supplierName || item.SupplierName || '',
         discountPercent: discPer,
         gstPercent: gstPer,
         taxAmount: taxAmt,
@@ -371,19 +373,43 @@ export class GrnFormComponent implements OnInit, OnDestroy {
       });
 
       this.loadingService.setLoading(true);
-      let completedCount = 0;
-      const totalToProcess = itemsByPo.size;
+      const poIdsToProcess = Array.from(itemsByPo.keys());
+      let index = 0;
 
-      itemsByPo.forEach((poItems, pId) => {
+      const processedGrns: { number: string, amount: number }[] = [];
+      let totalSuccessAmount = 0;
+      let uniqueSupplierId = 0;
+      let uniqueSupplierName = '';
+
+      const saveNext = () => {
+        if (index >= poIdsToProcess.length) {
+          this.loadingService.setLoading(false);
+          this.showBulkCompletionDialog(uniqueSupplierId, uniqueSupplierName, processedGrns, totalSuccessAmount);
+          return;
+        }
+
+        const pId = poIdsToProcess[index];
+        const poItems = itemsByPo.get(pId) || [];
         const firstItem = poItems[0];
         const poTotal = poItems.reduce((sum, i) => sum + Number(i.total || 0), 0);
+        
+        const sId = Number(firstItem.supplierId || firstItem.SupplierId || this.supplierId || 0);
+        const sName = firstItem.supplierName || firstItem.SupplierName || this.supplierName || 'Multiple Suppliers';
+
+        if (uniqueSupplierId === 0) {
+          uniqueSupplierId = sId;
+          uniqueSupplierName = sName;
+        } else if (uniqueSupplierId !== sId && uniqueSupplierId !== -1) {
+          uniqueSupplierId = -1; 
+        }
+
         const grnData = {
           poHeaderId: pId,
-          supplierId: firstItem.supplierId || firstItem.SupplierId || 0,
+          supplierId: sId,
           gatePassNo: formValue.gatePassNo,
-          receivedDate: formValue.receivedDate,
+          receivedDate: new Date(formValue.receivedDate).toISOString(),
           remarks: formValue.remarks,
-          totalAmount: poTotal,  // ✅ was missing — caused ₹0.00 bug
+          totalAmount: poTotal,
           status: 'Received',
           isQuick: this.isQuick,
           createdBy: currentUserId,
@@ -401,36 +427,30 @@ export class GrnFormComponent implements OnInit, OnDestroy {
             totalAmount: Number(i.total),
             warehouseId: i.warehouseId,
             rackId: i.rackId,
-            manufacturingDate: i.manufacturingDate || null,
-            expiryDate: i.expiryDate || null
+            manufacturingDate: DateHelper.parseToISO(i.manufacturingDate),
+            expiryDate: DateHelper.parseToISO(i.expiryDate)
           }))
         };
 
-        this.inventoryService.saveGRN({ data: grnData }).subscribe({
-          next: () => {
-            completedCount++;
-            if (completedCount === totalToProcess) {
-              this.loadingService.setLoading(false);
-              this.dialog.open(StatusDialogComponent, {
-                width: '350px',
-                data: {
-                  title: 'Success',
-                  message: `All ${totalToProcess} POs processed and counters updated correctly!`,
-                  status: 'success',
-                  isSuccess: true
-                }
-              }).afterClosed().subscribe(() => {
-                this.navigateBack();
-              });
-            }
+        this.inventoryService.saveGRN({ Data: grnData }).subscribe({
+          next: (res: any) => {
+            totalSuccessAmount += poTotal;
+            if (res?.grnNumber) processedGrns.push({ number: res.grnNumber, amount: poTotal });
+            index++;
+            // Short delay to ensure backend sequence increments correctly
+            setTimeout(() => {
+              saveNext();
+            }, 500);
           },
-          error: (err) => {
+          error: (err: any) => {
             this.loadingService.setLoading(false);
             console.error(`Error saving PO ${pId}:`, err);
             this.showValidationError(`Failed to process PO ${pId}. Please check data.`);
           }
         });
-      });
+      };
+
+      saveNext();
       return;
     }
 
@@ -596,5 +616,44 @@ export class GrnFormComponent implements OnInit, OnDestroy {
   onCancel() {
     this.clearCountdown();
     this.goBack();
+  }
+
+  showBulkCompletionDialog(uniqueSupplierId: number, uniqueSupplierName: string, processedGrns: any[], totalAmount: number) {
+    if (uniqueSupplierId > 0 && processedGrns.length > 0) {
+      const dialogRef = this.dialog.open(GrnSuccessDialogComponent, {
+        width: '500px',
+        disableClose: true,
+        data: {
+          grnNumber: processedGrns.length === 1 ? processedGrns[0].number : `${processedGrns.length} GRNs Created`,
+          grandTotal: totalAmount,
+          supplierId: uniqueSupplierId,
+          supplierName: uniqueSupplierName
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === 'make-payment') {
+          this.performDirectPayment({
+            grnNumber: processedGrns.length === 1 ? processedGrns[0].number : `Bulk-${processedGrns.length}-GRN`,
+            grandTotal: totalAmount,
+            supplierId: uniqueSupplierId
+          });
+        } else {
+          this.navigateBack();
+        }
+      });
+    } else {
+      this.dialog.open(StatusDialogComponent, {
+        width: '400px',
+        data: {
+          title: 'Bulk Process Completed',
+          message: `Successfully generated ${processedGrns.length} GRNs for different suppliers. \n\nTotal Amount: ${totalAmount.toFixed(2)}. \n\nPlease record payments individually from the GRN list.`,
+          status: 'success',
+          isSuccess: true
+        }
+      }).afterClosed().subscribe(() => {
+        this.navigateBack();
+      });
+    }
   }
 }

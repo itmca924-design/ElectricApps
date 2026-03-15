@@ -77,5 +77,11 @@ export const INVENTORY_ROUTES: Routes = [
       { path: 'outward', data: { breadcrumb: 'Outward' }, loadComponent: () => import('../features/inventory/gate-pass/outward-gate-pass/outward-gate-pass.component').then(m => m.OutwardGatePassComponent) },
       { path: 'inward', data: { breadcrumb: 'Inward' }, loadComponent: () => import('../features/inventory/gate-pass/inward-gate-pass/inward-gate-pass.component').then(m => m.InwardGatePassComponent) },
     ]
+  },
+  {
+    path: 'disposed-stock',
+    canActivate: [PermissionGuard],
+    data: { breadcrumb: 'Disposed Stock' },
+    loadComponent: () => import('../features/inventory/disposed-stock-component/disposed-stock-component').then(m => m.DisposedStockComponent)
   }
 ];

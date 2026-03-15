@@ -89,6 +89,23 @@ export class MenuService {
                         });
                     }
                 }
+
+                // Inject "Disposed Stock" into standard Inventory menu
+                const stdInv = filtered.find(m => m.title === 'Inventory' || m.title === 'Standard Inventory');
+                if (stdInv && stdInv.children) {
+                    const alreadyHas = stdInv.children.some(c => c.title === 'Disposed Stock');
+                    if (!alreadyHas) {
+                        stdInv.children.push({
+                            id: 9992, // Dummy ID
+                            title: 'Disposed Stock',
+                            url: '/app/inventory/disposed-stock',
+                            icon: 'delete_sweep',
+                            order: 100,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+                }
                 return filtered;
               })
             );

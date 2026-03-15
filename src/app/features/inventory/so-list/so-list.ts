@@ -154,7 +154,7 @@ export class SoList implements OnInit {
         sortable: true, 
         isFilterable: true, 
         isResizable: true, 
-        width: 130,
+        width: 180,
         cell: (row: any) => row.gatePassNo || '—'
       },
       { 
@@ -167,11 +167,11 @@ export class SoList implements OnInit {
         cell: (row: any) => this.datePipe.transform(row.soDate, 'dd/MM/yyyy h:mm a')
       },
       { field: 'customerName', header: 'Customer', sortable: true, isFilterable: true, isResizable: true, width: 180 },
-      { field: 'totalQty', header: 'Total Qty', sortable: true, isResizable: true, width: 100 },
+      { field: 'totalQty', header: 'Qty', sortable: true, isResizable: true, width: 180 },
       { field: 'grandTotal', header: 'Amount', sortable: true, isResizable: true, width: 120 },
-      { field: 'status', header: 'Order Status', sortable: true, isFilterable: true, isResizable: true, width: 120 },
-      { field: 'paymentStatus', header: 'Payment', sortable: true, isFilterable: true, isResizable: true, width: 120 },
-      { field: 'createdBy', header: 'Created By', sortable: true, isResizable: true, width: 120 },
+      { field: 'status', header: 'Order Status', sortable: true, isFilterable: true, isResizable: true, width: 180 },
+      { field: 'paymentStatus', header: 'Payment', sortable: true, isFilterable: true, isResizable: true, width: 180 },
+      { field: 'createdBy', header: 'Created By', sortable: true, isResizable: true, width: 150 },
       { field: 'remarks', header: 'Remarks', isResizable: true, width: 180 }
     ];
     this.itemColumns = [

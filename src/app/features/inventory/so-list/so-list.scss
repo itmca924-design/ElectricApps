@@ -652,16 +652,19 @@ button[color="warning"] {
   /* Specific Column Widths */
   .mat-column-select { width: 48px; min-width: 48px; max-width: 48px; }
   
-  .mat-column-soNumber { width: var(--col-soNumber-width, 130px); min-width: var(--col-soNumber-width, 130px); max-width: var(--col-soNumber-width, 130px); }
-  .mat-column-gatePassNo { width: var(--col-gatePassNo-width, 120px); min-width: var(--col-gatePassNo-width, 120px); max-width: var(--col-gatePassNo-width, 120px); }
+  .mat-column-soNumber { width: var(--col-soNumber-width, 150px); min-width: var(--col-soNumber-width, 150px); max-width: var(--col-soNumber-width, 150px); }
+  .mat-column-gatePassNo { width: var(--col-gatePassNo-width, 180px); min-width: var(--col-gatePassNo-width, 180px); max-width: var(--col-gatePassNo-width, 180px); }
   .mat-column-soDate { width: var(--col-soDate-width, 170px); min-width: var(--col-soDate-width, 170px); max-width: var(--col-soDate-width, 170px); }
-  .mat-column-customerName { width: var(--col-customerName-width, 180px); min-width: var(--col-customerName-width, 180px); max-width: var(--col-customerName-width, 180px); }
-  .mat-column-totalQty { width: var(--col-totalQty-width, 80px); min-width: var(--col-totalQty-width, 80px); max-width: var(--col-totalQty-width, 80px); }
-  .mat-column-grandTotal { width: var(--col-grandTotal-width, 130px); min-width: var(--col-grandTotal-width, 130px); max-width: var(--col-grandTotal-width, 130px); }
-  .mat-column-status { width: var(--col-status-width, 120px); min-width: var(--col-status-width, 120px); max-width: var(--col-status-width, 120px); }
-  .mat-column-paymentStatus { width: var(--col-paymentStatus-width, 120px); min-width: var(--col-paymentStatus-width, 120px); max-width: var(--col-paymentStatus-width, 120px); }
+  .mat-column-customerName { width: var(--col-customerName-width, 200px); min-width: var(--col-customerName-width, 200px); max-width: var(--col-customerName-width, 200px); }
+  .mat-column-totalQty { width: var(--col-totalQty-width, 100px); min-width: var(--col-totalQty-width, 100px); max-width: var(--col-totalQty-width, 100px); }
+  .mat-column-grandTotal { width: var(--col-grandTotal-width, 150px); min-width: var(--col-grandTotal-width, 150px); max-width: var(--col-grandTotal-width, 150px); }
+  .mat-column-status { width: var(--col-status-width, 180px); min-width: var(--col-status-width, 180px); max-width: var(--col-status-width, 180px); }
+  .mat-column-paymentStatus { width: var(--col-paymentStatus-width, 180px); min-width: var(--col-paymentStatus-width, 180px); max-width: var(--col-paymentStatus-width, 180px); }
   
-  .mat-column-actions { width: 100px; min-width: 100px; }
+  .mat-column-createdBy { width: var(--col-createdBy-width, 180px); min-width: var(--col-createdBy-width, 180px); max-width: var(--col-createdBy-width, 180px); }
+  .mat-column-remarks { width: var(--col-remarks-width, 250px); min-width: var(--col-remarks-width, 250px); max-width: var(--col-remarks-width, 250px); }
+  
+  .mat-column-actions { width: 120px; min-width: 120px; }
 }
 /* --- Empty State Styling --- */
 .empty-state-container {
@@ -720,6 +723,4 @@ button[color="warning"] {
     font-style: italic;
 }
 
-::ng-deep .mat-column-gatePassNo {
-    width: 140px;
-}
+

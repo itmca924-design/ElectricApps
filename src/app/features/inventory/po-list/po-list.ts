@@ -881,16 +881,19 @@ export class PoList implements OnInit {
   }
 
   onBulkSentForDraftApproval(selectedRows: any[]) {
-    // 1. Validation: Only Drafts
-    const draftRows = selectedRows.filter((row: any) => row.status === 'Draft');
+    // 1. Validation: Draft or Rejected
+    const validRows = selectedRows.filter((row: any) => {
+      const s = String(row.status || '').toLowerCase();
+      return s === 'draft' || s === 'rejected';
+    });
 
-    if (draftRows.length === 0) {
-      this.notification.showStatus(false, 'Selected items must be in "Draft" status to submit.');
+    if (validRows.length === 0) {
+      this.notification.showStatus(false, 'Selected items must be in "Draft" or "Rejected" status to submit.');
       return;
     }
 
-    if (draftRows.length !== selectedRows.length) {
-      this.notification.showStatus(false, 'Some selected items were skipped (not Draft). Processing valid ones only.');
+    if (validRows.length !== selectedRows.length) {
+      this.notification.showStatus(false, 'Some selected items were skipped (must be Draft or Rejected).');
     }
 
     // 2. Confirmation Dialog
@@ -898,7 +901,7 @@ export class PoList implements OnInit {
       width: '450px',
       data: {
         title: 'Bulk Approval Submission',
-        message: `Are you sure you want to send ${draftRows.length} POs for approval?`,
+        message: `Are you sure you want to send ${validRows.length} POs for approval?`,
         confirmText: 'Yes, Send All',
         cancelText: 'Cancel'
       }
@@ -907,7 +910,7 @@ export class PoList implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         this.isLoading = true;
-        const ids = draftRows.map((row: any) => row.id);
+        const ids = validRows.map((row: any) => row.id);
 
         this.poActionService.bulkSentForDraftApproval(ids).subscribe({
           next: () => {
