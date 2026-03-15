@@ -273,14 +273,18 @@ export class QuickSaleComponent implements OnInit {
 
         if (!isExistingItem) {
              const productName = product.productName || product.name || '';
-             this.inventoryService.getCurrentStock('', '', 0, 10, productName).subscribe((res: any) => {
+             // 🧐 Using Name for search as Stock controller might not index SKU for search, 
+             // but matching by ID is case-insensitive for GUID consistency.
+             this.inventoryService.getCurrentStock('', '', 0, 100, productName).subscribe((res: any) => {
                  const currentItem = this.items.at(index);
                  const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
-
-                 // ✅ Find the matching product stock row
-                 const productItem = itemsArray.find((x: any) =>
-                     String(x.productId || x.ProductId) === String(productId)
-                 );
+ 
+                 // Match by ID (Case Insensitive for GUIDs) or Product Name as fallback
+                 const productItem = itemsArray.find((x: any) => {
+                     const xId = String(x.productId || x.ProductId || x.id || x.Id).toLowerCase();
+                     const targetId = String(productId).toLowerCase();
+                     return xId === targetId || (x.productName === productName && productName.length > 0);
+                 });
 
                  if (!productItem) {
                      this.notification.showStatus(false, 'No stock available for this product.');

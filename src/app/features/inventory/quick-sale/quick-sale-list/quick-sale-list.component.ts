@@ -173,8 +173,18 @@ export class QuickSaleListComponent implements OnInit {
         field: 'gstPercent', header: 'GST%', width: 80,
         cell: (row: any) => `${row.gstPercent}%`
       },
-      { field: 'warehouseName', header: 'Warehouse', width: 140 },
-      { field: 'rackName', header: 'Rack', width: 110 },
+      { 
+        field: 'warehouseName', 
+        header: 'Warehouse', 
+        width: 140,
+        cell: (row: any) => row.warehouseName || row.WarehouseName || '—'
+      },
+      { 
+        field: 'rackName', 
+        header: 'Rack', 
+        width: 110,
+        cell: (row: any) => row.rackName || row.RackName || '—'
+      },
       {
         field: 'manufacturingDate', header: 'Mfg Date', width: 110,
         cell: (row: any) => row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yyyy') : 'N/A'
@@ -321,6 +331,68 @@ export class QuickSaleListComponent implements OnInit {
     });
   }
 
+  onBulkDeleteGrid(selectedRows: any[]) {
+    if (!selectedRows || selectedRows.length === 0) return;
+
+    this.isLoading = true;
+    const ids = selectedRows.map(r => r.id);
+    const deleteTasks = ids.map(id => this.inventoryService.deleteSaleOrder(id));
+
+    forkJoin(deleteTasks).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.notification.showStatus(true, `${selectedRows.length} Quick Sales deleted successfully!`);
+        this.selection.clear();
+        this.loadData(this.currentGridState);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notification.showStatus(false, 'Some records could not be deleted.');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onGridSelectionChange(selectedRows: any[]) {
+    this.selectedParentRows = selectedRows;
+    this.selection.clear();
+    if (selectedRows && selectedRows.length > 0) {
+      this.selection.select(...selectedRows);
+    }
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  get canShowBulkPayment(): boolean {
+    const selected = this.selection.selected;
+    if (selected.length <= 1) return false;
+
+    const customerId = selected[0].customerId;
+    return selected.every(r => 
+      r.customerId === customerId && 
+      r.status?.toLowerCase() === 'confirmed' && 
+      (r.paymentStatus === 'Unpaid' || r.paymentStatus === 'Partial')
+    );
+  }
+
+  bulkCollectPayment() {
+    const selected = this.selection.selected;
+    if (selected.length === 0) return;
+
+    const customerId = selected[0].customerId;
+    const totalAmount = selected.reduce((sum, r) => sum + (r.pendingAmount || r.grandTotal), 0);
+    const invoiceNos = selected.map(r => r.soNumber).join(', ');
+
+    this.router.navigate(['/app/finance/customers/receipt'], {
+      queryParams: {
+        customerId: customerId,
+        amount: totalAmount,
+        invoiceNo: invoiceNos
+      }
+    });
+  }
+
   handleGridAction(event: { action: string, row: any }) {
     const row = event.row;
     switch (event.action) {
@@ -339,9 +411,80 @@ export class QuickSaleListComponent implements OnInit {
       case 'RECEIPT':
         this.onDownloadReceipt(row);
         break;
+      case 'CONFIRM':
+        this.confirmOrder(row);
+        break;
       default:
         break;
     }
+  }
+
+  confirmOrder(order: any) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: "Confirm Stock Reduction",
+        message: `Order #${order.soNumber} Upon confirmation, the stock will be deducted from the inventory. Are you sure?`,
+        confirmText: "Confirm",
+        confirmColor: "primary"
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoading = true;
+        this.cdr.detectChanges();
+        this.saleOrderService.updateSaleOrderStatus(order.id, 'Confirmed').subscribe({
+          next: () => {
+            this.isLoading = false;
+            this.notification.showStatus(true, `Order #${order.soNumber} has been confirmed.`);
+            this.loadData(this.currentGridState);
+          },
+          error: (err) => {
+            this.isLoading = false;
+            this.notification.showStatus(false, err.error?.message || "Stock update failed.");
+            this.cdr.detectChanges();
+          }
+        });
+      }
+    });
+  }
+
+  onBulkConfirmGrid(selectedRows: any[]) {
+    if (!selectedRows || selectedRows.length === 0) return;
+
+    this.isLoading = true;
+    this.cdr.detectChanges();
+
+    const confirmTasks = selectedRows.map(order => 
+      this.saleOrderService.updateSaleOrderStatus(order.id, 'Confirmed').pipe(
+        catchError(err => {
+          console.error(`Failed to confirm order ${order.soNumber}:`, err);
+          return of({ error: true, orderNo: order.soNumber, message: err.error?.message });
+        })
+      )
+    );
+
+    forkJoin(confirmTasks).subscribe({
+      next: (results: any[]) => {
+        this.isLoading = false;
+        const errors = results.filter(r => r && r.error);
+        
+        if (errors.length > 0) {
+          const errorMsg = errors.map(e => `${e.orderNo}: ${e.message || 'Error'}`).join('\n');
+          this.notification.showStatus(false, `Partial failure: ${errors.length} orders failed to confirm.`);
+        } else {
+          this.notification.showStatus(true, `${selectedRows.length} Orders have been confirmed.`);
+        }
+        this.loadData(this.currentGridState);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isLoading = false;
+        this.notification.showStatus(false, 'An unexpected error occurred during bulk confirmation.');
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onViewOrder(row: any) {
@@ -380,9 +523,6 @@ export class QuickSaleListComponent implements OnInit {
     });
   }
 
-  onGridSelectionChange(selectedRows: any[]) {
-    this.selectedParentRows = selectedRows;
-  }
 
   onDownloadReceipt(row: any) {
     this.isLoading = true;

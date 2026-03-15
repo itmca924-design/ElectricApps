@@ -1,10 +1,15 @@
 <div class="header-actions">
   <h3 class="page-title">Quick Sale Dashboard</h3>
-  <!-- <div class="d-flex gap-2">
-    <button mat-stroked-button color="primary" (click)="router.navigate(['/app/inventory/solist'])">
-      <mat-icon>arrow_back</mat-icon> Standard Sale Order List
+  <div class="d-flex gap-2">
+    <!-- Bulk Collect Payment Button -->
+    <button mat-raised-button color="primary" class="main-add-btn success-btn" 
+            (click)="bulkCollectPayment()" 
+            [disabled]="isLoading"
+            *ngIf="canShowBulkPayment">
+      <mat-icon>payments</mat-icon>
+      Bulk Collect Payment
     </button>
-  </div> -->
+  </div>
 </div>
 
 <div class="stats-grid" *ngIf="!isDashboardLoading">
@@ -74,6 +79,8 @@
     <app-enterprise-hierarchical-grid
       [addNewLabel]="'New Sale'"
       [addNewRoute]="'/app/quick-inventory/sale/add'"
+      [entityName]="'Sale'"
+      [showApprovalWorkflow]="false"
       [columns]="soColumns"
       [childColumns]="itemColumns"
       [dataSource]="dataSource"
@@ -87,10 +94,13 @@
       [canEdit]="canEdit"
       [canDelete]="canDelete"
       [showSimpleActions]="true"
+      [showBulkConfirm]="true"
       (onGridStateChange)="onGridStateChange($event)"
       (deleteRecord)="onDeleteSingleRecord($event)"
       (selectionChanged)="onGridSelectionChange($event)"
-      (actionClicked)="handleGridAction($event)">
+      (actionClicked)="handleGridAction($event)"
+      (bulkDeleteParentOrders)="onBulkDeleteGrid($event)"
+      (bulkConfirmOrders)="onBulkConfirmGrid($event)">
     </app-enterprise-hierarchical-grid>
 
   </div>

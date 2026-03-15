@@ -1,13 +1,15 @@
 import { ChangeDetectorRef, Component, inject, OnInit, ViewChild } from '@angular/core';
 import { LoadingService } from '../../../core/services/loading.service';
 import { MaterialModule } from '../../../shared/material/material/material-module';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { InventoryService } from '../service/inventory.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../shared/notification.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { Router } from '@angular/router';
 import { SaleOrderDetailDialog } from '../sale-order-detail-dialog/sale-order-detail-dialog';
@@ -20,18 +22,28 @@ import { FinanceService } from '../../finance/service/finance.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PermissionService } from '../../../core/services/permission.service';
+import { EnterpriseHierarchicalGridComponent } from '../../../shared/components/enterprise-hierarchical-grid-component/enterprise-hierarchical-grid-component';
 
 @Component({
   selector: 'app-so-list',
   standalone: true,
-  imports: [MaterialModule, CommonModule],
+  imports: [MaterialModule, CommonModule, 
+    EnterpriseHierarchicalGridComponent],
   templateUrl: './so-list.html',
   styleUrl: './so-list.scss',
+  providers: [DatePipe, CurrencyPipe]
 })
 export class SoList implements OnInit {
   private loadingService = inject(LoadingService);
 
-  displayedColumns: string[] = ['select', 'soNumber', 'gatePassNo', 'soDate', 'customerName', 'totalQty', 'grandTotal', 'status', 'paymentStatus', 'createdBy', 'remarks', 'actions'];
+  soColumns: any[] = [];
+  itemColumns: any[] = [];
+  userRole: any;
+  highlightedSoId: any = null;
+  // ...existing code...
+  canEdit: boolean = true;
+  canDelete: boolean = true;
+
   dataSource = new MatTableDataSource<any>([]);
   isAdmin: boolean = false;
   isLoading: boolean = true;
@@ -40,6 +52,8 @@ export class SoList implements OnInit {
 
   private cdr = inject(ChangeDetectorRef);
   public router = inject(Router);
+  private authService = inject(AuthService);
+  private notification = inject(NotificationService);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -60,8 +74,170 @@ export class SoList implements OnInit {
     private financeService: FinanceService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private permissionService: PermissionService
+    private permissionService: PermissionService,
+    private datePipe: DatePipe,
+    private currencyPipe: CurrencyPipe
   ) { }
+
+  currentGridState: any = {};
+
+  onGridStateChange(state: any) {
+    this.currentGridState = state;
+    this.loadOrders();
+  }
+
+  onDeleteSingleRecord(row: any) {
+    this.deleteOrder(row);
+  }
+
+  onGridSelectionChange(selectedRows: any[]) {
+    this.selection.clear();
+    if (selectedRows && selectedRows.length > 0) {
+      this.selection.select(...selectedRows);
+    }
+    this.cdr.markForCheck();
+    this.cdr.detectChanges();
+  }
+
+  handleGridAction(event: { action: string, row: any }) {
+    const row = event.row;
+    switch (event.action) {
+      case 'VIEW':
+        this.viewOrder(row);
+        break;
+      case 'EDIT':
+        this.editOrder(row);
+        break;
+      case 'DELETE':
+        this.deleteOrder(row);
+        break;
+      case 'CONFIRM':
+        this.confirmOrder(row);
+        break;
+      case 'CREATE_OUTWARD':
+        this.createGatePass(row);
+        break;
+      case 'PAYMENT':
+        this.collectPayment(row);
+        break;
+      case 'RECEIPT':
+        this.downloadReceipt(row);
+        break;
+      default:
+        console.warn('Unhandled action:', event.action);
+    }
+  }
+
+  onRowExpanded(row: any) {
+    if (!row.items || row.items.length === 0) {
+      row.isLoadingItems = true;
+      this.saleOrderService.getSaleOrderItems(row.id).subscribe({
+        next: (items) => {
+          row.items = items;
+          row.isLoadingItems = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          row.isLoadingItems = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
+  }
+
+  private initColumns() {
+    this.soColumns = [
+      { field: 'soNumber', header: 'SO No.', sortable: true, isFilterable: true, isResizable: true, width: 135 },
+      { 
+        field: 'gatePassNo', 
+        header: 'Gate Pass', 
+        sortable: true, 
+        isFilterable: true, 
+        isResizable: true, 
+        width: 130,
+        cell: (row: any) => row.gatePassNo || '—'
+      },
+      { 
+        field: 'soDate', 
+        header: 'Date', 
+        sortable: true, 
+        isFilterable: true, 
+        isResizable: true, 
+        width: 170, 
+        cell: (row: any) => this.datePipe.transform(row.soDate, 'dd/MM/yyyy h:mm a')
+      },
+      { field: 'customerName', header: 'Customer', sortable: true, isFilterable: true, isResizable: true, width: 180 },
+      { field: 'totalQty', header: 'Total Qty', sortable: true, isResizable: true, width: 100 },
+      { field: 'grandTotal', header: 'Amount', sortable: true, isResizable: true, width: 120 },
+      { field: 'status', header: 'Order Status', sortable: true, isFilterable: true, isResizable: true, width: 120 },
+      { field: 'paymentStatus', header: 'Payment', sortable: true, isFilterable: true, isResizable: true, width: 120 },
+      { field: 'createdBy', header: 'Created By', sortable: true, isResizable: true, width: 120 },
+      { field: 'remarks', header: 'Remarks', isResizable: true, width: 180 }
+    ];
+    this.itemColumns = [
+      { field: 'productName', header: 'Product Name', isResizable: true, width: 220 },
+      { field: 'qty', header: 'Qty', isResizable: true, width: 80 },
+      { field: 'unit', header: 'Unit', isResizable: true, width: 80 },
+      { 
+        field: 'rate', 
+        header: 'Rate', 
+        isResizable: true, 
+        width: 100, 
+        cell: (row: any) => this.currencyPipe.transform(row.rate, 'INR') 
+      },
+      { 
+        field: 'discountPercent', 
+        header: 'Disc%', 
+        isResizable: true, 
+        width: 80, 
+        cell: (row: any) => (row.discountPercent || 0) + '%' 
+      },
+      { 
+        field: 'gstPercent', 
+        header: 'GST%', 
+        isResizable: true, 
+        width: 80, 
+        cell: (row: any) => (row.gstPercent || 0) + '%' 
+      },
+      { 
+        field: 'warehouseName', 
+        header: 'Warehouse', 
+        isResizable: true, 
+        width: 130,
+        cell: (row: any) => row.warehouseName || row.WarehouseName || '—'
+      },
+      { 
+        field: 'rackName', 
+        header: 'Rack', 
+        isResizable: true, 
+        width: 110,
+        cell: (row: any) => row.rackName || row.RackName || '—'
+      },
+      { 
+        field: 'manufacturingDate', 
+        header: 'Mfg Date', 
+        isResizable: true, 
+        width: 110, 
+        cell: (row: any) => row.manufacturingDate ? this.datePipe.transform(row.manufacturingDate, 'dd/MM/yyyy') : '—'
+      },
+      { 
+        field: 'expiryDate', 
+        header: 'Exp Date', 
+        isResizable: true, 
+        width: 110, 
+        cell: (row: any) => row.expiryDate ? this.datePipe.transform(row.expiryDate, 'dd/MM/yyyy') : '—'
+      },
+      { 
+        field: 'total', 
+        header: 'Total', 
+        isResizable: true, 
+        width: 120, 
+        cell: (row: any) => this.currencyPipe.transform(row.total || (row.qty * row.rate), 'INR') 
+      }
+    ];
+  }
+
+  // ...existing code...
 
   canAdd: boolean = true;
 
@@ -105,7 +281,9 @@ export class SoList implements OnInit {
   }
 
   ngOnInit() {
+    this.initColumns();
     this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.userRole = this.authService.getUserRole();
     this.checkUserRole();
 
     // Global loader ON - same as dashboard/po-list pattern
@@ -114,7 +292,7 @@ export class SoList implements OnInit {
     this.loadingService.setLoading(true);
     this.cdr.detectChanges();
 
-    this.loadOrders();
+    // this.loadOrders(); // Triggered by grid's triggerDataLoad -> onGridStateChange
 
     // Safety timeout - force stop loader after 10 seconds
     setTimeout(() => {
@@ -152,7 +330,7 @@ export class SoList implements OnInit {
   }
 
   get canShowBulkDispatch(): boolean {
-    return this.selection.hasValue() && this.selection.selected.some(r =>
+    return this.selection.selected.length > 1 && this.selection.selected.every(r =>
       r.status?.toLowerCase() === 'confirmed' &&
       r.paymentStatus === 'Paid' &&
       r.isDispatchPending
@@ -165,11 +343,23 @@ export class SoList implements OnInit {
     );
   }
 
+  get canShowBulkPayment(): boolean {
+    const selected = this.selection.selected;
+    if (selected.length <= 1) return false;
+
+    const customerId = selected[0].customerId;
+    return selected.every(r => 
+      r.customerId === customerId && 
+      r.status?.toLowerCase() === 'confirmed' && 
+      (r.paymentStatus === 'Unpaid' || r.paymentStatus === 'Partial')
+    );
+  }
+
   get canShowExport(): boolean {
     return false; // User requested to replace Export Excel with Bulk Delete
   }
 
-  // --- Existing Methods (Exactly as you provided) ---
+  // --- Existing Methods ---
 
   checkUserRole() {
     const role = localStorage.getItem('userRole');
@@ -178,10 +368,12 @@ export class SoList implements OnInit {
   loadOrders() {
     this.isLoading = true;
 
-    const pageIndex = this.paginator ? this.paginator.pageIndex + 1 : 1;
-    const pageSize = this.paginator ? this.paginator.pageSize : 10;
-    const sortField = this.sort ? this.sort.active : 'soDate';
-    const sortDir = this.sort ? this.sort.direction : 'desc';
+    // Use currentGridState if available, else defaults
+    const pageIndex = (this.currentGridState.pageIndex ?? 0) + 1;
+    const pageSize = this.currentGridState.pageSize ?? 10;
+    const sortField = this.currentGridState.sortField ?? 'soDate';
+    const sortDir = this.currentGridState.sortOrder ?? 'desc';
+    const filter = this.currentGridState.globalSearch || this.searchKey;
 
     forkJoin({
       orders: this.saleOrderService.getSaleOrders(pageIndex, pageSize, sortField, sortDir, this.searchKey),
@@ -299,60 +491,85 @@ export class SoList implements OnInit {
     });
   }
 
-  onBulkDelete() {
-    if (!this.canShowBulkDelete) {
-      this.dialog.open(StatusDialogComponent, {
-        width: '350px',
-        data: { isSuccess: false, title: 'Action Denied', message: 'Only Draft orders can be deleted in bulk.' }
-      });
-      return;
-    }
+  onBulkDeleteGrid(selectedRows: any[]) {
+    if (!selectedRows || selectedRows.length === 0) return;
 
-    const selectedRows = this.selection.selected;
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        title: 'Bulk Delete Draft Orders',
-        message: `Are you sure you want to delete ${selectedRows.length} selected draft orders? This action cannot be undone.`,
-        confirmText: 'Yes, Delete All',
-        confirmColor: 'warn'
-      }
-    });
+    this.isLoading = true;
+    const ids = selectedRows.map(r => r.id);
+    const deleteTasks = ids.map(id => this.saleOrderService.deleteSaleOrder(id));
 
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.isLoading = true;
-        const ids = selectedRows.map(r => r.id);
-        
-        // Use a loop to delete since service might not have bulk delete for SO yet, 
-        // or check if inventoryService has bulkDeleteSaleOrders. 
-        // Based on previous contexts, we usually have a bulk method or we loop.
-        // Let's check inventoryService first or just loop forkJoin.
-        const deleteTasks = ids.map(id => this.saleOrderService.deleteSaleOrder(id));
-        
-        forkJoin(deleteTasks).subscribe({
-          next: () => {
-            this.isLoading = false;
-            this.dialog.open(StatusDialogComponent, {
-              width: '350px',
-              data: {
-                type: 'success',
-                title: 'Orders Deleted',
-                message: `${selectedRows.length} Draft orders have been successfully deleted.`
-              }
-            });
-            this.selection.clear();
-            this.loadOrders();
-          },
-          error: (err) => {
-            this.isLoading = false;
-            console.error('Bulk delete failed:', err);
-            this.dialog.open(StatusDialogComponent, {
-              width: '350px',
-              data: { isSuccess: false, title: 'Delete Failed', message: 'Some orders could not be deleted.' }
-            });
+    forkJoin(deleteTasks).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.dialog.open(StatusDialogComponent, {
+          width: '350px',
+          data: {
+            type: 'success',
+            title: 'Orders Deleted',
+            message: `${selectedRows.length} Draft orders have been successfully deleted.`
           }
         });
+        this.selection.clear();
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Bulk delete failed:', err);
+        this.dialog.open(StatusDialogComponent, {
+          width: '350px',
+          data: { isSuccess: false, title: 'Delete Failed', message: 'Some orders could not be deleted.' }
+        });
+      }
+    });
+  }
+
+  onBulkConfirmGrid(selectedRows: any[]) {
+    if (!selectedRows || selectedRows.length === 0) return;
+
+    this.isLoading = true;
+    this.cdr.detectChanges();
+
+    const confirmTasks = selectedRows.map(order => 
+      this.saleOrderService.updateSaleOrderStatus(order.id, 'Confirmed').pipe(
+        catchError(err => {
+          console.error(`Failed to confirm order ${order.soNumber}:`, err);
+          return of({ error: true, orderNo: order.soNumber, message: err.error?.message });
+        })
+      )
+    );
+
+    forkJoin(confirmTasks).subscribe({
+      next: (results: any[]) => {
+        this.isLoading = false;
+        const errors = results.filter(r => r && r.error);
+        
+        if (errors.length > 0) {
+          const errorMsg = errors.map(e => `${e.orderNo}: ${e.message || 'Error'}`).join('\n');
+          this.dialog.open(StatusDialogComponent, {
+            width: '400px',
+            data: {
+              type: 'error',
+              title: 'Bulk Action Partially Failed',
+              message: `Processed ${results.length} orders. ${errors.length} failed:\n${errorMsg}`
+            }
+          });
+        } else {
+          this.dialog.open(StatusDialogComponent, {
+            width: '350px',
+            data: {
+              type: 'success',
+              title: 'Orders Confirmed',
+              message: `${selectedRows.length} Orders have been confirmed and stock adjusted.`
+            }
+          });
+        }
+        this.loadOrders();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.notification.showStatus(false, 'An unexpected error occurred during bulk confirmation.');
+        this.cdr.detectChanges();
       }
     });
   }
@@ -555,6 +772,23 @@ export class SoList implements OnInit {
             this.cdr.detectChanges();
           }
         });
+      }
+    });
+  }
+
+  bulkCollectPayment() {
+    const selected = this.selection.selected;
+    if (selected.length === 0) return;
+
+    const customerId = selected[0].customerId;
+    const totalAmount = selected.reduce((sum, r) => sum + (r.pendingAmount || r.grandTotal), 0);
+    const invoiceNos = selected.map(r => r.soNumber).join(', ');
+
+    this.router.navigate(['/app/finance/customers/receipt'], {
+      queryParams: {
+        customerId: customerId,
+        amount: totalAmount,
+        invoiceNo: invoiceNos // Passing comma separated invoices
       }
     });
   }
@@ -831,11 +1065,5 @@ export class SoList implements OnInit {
     });
   }
 
-  // --- Drag & Drop ---
-  drop(event: CdkDragDrop<string[]>) {
-    moveItemInArray(this.displayedColumns, event.previousIndex, event.currentIndex);
-    // Reassign to trigger change detection
-    this.displayedColumns = [...this.displayedColumns];
-  }
 
 }

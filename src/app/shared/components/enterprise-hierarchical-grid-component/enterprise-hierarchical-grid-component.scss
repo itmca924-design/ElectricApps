@@ -1381,3 +1381,23 @@ button[color="success"] {
   color: #2e7d32 !important;
   &:hover { background-color: #e8f5e9 !important; }
 }
+
+.items-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  gap: 16px;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 500;
+  background: white;
+  border-radius: 12px;
+  margin: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  mat-spinner {
+    color: #3b82f6;
+  }
+}

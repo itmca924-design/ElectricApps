@@ -36,6 +36,9 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   @Input() pageSize: number = 10;
   @Input() addNewLabel: string = 'New Record';
   @Input() addNewRoute: string = '';
+  @Input() entityName: string = 'Record';
+  @Input() showApprovalWorkflow: boolean = true;
+  @Input() showBulkConfirm: boolean = false;
 
   @Output() editRecord = new EventEmitter<any>();
   @Output() deleteRecord = new EventEmitter<any>();
@@ -51,9 +54,11 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   @Output() bulkDraftApproved = new EventEmitter<any[]>();
   @Output() bulkPORejected = new EventEmitter<any[]>();
   @Output() bulkCreateGrn = new EventEmitter<any[]>();
+  @Output() bulkConfirmOrders = new EventEmitter<any[]>();
 
   @Output() bulkDeleteParentOrders = new EventEmitter<any[]>();
   @Output() actionClicked = new EventEmitter<{ action: string, row: any }>();
+  @Output() rowExpanded = new EventEmitter<any>();
 
   @Input() highlightedId: any = null;
 
@@ -107,6 +112,9 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
     if (changes['userRole']) {
       console.log('Child Grid mein Role aaya:', changes['userRole'].currentValue);
     }
+    if (changes['showApprovalWorkflow']) {
+      console.log('Grid Flow Workflow Status:', changes['showApprovalWorkflow'].currentValue);
+    }
   }
 
   getStatusBadgeClass(status: any): string {
@@ -114,7 +122,7 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
     const s = String(status).toLowerCase();
     if (s.includes('partial')) return 'status-partial';
     if (s.includes('receive')) return 'status-received';
-    if (s.includes('approve')) return 'status-approved';
+    if (s.includes('approve') || s.includes('confirmed')) return 'status-approved';
     if (s.includes('reject')) return 'status-rejected';
     if (s.includes('draft')) return 'status-draft';
     if (s.includes('submit')) return 'status-submitted';
@@ -145,6 +153,8 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
       return (rs === 'approved' || rs === 'partially received' || rs === 'received') && hasShortage;
     };
 
+    const isUnpaid = (s === 'confirmed' || s === 'approved') && (row.paymentStatus === 'Unpaid' || row.paymentStatus === 'Partial');
+    const isPaidDispatch = (s === 'confirmed' || s === 'approved') && row.paymentStatus === 'Paid' && row.isDispatchPending;
     const rowIsPending = isPendingInward(row);
     const isDraft = s === 'draft' || s === 'rejected';
     const isSubmitted = s === 'submitted';
@@ -155,7 +165,7 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
       if (this.anySelectedHasPendingInward) {
         return rowIsPending;
       }
-      // Group 2: Draft/Rejected (For Delete/Submit)
+      // Group 2: Draft/Rejected (For Delete/Submit/Confirm)
       if (this.allSelectedAreDraft) {
         return isDraft;
       }
@@ -163,14 +173,22 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
       if (this.allSelectedAreSubmitted) {
         return isSubmitted;
       }
+      // Group 4: Unpaid Confirmed (For Bulk Payment - MUST be same customer)
+      if (this.allSelectedAreUnpaid) {
+        return isUnpaid && row.customerId === selected[0].customerId;
+      }
+      // Group 5: Paid Confirmed (For Bulk Outward - MUST be same customer)
+      if (this.allSelectedArePaidDispatch) {
+        return isPaidDispatch && row.customerId === selected[0].customerId;
+      }
 
       // If row fits another group while some group is already selected, block it
-      if (rowIsPending || isDraft || isSubmitted) return false;
+      if (rowIsPending || isDraft || isSubmitted || isUnpaid || isPaidDispatch) return false;
     }
 
     // --- Role-based entry points for starting a selection ---
-    // Anyone can start selecting rows that need Inwarding
-    if (rowIsPending) return true;
+    // Anyone can start selecting rows that need Inwarding, Payment, or Dispatch
+    if (rowIsPending || isUnpaid || isPaidDispatch) return true;
 
     if (this.userRole === 'Super Admin') return true;
 
@@ -232,6 +250,23 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
     });
   }
 
+  get allSelectedAreUnpaid(): boolean {
+    if (this.selection.selected.length === 0) return false;
+    return this.selection.selected.every(row => 
+      (row.paymentStatus === 'Unpaid' || row.paymentStatus === 'Partial') && 
+      (row.status?.toLowerCase() === 'confirmed' || row.status?.toLowerCase() === 'approved')
+    );
+  }
+
+  get allSelectedArePaidDispatch(): boolean {
+    if (this.selection.selected.length === 0) return false;
+    return this.selection.selected.every(row => 
+      row.paymentStatus === 'Paid' && 
+      row.isDispatchPending && 
+      (row.status?.toLowerCase() === 'confirmed' || row.status?.toLowerCase() === 'approved')
+    );
+  }
+
   isAllSelected(): boolean {
     const data = this.dataSource.data || [];
     const selectableRows = data.filter(row => this.isRowSelectable(row));
@@ -241,15 +276,36 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
 
   masterToggle() {
     const data = this.dataSource.data || [];
-    const selectableRows = data.filter(row => this.isRowSelectable(row));
-
+    
     if (this.isAllSelected()) {
-      // Unselect only the ones on current page
-      selectableRows.forEach(row => this.selection.deselect(row));
-    } else {
-      // Select all selectable on current page
-      selectableRows.forEach(row => this.selection.select(row));
+      this.selection.clear();
+      this.emitSelection();
+      return;
     }
+
+    // Sequentially find selectable rows based on the first match
+    let activeCategory: string = '';
+    let activeCustomerId: any = null;
+    const toSelect: any[] = [];
+
+    for (const row of data) {
+      const s = String(row.status || '').toLowerCase();
+      const isUnpaid = (s === 'confirmed' || s === 'approved') && (row.paymentStatus === 'Unpaid' || row.paymentStatus === 'Partial');
+      const isPaidDispatch = (s === 'confirmed' || s === 'approved') && row.paymentStatus === 'Paid' && row.isDispatchPending;
+      const isDraft = s === 'draft' || s === 'rejected';
+
+      if (!activeCategory) {
+        if (isUnpaid) { activeCategory = 'unpaid'; activeCustomerId = row.customerId; }
+        else if (isPaidDispatch) { activeCategory = 'dispatch'; activeCustomerId = row.customerId; }
+        else if (isDraft) activeCategory = 'draft';
+      }
+
+      if (activeCategory === 'unpaid' && isUnpaid && row.customerId === activeCustomerId) toSelect.push(row);
+      else if (activeCategory === 'dispatch' && isPaidDispatch && row.customerId === activeCustomerId) toSelect.push(row);
+      else if (activeCategory === 'draft' && isDraft) toSelect.push(row);
+    }
+
+    this.selection.select(...toSelect);
     this.emitSelection();
   }
 
@@ -335,7 +391,13 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   clearGlobalSearch() { this.globalSearchQuery = ''; this.currentPage = 0; this.triggerDataLoad(); }
 
   // --- UI Row Helpers ---
-  toggleRow(element: any) { this.expandedElement = this.expandedElement === element ? null : element; this.cdr.detectChanges(); }
+  toggleRow(element: any) {
+    this.expandedElement = this.expandedElement === element ? null : element;
+    if (this.expandedElement === element) {
+      this.rowExpanded.emit(element);
+    }
+    this.cdr.detectChanges();
+  }
 
   onResize(column: GridColumn, event: MouseEvent) {
     if (!column.isResizable) return;
@@ -437,8 +499,8 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Remove Purchase Order',
-        message: `Do you want to remove PO: ${row.poNumber}?`,
+        title: `Remove ${this.entityName}`,
+        message: `Do you want to remove ${this.entityName}: ${row.poNumber || row.soNumber || row.id}?`,
         confirmText: 'Remove',
         cancelText: 'Keep',
         confirmColor: 'warn'
@@ -476,6 +538,28 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   // 2. Bulk Parent Delete 
   // enterprise-hierarchical-grid.ts
 
+  onBulkConfirmClick() {
+    if (this.selection.selected.length > 0) {
+      const selectedRows = this.selection.selected;
+      const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+        width: '400px',
+        data: {
+          title: "Bulk Confirm Orders",
+          message: `Are you sure you want to confirm ${selectedRows.length} selected orders? This will deduct stock from inventory for all of them.`,
+          confirmText: "Confirm All",
+          confirmColor: "primary"
+        }
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          this.bulkConfirmOrders.emit(selectedRows);
+          this.selection.clear();
+        }
+      });
+    }
+  }
+
   onBulkDeleteClick() {
     const selectedRows = this.selection.selected;
 
@@ -497,8 +581,8 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Remove Purchase Order(s)',
-        message: `Do you want to remove ${selectedRows.length} selected orders?`,
+        title: `Remove ${this.entityName}(s)`,
+        message: `Do you want to remove ${selectedRows.length} selected ${this.entityName.toLowerCase()}(s)?`,
         confirmText: 'Remove',
         cancelText: 'Keep',
         confirmColor: 'warn'

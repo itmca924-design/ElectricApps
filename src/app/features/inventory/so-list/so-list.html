@@ -35,26 +35,24 @@
   <div class="header-actions">
     <h3 class="page-title">Sale Order Management</h3>
     <div class="d-flex gap-2">
-      <button mat-raised-button color="warn" class="export-action-btn" 
-              (click)="onBulkDelete()" 
-              [disabled]="isLoading"
-              *ngIf="canShowBulkDelete">
-        <mat-icon>delete_sweep</mat-icon> 
-        Bulk Delete ({{ selection.selected.length }})
-      </button>
-      <button mat-raised-button color="accent" class="bulk-action-btn" 
+      <!-- Bulk Outward Button -->
+      <button mat-raised-button color="primary" class="main-add-btn" 
               (click)="bulkCreateGatePass()" 
               [disabled]="isLoading"
               *ngIf="canShowBulkDispatch">
-        <mat-icon>local_shipping</mat-icon> 
-        Bulk Dispatch ({{ selection.selected.length }})
+        <mat-icon>local_shipping</mat-icon>
+        Bulk Outward
       </button>
-      <button mat-raised-button color="primary" class="main-add-btn" *ngIf="canAdd" (click)="createNewOrder()" [disabled]="isLoading">
-        <mat-icon>add</mat-icon> New Sale Order
+
+      <!-- Bulk Collect Payment Button -->
+      <button mat-raised-button color="primary" class="main-add-btn success-btn" 
+              (click)="bulkCollectPayment()" 
+              [disabled]="isLoading"
+              *ngIf="canShowBulkPayment">
+        <mat-icon>payments</mat-icon>
+        Bulk Collect Payment
       </button>
-      <!-- <button mat-flat-button class="quick-sale-btn" style="background-color: #3f51b5; color: white;" *ngIf="canAdd && !selection.hasValue()" (click)="router.navigate(['/app/quick-inventory/sale/list'])" [disabled]="isLoading">
-        <mat-icon>flash_on</mat-icon> Quick Sale List
-      </button> -->
+
     </div>
   </div>
 
@@ -63,280 +61,33 @@
       <mat-spinner diameter="40"></mat-spinner>
     </div>
 
-    <!-- Empty State -->
-    <div class="empty-state-container" *ngIf="!isLoading && dataSource.data.length === 0">
-      <div class="empty-state-content">
-        <mat-icon class="empty-icon">folder_off</mat-icon>
-        <h3 class="empty-title">No Records Found</h3>
-        <p class="empty-subtitle">We couldn't find any sale orders matching your search.</p>
-        <button mat-stroked-button color="primary" (click)="clearSearch()" *ngIf="searchKey">Clear Search</button>
-      </div>
-    </div>
-
-    <!-- Table & Paginator -->
-    <div [style.display]="(!isLoading && dataSource.data.length > 0) ? 'block' : 'none'" class="table-scroll-wrapper">
-      <table mat-table [dataSource]="dataSource" matSort (matSortChange)="loadOrders()">
-        
-        <ng-container matColumnDef="select">
-          <th mat-header-cell *matHeaderCellDef>
-            <mat-checkbox (change)="$event ? masterToggle() : null"
-                          [checked]="selection.hasValue() && isAllSelected()"
-                          [indeterminate]="selection.hasValue() && !isAllSelected()"
-                          color="primary">
-            </mat-checkbox>
-          </th>
-          <td mat-cell *matCellDef="let row">
-            <mat-checkbox (click)="$event.stopPropagation()"
-                          (change)="$event ? selection.toggle(row) : null"
-                          [checked]="selection.isSelected(row)"
-                          *ngIf="row.isDispatchPending"
-                          color="primary">
-            </mat-checkbox>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="soNumber">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Order #</span>
-              <button mat-icon-button [matMenuTriggerFor]="filterMenu" [matMenuTriggerData]="{placeholder: 'Search Order #'}" (click)="$event.stopPropagation()" class="small-filter-btn">
-                <mat-icon>filter_list</mat-icon>
-              </button>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'soNumber')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row"> {{row.soNumber}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="gatePassNo">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Gate Pass</span>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'gatePassNo')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row">
-            <span class="gate-pass-badge" *ngIf="row.gatePassNo">{{row.gatePassNo}}</span>
-            <span class="pending-label" *ngIf="!row.gatePassNo && row.status?.toLowerCase() === 'confirmed' && !row.soNumber?.includes('-Q-')">Pending</span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="soDate">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Date</span>
-              <button mat-icon-button [matMenuTriggerFor]="filterMenu" [matMenuTriggerData]="{placeholder: 'Search Date'}" (click)="$event.stopPropagation()" class="small-filter-btn">
-                <mat-icon>filter_list</mat-icon>
-              </button>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'soDate')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row"> {{row.soDate | date:'dd/MM/yyyy hh:mm a':'+0530'}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="customerName">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Customer</span>
-              <button mat-icon-button [matMenuTriggerFor]="filterMenu" [matMenuTriggerData]="{placeholder: 'Search Customer'}" (click)="$event.stopPropagation()" class="small-filter-btn">
-                <mat-icon>filter_list</mat-icon>
-              </button>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'customerName')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row"> {{row.customerName}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="totalQty">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Total Qty</span>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'totalQty')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row"> <b>{{row.totalQty}}</b> </td>
-        </ng-container>
-
-        <ng-container matColumnDef="grandTotal">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Amount (Rate)</span>
-              <button mat-icon-button [matMenuTriggerFor]="filterMenu" [matMenuTriggerData]="{placeholder: 'Search Amount'}" (click)="$event.stopPropagation()" class="small-filter-btn">
-                <mat-icon>filter_list</mat-icon>
-              </button>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'grandTotal')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row"> {{row.grandTotal | currency:'INR'}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Order Status</span>
-              <button mat-icon-button [matMenuTriggerFor]="filterMenu" [matMenuTriggerData]="{placeholder: 'Search Status'}" (click)="$event.stopPropagation()" class="small-filter-btn">
-                <mat-icon>filter_list</mat-icon>
-              </button>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'status')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row">
-            <span class="status-badge" [ngClass]="row.status?.toLowerCase()">
-              {{row.status}}
-            </span>
-          </td>
-        </ng-container>
-
-        <!-- Payment Status Column -->
-        <ng-container matColumnDef="paymentStatus">
-          <th mat-header-cell *matHeaderCellDef cdkDrag>
-            <div class="header-with-filter">
-              <span mat-sort-header>Payment</span>
-              <button mat-icon-button [matMenuTriggerFor]="paymentFilterMenu" (click)="$event.stopPropagation()" class="small-filter-btn">
-                <mat-icon [color]="paymentFilter ? 'primary' : ''">filter_list</mat-icon>
-              </button>
-            </div>
-            <div class="resize-handle" (mousedown)="onResizeColumn($event, 'paymentStatus')"></div>
-          </th>
-          <td mat-cell *matCellDef="let row">
-            <span class="payment-badge" [ngClass]="{
-              'payment-paid': row.paymentStatus === 'Paid' && row.status?.toLowerCase() !== 'draft',
-              'payment-partial': row.paymentStatus === 'Partial' && row.status?.toLowerCase() !== 'draft',
-              'payment-unpaid': row.paymentStatus === 'Unpaid' && row.status?.toLowerCase() !== 'draft',
-              'payment-draft': row.status?.toLowerCase() === 'draft'
-            }">
-              {{row.paymentStatus || 'Checking...'}}
-            </span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="createdBy">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Created By</span>
-            </div>
-          </th>
-          <td mat-cell *matCellDef="let row"> {{row.createdBy}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="remarks">
-          <th mat-header-cell *matHeaderCellDef cdkDrag cdkDragLockAxis="x">
-            <div class="header-with-filter">
-              <span mat-sort-header>Remarks</span>
-            </div>
-          </th>
-          <td mat-cell *matCellDef="let row"> {{row.remarks}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef> Actions </th>
-          <td mat-cell *matCellDef="let row">
-            <div class="d-flex align-items-center">
-                <button mat-icon-button color="primary" 
-                        *ngIf="row.status?.toLowerCase() === 'draft'" 
-                        (click)="confirmOrder(row)" 
-                        matTooltip="Confirm Order & Reduce Stock">
-                  <mat-icon>check_circle</mat-icon>
-                </button>
-
-                <button mat-icon-button color="primary" 
-                        *ngIf="row.status?.toLowerCase() === 'draft'" 
-                        (click)="editOrder(row)" 
-                        matTooltip="Edit Draft Order">
-                  <mat-icon>edit</mat-icon>
-                </button>
-
-                <button mat-icon-button color="warn" 
-                        *ngIf="row.status?.toLowerCase() === 'draft'" 
-                        (click)="deleteOrder(row)" 
-                        matTooltip="Delete Draft Order">
-                  <mat-icon>delete</mat-icon>
-                </button>
-
-              <button mat-icon-button color="success"
-                      *ngIf="row.paymentStatus !== 'Paid' && row.status?.toLowerCase() === 'confirmed'"
-                      (click)="collectPayment(row)"
-                      matTooltip="Collect Payment">
-                <mat-icon>payments</mat-icon>
-              </button>
-
-              <button mat-icon-button color="primary" 
-                      *ngIf="row.paymentStatus !== 'Unpaid'"
-                      (click)="downloadReceipt(row)" 
-                      matTooltip="View Payment Receipt">
-                <mat-icon style="color: #4caf50;">receipt_long</mat-icon>
-              </button>
-
-              <!-- 🚛 Truck Icon: Only when Confirmed AND Paid AND Dispatch is Pending -->
-              <button mat-icon-button color="warn" 
-                      *ngIf="row.status?.toLowerCase() === 'confirmed' && row.paymentStatus === 'Paid' && row.isDispatchPending" 
-                      (click)="createGatePass(row)" 
-                      matTooltip="Generate Outward Gate Pass (Dispatch)">
-                <mat-icon style="color: #e91e63;">local_shipping</mat-icon>
-              </button>
-
-              <!-- ✅ Success Icon: When Confirmed AND Paid AND Dispatch is DONE -->
-              <button mat-icon-button 
-                      *ngIf="row.status?.toLowerCase() === 'confirmed' && row.paymentStatus === 'Paid' && !row.isDispatchPending" 
-                      matTooltip="Dispatch Completed (Gate Pass Generated)"
-                      style="cursor: default;">
-                <mat-icon style="color: #4caf50;">task_alt</mat-icon>
-              </button>
-
-              <button mat-icon-button color="accent" 
-                      (click)="viewOrder(row)" 
-                      matTooltip="View Order Details">
-                <mat-icon>visibility</mat-icon>
-              </button>
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"
-            cdkDropList
-            cdkDropListOrientation="horizontal"
-            (cdkDropListDropped)="drop($event)"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="row.isDispatchPending ? selection.toggle(row) : null"></tr>
-      </table>
-
-      <mat-paginator [length]="totalRecords" 
-                   [pageSize]="10"
-                   [pageSizeOptions]="[5, 10, 25]" 
-                   (page)="loadOrders()">
-      </mat-paginator>
-    </div>
-
-    <!-- Payment Status Filter Menu -->
-    <mat-menu #paymentFilterMenu="matMenu" xPosition="after" [overlapTrigger]="false" class="filter-menu-panel">
-      <div class="filter-container">
-        <button mat-menu-item (click)="setPaymentFilter('')" [class.active-filter]="paymentFilter === ''">
-          <mat-icon>clear_all</mat-icon> All Orders
-        </button>
-        <button mat-menu-item (click)="setPaymentFilter('Paid')" [class.active-filter]="paymentFilter === 'Paid'">
-          <mat-icon style="color: #2e7d32;">check_circle</mat-icon> Paid
-        </button>
-        <button mat-menu-item (click)="setPaymentFilter('Partial')" [class.active-filter]="paymentFilter === 'Partial'">
-          <mat-icon style="color: #f57f17;">info</mat-icon> Partial
-        </button>
-        <button mat-menu-item (click)="setPaymentFilter('Unpaid')" [class.active-filter]="paymentFilter === 'Unpaid'">
-          <mat-icon style="color: #c62828;">cancel</mat-icon> Unpaid
-        </button>
-      </div>
-    </mat-menu>
-
-    <!-- Filter Menu Template -->
-    <mat-menu #filterMenu="matMenu" xPosition="after" [overlapTrigger]="false" class="filter-menu-panel">
-      <ng-template matMenuContent let-placeholder="placeholder">
-        <div (click)="$event.stopPropagation()" class="filter-container">
-          <mat-form-field appearance="outline" class="w-100 compact-filter-input" subscriptSizing="dynamic">
-            <mat-icon matPrefix>search</mat-icon>
-            <input matInput (keyup)="applySearch($event)" [value]="searchKey" placeholder="{{placeholder}}" (click)="$event.stopPropagation()">
-            <button mat-icon-button matSuffix *ngIf="searchKey" (click)="clearSearch(); $event.stopPropagation()" style="width: 24px; height: 24px; line-height: 24px;">
-               <mat-icon style="font-size: 16px;">close</mat-icon>
-            </button>
-          </mat-form-field>
-        </div>
-      </ng-template>
-    </mat-menu>
+    <!-- Hierarchical Grid Component -->
+    <app-enterprise-hierarchical-grid
+      [addNewLabel]="'New Sale Order'"
+      [addNewRoute]="'/app/inventory/solist/add'"
+      [columns]="soColumns"
+      [childColumns]="itemColumns"
+      [showApprovalWorkflow]="false"
+      [dataSource]="dataSource"
+      [totalRecords]="totalRecords"
+      [pageSize]="10"
+      [isLoading]="isLoading"
+      [childDataField]="'items'"
+      [userRole]="userRole"
+      [highlightedId]="highlightedSoId"
+      [canAdd]="canAdd"
+      [canEdit]="canEdit"
+      [canDelete]="canDelete"
+      [showSimpleActions]="true"
+      [entityName]="'Sale Order'"
+      [showBulkConfirm]="true"
+      (onGridStateChange)="onGridStateChange($event)"
+      (deleteRecord)="onDeleteSingleRecord($event)"
+      (selectionChanged)="onGridSelectionChange($event)"
+      (actionClicked)="handleGridAction($event)"
+      (rowExpanded)="onRowExpanded($event)"
+      (bulkDeleteParentOrders)="onBulkDeleteGrid($event)"
+      (bulkConfirmOrders)="onBulkConfirmGrid($event)">
+    </app-enterprise-hierarchical-grid>
   </div>
 </div>

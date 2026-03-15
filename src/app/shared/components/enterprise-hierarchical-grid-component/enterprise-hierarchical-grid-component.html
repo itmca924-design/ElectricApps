@@ -37,19 +37,23 @@
 
       <!-- Contextual Action Buttons (Show only when more than one record is selected) -->
       <div class="contextual-buttons-group" *ngIf="selection.selected.length > 1">
+        <button mat-raised-button color="primary" *ngIf="showBulkConfirm && allSelectedAreDraft && canAdd && (userRole === 'User' || userRole === 'Super Admin')" (click)="onBulkConfirmClick()" class="bulk-action-btn success-btn">
+          <mat-icon>check_circle</mat-icon> Bulk Confirm
+        </button>
+
         <button mat-raised-button color="warn" *ngIf="allSelectedAreDraft && canDelete && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onBulkDeleteClick()" class="bulk-action-btn">
           <mat-icon>delete_sweep</mat-icon> Bulk Delete
         </button>
 
-        <button mat-raised-button  *ngIf="allSelectedAreDraft && canAdd && (userRole === 'User' || userRole === 'Super Admin')" (click)="onBulkApproveClick()" class="bulk-action-btn glass-btn success-btn">
+        <button mat-raised-button  *ngIf="showApprovalWorkflow && !showSimpleActions && allSelectedAreDraft && canAdd && (userRole === 'User' || userRole === 'Super Admin')" (click)="onBulkApproveClick()" class="bulk-action-btn glass-btn success-btn">
           <mat-icon>done_all</mat-icon> Submit Approval
         </button>
 
-        <button mat-raised-button color="primary" *ngIf="allSelectedAreSubmitted && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkDraftApprovedClick()" class="bulk-action-btn success-btn">
+        <button mat-raised-button color="primary" *ngIf="showApprovalWorkflow && allSelectedAreSubmitted && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkDraftApprovedClick()" class="bulk-action-btn success-btn">
           <mat-icon>verified</mat-icon> Massive Approve
         </button>
 
-        <button mat-raised-button color="warn" *ngIf="allSelectedAreSubmitted && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkPORejectedClick()" class="bulk-action-btn">
+        <button mat-raised-button color="warn" *ngIf="showApprovalWorkflow && allSelectedAreSubmitted && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkPORejectedClick()" class="bulk-action-btn">
           <mat-icon>cancel</mat-icon> Mass Reject
         </button>
 
@@ -154,6 +158,13 @@
     <div class="po-actions-wrapper">
 
       <ng-container *ngIf="showSimpleActions">
+        <!-- View Button -->
+        <button mat-icon-button color="primary"
+                (click)="$event.stopPropagation(); handleAction('VIEW', row)"
+                matTooltip="View Details">
+          <mat-icon style="opacity: 0.7;">visibility</mat-icon>
+        </button>
+
         <!-- New Payment Button (Added for Quick Sale Payment Flow) -->
         <button mat-icon-button color="success"
                 *ngIf="row.paymentStatus !== 'Paid' && row.status === 'Confirmed'"
@@ -162,20 +173,35 @@
           <mat-icon>payments</mat-icon>
         </button>
 
-        <!-- New View Receipt Button (Mirroring SO Dashboard) -->
+        <!-- View Receipt Button -->
         <button mat-icon-button 
-                *ngIf="row.paymentStatus !== 'Unpaid' && row.status === 'Confirmed'"
+                *ngIf="row.paymentStatus === 'Paid' && row.status === 'Confirmed'"
                 (click)="$event.stopPropagation(); handleAction('RECEIPT', row)"
                 matTooltip="View Payment Receipt">
           <mat-icon style="color: #4caf50;">receipt_long</mat-icon>
         </button>
 
+        <!-- Edit/Confirm/Delete (Draft only) -->
         <button mat-icon-button color="primary"
                 *ngIf="canEdit && row.status?.toLowerCase() === 'draft'"
                 (click)="$event.stopPropagation(); handleAction('EDIT', row)"
                 matTooltip="Edit">
-          <mat-icon>edit</mat-icon>
+          <mat-icon style="opacity: 0.8;">edit</mat-icon>
         </button>
+        <button mat-icon-button color="primary"
+                *ngIf="canAdd && row.status?.toLowerCase() === 'draft'"
+                (click)="$event.stopPropagation(); handleAction('CONFIRM', row)"
+                matTooltip="Confirm Order">
+          <mat-icon>check_circle</mat-icon>
+        </button>
+
+        <button mat-icon-button color="accent"
+                *ngIf="row.status?.toLowerCase() === 'confirmed' && row.isDispatchPending && row.paymentStatus !== 'Unpaid'"
+                (click)="$event.stopPropagation(); handleAction('CREATE_OUTWARD', row)"
+                matTooltip="Create Outward Gate Pass">
+          <mat-icon>local_shipping</mat-icon>
+        </button>
+
         <button mat-icon-button color="warn"
                 *ngIf="canDelete && row.status?.toLowerCase() === 'draft'"
                 (click)="$event.stopPropagation(); handleAction('DELETE', row)"
@@ -192,7 +218,7 @@
        <button mat-icon-button color="primary" 
                *ngIf="canEdit"
                (click)="$event.stopPropagation(); handleAction('EDIT', row)" 
-               matTooltip="Edit PO">
+               matTooltip="Edit {{entityName}}">
          <mat-icon>edit</mat-icon>
        </button>
 
@@ -200,7 +226,7 @@
        <button mat-icon-button color="warn" 
                *ngIf="canDelete"
                (click)="$event.stopPropagation(); handleAction('DELETE', row)" 
-               matTooltip="Delete PO">
+               matTooltip="Delete {{entityName}}">
          <mat-icon>delete</mat-icon>
        </button>
 
@@ -215,10 +241,10 @@
    </ng-container>
 
       <ng-container *ngIf="row.status === 'Submitted' && (userRole === 'Manager' || userRole === 'Super Admin')">
-        <button mat-icon-button color="primary" (click)="$event.stopPropagation(); handleAction('APPROVE', row)" matTooltip="Approve PO">
+        <button mat-icon-button color="primary" (click)="$event.stopPropagation(); handleAction('APPROVE', row)" matTooltip="Approve {{entityName}}">
           <mat-icon>check_circle</mat-icon>
         </button>
-        <button mat-icon-button color="warn" (click)="$event.stopPropagation(); handleAction('REJECT', row)" matTooltip="Reject PO">
+        <button mat-icon-button color="warn" (click)="$event.stopPropagation(); handleAction('REJECT', row)" matTooltip="Reject {{entityName}}">
           <mat-icon>cancel</mat-icon>
         </button>
       </ng-container>
@@ -233,7 +259,7 @@
         <button mat-icon-button color="primary" (click)="$event.stopPropagation(); handleAction('VIEW', row)" matTooltip="View Details">
           <mat-icon style="opacity: 0.7;">visibility</mat-icon>
         </button>
-        <button mat-icon-button (click)="$event.stopPropagation(); handleAction('PRINT', row)" matTooltip="Print PO">
+        <button mat-icon-button (click)="$event.stopPropagation(); handleAction('PRINT', row)" matTooltip="Print {{entityName}}">
           <mat-icon style="color: #607d8b;">print</mat-icon>
         </button>
       </ng-container>
@@ -246,7 +272,7 @@
       </ng-container>
 
       <ng-container *ngIf="row.status === 'Received' || row.status === 'Partially Received'">
-        <button mat-icon-button (click)="$event.stopPropagation(); handleAction('PRINT', row)" matTooltip="Print PO">
+        <button mat-icon-button (click)="$event.stopPropagation(); handleAction('PRINT', row)" matTooltip="Print {{entityName}}">
           <mat-icon color="primary">print</mat-icon>
         </button>
         
@@ -282,6 +308,14 @@
           <td mat-cell *matCellDef="let element" [attr.colspan]="displayedColumns.length">
             <div class="detail-panel" [class.is-expanded]="element === expandedElement">
               <div class="child-grid-wrapper" *ngIf="element === expandedElement">
+                
+                <!-- Lazy Loading Indicator -->
+                <div class="items-loading-container" *ngIf="element.isLoadingItems">
+                  <mat-spinner diameter="35"></mat-spinner>
+                  <span>Fetching item details...</span>
+                </div>
+
+                <ng-container *ngIf="!element.isLoadingItems">
                 <div class="child-header" style="display: flex; justify-content: space-between; align-items: center;">
                   <span class="child-title">Detailed Line Items</span>
                   <button mat-raised-button color="warn" size="small" *ngIf="childSelection.hasValue()"
@@ -400,6 +434,7 @@
                     </div>
                   </div>
                 </div>
+              </ng-container>
               </div>
             </div>
           </td>

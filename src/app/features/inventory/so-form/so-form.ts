@@ -324,10 +324,18 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
     if (!isExistingItem) {
       const productName = product.productName || product.name || '';
-      this.inventoryService.getCurrentStock('', '', 0, 10, productName).subscribe((res: any) => {
+      // 🧐 Using Name for search as Stock controller might not index SKU for search, 
+      // but matching by ID is case-insensitive for GUID consistency.
+      this.inventoryService.getCurrentStock('', '', 0, 100, productName).subscribe((res: any) => {
         const currentItem = row;
         const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
-        const productItem = itemsArray.find((x: any) => String(x.productId || x.ProductId) === String(productId));
+        
+        // Match by ID (Case Insensitive for GUIDs) or Product Name as fallback
+        const productItem = itemsArray.find((x: any) => {
+          const xId = String(x.productId || x.ProductId || x.id || x.Id).toLowerCase();
+          const targetId = String(productId).toLowerCase();
+          return xId === targetId || (x.productName === productName && productName.length > 0);
+        });
 
         if (!productItem) {
           this.dialog.open(StatusDialogComponent, { width: '350px', data: { isSuccess: false, title: 'Out of Stock', message: 'No stock available for this product.' } });
@@ -407,6 +415,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
     formGroup.patchValue({
       warehouseId: whId,
+      warehouseName: batch.warehouseName || batch.WarehouseName,
       rackId: rkId,
       rackName: rackName,
       manufacturingDate: mfgDate ? new Date(mfgDate) : null,
@@ -776,6 +785,8 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
               gstPercent: Number(val.gstPercent) || 0,
               taxAmount: Number(val.taxAmount) || 0,
               total: Number(val.total) || 0,
+              warehouseId: val.warehouseId || null,
+              rackId: val.rackId || null,
               manufacturingDate: val.manufacturingDate || null,
               expiryDate: val.expiryDate || null
             };
