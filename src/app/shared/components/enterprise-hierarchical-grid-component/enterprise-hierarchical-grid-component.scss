@@ -1064,14 +1064,7 @@ div[style*="display: flex"] {
 
 /* enterprise-hierarchical-grid.component.css */
 
-/* Status text styling */
-.status-badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
-  text-transform: capitalize;
-}
+
 
 /* Disabled state for checkboxes [cite: 2026-01-22] */
 .mat-mdc-checkbox-disabled {
@@ -1280,100 +1273,67 @@ div[style*="display: flex"] {
 .qty-neutral {
   color: #455a64 !important;
   font-weight: bold;
-}
-
-/* Status Badges */
-.status-badge {
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 8.5px !important; /* Matches Partial Received size */
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+}/* Core Badge Styling (Unified) */
+.payment-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  white-space: nowrap;
-  min-width: 70px; /* Very compact */
-  text-align: center;
-  line-height: 1;
-}
-
-/* Ensure table cells with badges have space */
-[mat-cell] .status-badge {
-  margin: 4px 0;
-}
-
-.status-partial {
-  background: #ecfdf5; /* Light Emerald */
-  color: #059669;      /* Dark Emerald */
-  border: 1px solid #10b98133;
-  line-height: 1.1;
-  white-space: normal; /* Allow wrapping for <br> */
-}
-
-.status-received {
-  background: #f0fdf4; /* Light Green */
-  color: #16a34a;      /* Dark Green */
-  border: 1px solid #22c55e33;
-}
-
-.status-approved {
-  background: #eff6ff; /* Light Blue */
-  color: #2563eb;      /* Dark Blue */
-  border: 1px solid #3b82f633;
-}
-
-.status-rejected {
-  background: #fef2f2; /* Light Red */
-  color: #dc2626;      /* Dark Red */
-  border: 1px solid #ef444433;
-}
-
-.status-draft {
-  background: #f9fafb; /* Light Grey */
-  color: #4b5563;      /* Dark Grey */
-  border: 1px solid #9ca3af33;
-}
-
-.status-submitted {
-  background: #fffbeb; /* Light Amber */
-  color: #d97706;      /* Dark Amber */
-  border: 1px solid #f59e0b33;
-}
-/* Payment Status Badges */
-.payment-badge {
-  padding: 4px 12px;
-  border-radius: 6px;
-  font-size: 10px;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 4px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.4px;
   text-transform: uppercase;
-  display: inline-block;
-  line-height: 1.4;
-  min-width: 80px;
-  text-align: center;
+  min-width: 90px;
 }
 
+/* Ensure table cells with badges have space */
+[mat-cell] .payment-badge {
+  margin: 4px 0;
+}
+
+/* Payment Status Colors (Harmonized) */
+
+/* 1. Success (Green) */
 .payment-paid {
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-  color: #155724;
-  border: 1px solid #b1dfbb;
-  box-shadow: 0 1px 3px rgba(21, 87, 36, 0.1);
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #166534;
+  border: 1px solid #86efac;
+  box-shadow: 0 1px 3px rgba(22, 101, 52, 0.1);
 }
 
+/* 2. Warning / Pending (Yellow/Amber) */
 .payment-partial {
-  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-  color: #856404;
-  border: 1px solid #fdd177;
-  box-shadow: 0 1px 3px rgba(133, 100, 4, 0.1);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  color: #92400e;
+  border: 1px solid #fde68a;
+  box-shadow: 0 1px 3px rgba(146, 64, 14, 0.1);
 }
 
+/* Gray Labels (Status & GatePass) */
+.gray-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+/* 3. Danger / Error (Red) */
 .payment-unpaid {
-  background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
-  color: #721c24;
-  border: 1px solid #f1b0b7;
-  box-shadow: 0 1px 3px rgba(114, 28, 36, 0.1);
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  box-shadow: 0 1px 3px rgba(153, 27, 27, 0.1);
 }
 
 /* Custom Icon Colors (Shared from so-list) */

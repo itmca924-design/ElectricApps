@@ -134,14 +134,13 @@
               </span>
             </ng-container>
 
-            <ng-container *ngIf="col.field === 'status'">
-              <span class="status-badge" 
-                    [ngClass]="getStatusBadgeClass(col.cell ? col.cell(row, dataSource.data.indexOf(row)) : row[col.field])"
-                    [innerHTML]="col.cell ? col.cell(row, dataSource.data.indexOf(row)) : row[col.field]">
+            <ng-container *ngIf="col.field === 'status' || col.field === 'gatePassNo'">
+              <span class="gray-label">
+                {{ col.cell ? col.cell(row, dataSource.data.indexOf(row)) : (row[col.field] || '—') }}
               </span>
             </ng-container>
 
-            <ng-container *ngIf="col.field !== 'paymentStatus' && col.field !== 'status'">
+            <ng-container *ngIf="col.field !== 'paymentStatus' && col.field !== 'status' && col.field !== 'gatePassNo'">
               <ng-container *ngTemplateOutlet="normalCell; context: { $implicit: row, col: col, index: dataSource.data.indexOf(row) }"></ng-container>
             </ng-container>
 
