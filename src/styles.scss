@@ -574,3 +574,100 @@ $my-palettes: (
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
 }
+
+/* =====================================================
+   16. GLOBAL PRINT STYLES
+===================================================== */
+@media print {
+  /* 1. HIDE EVERYTHING LAYOUT RELATED AGGRESSIVELY */
+  mat-sidenav, 
+  mat-toolbar, 
+  .mat-toolbar,
+  .mat-sidenav,
+  .mat-drawer,
+  aside,
+  header,
+  .sidenav, 
+  .toolbar, 
+  .breadcrumb, 
+  .footer, 
+  .sidenav-footer, 
+  .no-print, 
+  button, 
+  .editor,
+  .nav-section,
+  .branding-section,
+  .mat-mdc-button,
+  .mat-mdc-raised-button,
+  .mat-mdc-flat-button {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* 2. RESET THE ENTIRE PAGE STRUCTURE */
+  html, body {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 3. UNLOCK THE MATERIAL CONTAINERS */
+  mat-sidenav-container, 
+  .mat-sidenav-container,
+  .sidenav-container {
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    border: none !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+  }
+
+  mat-sidenav-content, 
+  .mat-sidenav-content,
+  .mat-drawer-content {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    position: static !important; /* Material uses absolute/relative sometimes */
+  }
+
+  /* 4. FORCE CONTENT VISIBILITY */
+  .content, 
+  main,
+  app-sales-invoice,
+  .preview-container {
+    display: block !important;
+    visibility: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* 5. KILL ALL SCROLLBARS */
+  * {
+    scrollbar-width: none !important; /* Firefox */
+    &::-webkit-scrollbar { display: none !important; } /* Chrome/Safari */
+  }
+}

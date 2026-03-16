@@ -233,7 +233,22 @@ export class PurchaseReturnForm implements OnInit {
       item.warehouseName = item.warehouseName ?? item.WarehouseName ?? 'N/A';
       item.rackName = item.rackName ?? item.RackName ?? 'N/A';
       item.isReturnable = item.isReturnable ?? item.IsReturnable ?? true;
-      item.remainingHours = item.returnWindowRemainingHours ?? item.ReturnWindowRemainingHours ?? 0;
+      
+      // Front-end validation for 72-hour window [cite: 2026-03-16]
+      const now = new Date();
+      const recDate = new Date(rDate);
+      const diffMs = now.getTime() - recDate.getTime();
+      const diffHrs = diffMs / (1000 * 60 * 60);
+      const calcRemainingHrs = 72 - diffHrs;
+      
+      // If backend didn't send it or sent 0, use front-end calculation
+      const backendHrs = item.returnWindowRemainingHours ?? item.ReturnWindowRemainingHours ?? 0;
+      item.remainingHours = backendHrs > 0 ? backendHrs : (calcRemainingHrs > 0 ? calcRemainingHrs : 0);
+      
+      // Sync isReturnable with calculation
+      if (item.remainingHours <= 0) {
+        item.isReturnable = false;
+      }
 
       item.selected = this.isItemInGrid(item);
       groups[ref].items.push(item);
@@ -699,9 +714,9 @@ export class PurchaseReturnForm implements OnInit {
 
   formatRemainingTime(hours: number): string {
     if (hours <= 0) return 'Expired';
-    const h = Math.floor(hours);
-    const m = Math.round((hours - h) * 60);
-    return `${h}h ${m}m`;
+    // Round to nearest hour for cleaner display as requested ("n hrs")
+    const h = Math.round(hours);
+    return `${h} hrs`;
   }
 }
 

@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { Router, ActivatedRoute } from '@angular/router';
 import { MaterialModule } from '../../../../shared/material/material/material-module';
 import { SaleReturnService } from '../services/sale-return.service';
@@ -23,13 +24,14 @@ import { environment } from '../../../../enviornments/environment';
 @Component({
     selector: 'app-sale-return-form',
     standalone: true,
-    imports: [CommonModule, MaterialModule, ReactiveFormsModule, SummaryStatsComponent],
+    imports: [CommonModule, MaterialModule, ReactiveFormsModule, SummaryStatsComponent, MatPaginatorModule],
     providers: [DatePipe, CurrencyPipe],
     templateUrl: './sale-return-form.component.html',
     styleUrl: './sale-return-form.component.scss',
 })
-export class SaleReturnFormComponent implements OnInit {
+export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     private fb = inject(FormBuilder);
+    @ViewChild(MatPaginator) paginator!: MatPaginator;
     private srService = inject(SaleReturnService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
@@ -75,16 +77,31 @@ export class SaleReturnFormComponent implements OnInit {
         });
     }
 
+    ngAfterViewInit(): void {
+        this.itemsDataSource.paginator = this.paginator;
+    }
+
     ngOnInit(): void {
         this.isQuick = (this.route as any).snapshot.data['isQuick'] || false;
         this.loadCustomersLookup();
         this.loadLocations();
         this.updateSummaryStats();
+        
         this.route.params.subscribe(params => {
             if (params['id']) {
                 this.isEditMode = true;
                 this.returnId = +params['id'];
                 this.loadReturnDetails(this.returnId);
+            }
+        });
+
+        // Handle Auto-fill from Query Params (Standard return via SO List)
+        this.route.queryParams.subscribe(params => {
+            const customerId = params['customerId'];
+            const soId = params['soId'];
+            if (customerId && soId && !this.isEditMode) {
+                this.returnForm.patchValue({ customerId: Number(customerId) });
+                this.onCustomerChange(Number(customerId), Number(soId));
             }
         });
     }
@@ -105,9 +122,11 @@ export class SaleReturnFormComponent implements OnInit {
         });
     }
 
-    onCustomerChange(customerId: number) {
+    onCustomerChange(customerId: number, targetSoId?: number) {
         this.saleOrders = [];
-        this.returnForm.get('saleOrderId')?.setValue(null);
+        if (!targetSoId) {
+            this.returnForm.get('saleOrderId')?.setValue(null);
+        }
         this.clearItems();
 
         if (customerId) {
@@ -116,6 +135,12 @@ export class SaleReturnFormComponent implements OnInit {
                 next: (data) => {
                     this.saleOrders = data;
                     this.isLoadingSaleOrders = false;
+                    
+                    if (targetSoId) {
+                        this.returnForm.patchValue({ saleOrderId: targetSoId });
+                        this.onSOChange(targetSoId);
+                    }
+                    
                     this.cdr.detectChanges();
                 },
                 error: (err) => {
@@ -134,7 +159,7 @@ export class SaleReturnFormComponent implements OnInit {
         if (soId) {
             this.isLoading = true;
             this.saleOrderService.getSaleOrderItems(soId).subscribe({
-                next: (items) => {
+                next: (items: any[]) => {
                     this.noItemsFound = items.length === 0;
                     this.isPolicyViolated = items.some(i => !i.isReturnable);
 
@@ -150,12 +175,13 @@ export class SaleReturnFormComponent implements OnInit {
                             returnQty: [{ value: 0, disabled: !item.isReturnable }, [Validators.required, Validators.min(0), Validators.max(item.soldQty || item.quantity)]],
                             taxRate: [item.taxPercentage || item.taxRate || 0],
                             amount: [0],
-                            warehouseId: [{ value: item.defaultWarehouseId || null, disabled: true }],
-                            rackId: [{ value: item.defaultRackId || null, disabled: true }],
-                            isReturnable: [item.isReturnable],
-                            remainingHours: [item.returnWindowRemainingHours],
-                            manufacturingDate: [item.manufacturingDate],
-                            expiryDate: [item.expiryDate]
+                            warehouseId: [item.warehouseId || null, Validators.required],
+                            rackId: [item.rackId || null, Validators.required],
+                            isReturnable: [item.isReturnable && (item.returnWindowRemainingHours > 0)],
+                            remainingHours: [item.returnWindowRemainingHours || 0],
+                            manufacturingDate: [item.mfgDate],
+                            expiryDate: [item.expDate],
+                            isExpiryRequired: [item.isExpiryRequired ?? true]
                         });
 
                         this.calculateRowTotal(itemGroup);
@@ -640,9 +666,9 @@ export class SaleReturnFormComponent implements OnInit {
 
     formatRemainingTime(hours: number): string {
         if (hours <= 0) return 'Expired';
-        const h = Math.floor(hours);
-        const m = Math.round((hours - h) * 60);
-        return `${h}h ${m}m`;
+        // Round to nearest hour for cleaner display as requested ("n hrs")
+        const h = Math.round(hours);
+        return `${h} hrs`;
     }
 
     goBack() {

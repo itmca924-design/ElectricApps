@@ -3,6 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { CompanyService } from '../../company/services/company.service';
+import { environment } from '../../../enviornments/environment';
 
 @Component({
   selector: 'app-sales-invoice',
@@ -14,6 +15,8 @@ import { CompanyService } from '../../company/services/company.service';
 export class SalesInvoice implements OnInit {
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
+  
+  signatureImageUrl: string | null = null;
 
   invoiceForm = this.fb.group({
     documentType: ['Tax Invoice'], // 'Tax Invoice' or 'Bill of Supply'
@@ -22,6 +25,7 @@ export class SalesInvoice implements OnInit {
     companyGSTIN: [''],
     companyPAN: [''],
     companyCIN: [''],
+    authorizedSignatoryName: [''],
     
     orderId: ['OD' + Math.floor(Math.random() * 1000000000000)],
     orderDate: [new Date()],
@@ -69,12 +73,24 @@ export class SalesInvoice implements OnInit {
             pan = profile.gstin.substring(2, 12);
           }
 
+          // Fetch Default Signatory
+          const signatory = profile.authorizedSignatories?.find(s => s.isDefault) || profile.authorizedSignatories?.[0];
+          if (signatory?.signatureImageUrl) {
+            if (signatory.signatureImageUrl.startsWith('http')) {
+              this.signatureImageUrl = signatory.signatureImageUrl;
+            } else {
+              const cleanUrl = signatory.signatureImageUrl.startsWith('/') ? signatory.signatureImageUrl.substring(1) : signatory.signatureImageUrl;
+              this.signatureImageUrl = `${environment.CompanyRootUrl}/${cleanUrl}`;
+            }
+          }
+
           this.invoiceForm.patchValue({
             companyName: profile.name,
             companyAddress: fullAddress,
             companyGSTIN: profile.gstin,
             companyPAN: pan,
-            companyCIN: profile.registrationNumber
+            companyCIN: profile.registrationNumber,
+            authorizedSignatoryName: signatory?.personName || profile.name
           });
         }
       },

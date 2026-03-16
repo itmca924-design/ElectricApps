@@ -137,8 +137,7 @@
             </ng-container>
 
             <ng-container *ngIf="col.field === 'status' || col.field === 'gatePassNo'">
-              <span class="gray-label">
-                {{ col.cell ? col.cell(row, dataSource.data.indexOf(row)) : (row[col.field] || '—') }}
+              <span class="gray-label" [innerHTML]="col.cell ? col.cell(row, dataSource.data.indexOf(row)) : (row[col.field] || '—')">
               </span>
             </ng-container>
 
@@ -201,6 +200,15 @@
                 (click)="$event.stopPropagation(); handleAction('CREATE_OUTWARD', row)"
                 matTooltip="Create Outward Gate Pass">
           <mat-icon>local_shipping</mat-icon>
+        </button>
+
+        <!-- Sale Return Button (User Friendly Option) -->
+        <button mat-icon-button color="warn"
+                *ngIf="row.status === 'Confirmed' && (entityName === 'Sale Order' || entityName === 'Sale')"
+                [disabled]="!isWithinReturnWindow(row)"
+                (click)="$event.stopPropagation(); handleAction('RETURN', row)"
+                [matTooltip]="isWithinReturnWindow(row) ? 'Initiate Sale Return' : 'Return Window Closed (72 hrs crossed)'">
+          <mat-icon [style.opacity]="isWithinReturnWindow(row) ? 1 : 0.5">assignment_return</mat-icon>
         </button>
 
         <button mat-icon-button color="warn"

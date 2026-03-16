@@ -414,9 +414,22 @@ export class QuickSaleListComponent implements OnInit {
       case 'CONFIRM':
         this.confirmOrder(row);
         break;
+      case 'RETURN':
+        this.returnOrder(row);
+        break;
       default:
         break;
     }
+  }
+
+  returnOrder(row: any) {
+    if (!row.customerId || !row.id) return;
+    this.router.navigate(['/app/quick-inventory/so-return/add'], {
+      queryParams: {
+        customerId: row.customerId,
+        soId: row.id
+      }
+    });
   }
 
   confirmOrder(order: any) {

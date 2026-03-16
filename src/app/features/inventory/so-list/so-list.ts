@@ -123,6 +123,9 @@ export class SoList implements OnInit {
       case 'RECEIPT':
         this.downloadReceipt(row);
         break;
+      case 'RETURN':
+        this.returnOrder(row);
+        break;
       default:
         console.warn('Unhandled action:', event.action);
     }
@@ -667,6 +670,16 @@ export class SoList implements OnInit {
           data: { type: 'error', title: 'Load Failed', message: "Connection error." }
         });
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  returnOrder(row: any) {
+    if (!row.customerId || !row.id) return;
+    this.router.navigate(['/app/inventory/sale-return/add'], {
+      queryParams: {
+        customerId: row.customerId,
+        soId: row.id
       }
     });
   }

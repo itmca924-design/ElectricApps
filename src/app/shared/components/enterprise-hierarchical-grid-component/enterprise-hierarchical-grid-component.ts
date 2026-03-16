@@ -712,4 +712,13 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
       row: rowData
     });
   }
+
+  isWithinReturnWindow(row: any): boolean {
+    if (!row.soDate && !row.SODate) return true;
+    const dateStr = row.soDate || row.SODate;
+    const saleDate = new Date(dateStr);
+    const now = new Date();
+    const diffInHours = (now.getTime() - saleDate.getTime()) / (1000 * 60 * 60);
+    return diffInHours <= 72;
+  }
 }

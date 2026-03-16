@@ -133,46 +133,61 @@
     
     <!-- HEADER -->
     <div class="invoice-header">
-      <div class="company-info">
-        <p><b>Sold By: {{ invoiceForm.get('companyName')?.value }}</b></p>
-        <p><i>Ship-from Address:</i> {{ invoiceForm.get('companyAddress')?.value }}</p>
-        <p><b>GSTIN:</b> {{ invoiceForm.get('companyGSTIN')?.value }}</p>
-      </div>
-
-      <div class="doc-title">{{ invoiceForm.get('documentType')?.value }}</div>
-
-      <div class="qr-section">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{invoiceForm.get('invoiceNo')?.value}}" class="qr" alt="QR Code">
-        <br>
-        <div class="inv-no-box">Invoice Number # {{ invoiceForm.get('invoiceNo')?.value }}</div>
+      <div class="header-table" style="width: 100%; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px;">
+        <table style="width: 100%; table-layout: fixed;">
+          <tr>
+            <td style="width: 40%; text-align: left; vertical-align: top;">
+              <div class="company-details">
+                <b style="font-size: 14pt; display: block; margin-bottom: 5px;">Sold By: {{ invoiceForm.get('companyName')?.value }}</b>
+                <p style="font-size: 10pt; margin: 2px 0;">{{ invoiceForm.get('companyAddress')?.value }}</p>
+                <p style="font-size: 10pt; margin: 2px 0;"><b>GSTIN:</b> {{ invoiceForm.get('companyGSTIN')?.value }}</p>
+                <p style="font-size: 10pt; margin: 2px 0;"><b>PAN:</b> {{ invoiceForm.get('companyPAN')?.value }}</p>
+                <p style="font-size: 10pt; margin: 2px 0;"><b>CIN:</b> {{ invoiceForm.get('companyCIN')?.value }}</p>
+              </div>
+            </td>
+            <td style="width: 20%; text-align: center; vertical-align: top;">
+              <h1 style="font-size: 18pt; margin: 0; text-transform: uppercase;">{{ invoiceForm.get('documentType')?.value }}</h1>
+            </td>
+            <td style="width: 40%; text-align: right; vertical-align: top;">
+              <div class="qr-wrapper">
+                <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + invoiceForm.get('invoiceNo')?.value" style="width: 80px; height: 80px;" alt="QR Code">
+                <div style="border: 1px dashed #000; display: inline-block; padding: 5px; margin-top: 5px; font-weight: bold;">
+                  Invoice # {{ invoiceForm.get('invoiceNo')?.value }}
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
 
-    <!-- META -->
-    <div class="meta-info">
-      <div class="left-meta">
-        <label>Order ID:</label> <span>{{ invoiceForm.get('orderId')?.value }}</span>
-        <label>Order Date:</label> <span>{{ invoiceForm.get('orderDate')?.value | date:'dd-MM-yyyy' }}</span>
-        <label>Invoice Date:</label> <span>{{ invoiceForm.get('invoiceDate')?.value | date:'dd-MM-yyyy' }}</span>
-        <label>PAN:</label> <span>{{ invoiceForm.get('companyPAN')?.value }}</span>
-        <label>CIN:</label> <span>{{ invoiceForm.get('companyCIN')?.value }}</span>
-      </div>
-      <div class="right-meta">
-        <div class="address-section" style="margin-bottom: 0;">
-          <div class="addr-col">
-            <h4>Bill To</h4>
-            <b>{{ invoiceForm.get('customerName')?.value }}</b>
-            <p>{{ invoiceForm.get('billingAddress')?.value }}</p>
-            <p>Phone: {{ invoiceForm.get('customerPhone')?.value }}</p>
-          </div>
-          <div class="addr-col">
-            <h4>Ship To</h4>
-            <b>{{ invoiceForm.get('customerName')?.value }}</b>
-            <p>{{ invoiceForm.get('shippingAddress')?.value || invoiceForm.get('billingAddress')?.value }}</p>
-            <p>Phone: {{ invoiceForm.get('customerPhone')?.value }}</p>
-          </div>
-        </div>
-      </div>
+    <!-- META INFO -->
+    <div class="meta-info-table" style="width: 100%; border-bottom: 1px solid #ccc; padding-bottom: 15px; margin-bottom: 15px;">
+      <table style="width: 100%; table-layout: fixed;">
+        <tr>
+          <td style="vertical-align: top;">
+            <p style="margin: 2px 0;"><b>Order ID:</b> {{ invoiceForm.get('orderId')?.value }}</p>
+            <p style="margin: 2px 0;"><b>Order Date:</b> {{ invoiceForm.get('orderDate')?.value | date:'dd-MM-yyyy' }}</p>
+            <p style="margin: 2px 0;"><b>Invoice Date:</b> {{ invoiceForm.get('invoiceDate')?.value | date:'dd-MM-yyyy' }}</p>
+          </td>
+          <td style="vertical-align: top;">
+            <div style="display: flex; gap: 20px;">
+              <div style="flex: 1;">
+                <h4 style="margin: 0 0 5px 0; border-bottom: 1px solid #eee;">Bill To</h4>
+                <b>{{ invoiceForm.get('customerName')?.value }}</b>
+                <p style="font-size: 9pt; margin: 2px 0;">{{ invoiceForm.get('billingAddress')?.value }}</p>
+                <p style="font-size: 9pt; margin: 2px 0;">Phone: {{ invoiceForm.get('customerPhone')?.value }}</p>
+              </div>
+              <div style="flex: 1;">
+                <h4 style="margin: 0 0 5px 0; border-bottom: 1px solid #eee;">Ship To</h4>
+                <b>{{ invoiceForm.get('customerName')?.value }}</b>
+                <p style="font-size: 9pt; margin: 2px 0;">{{ invoiceForm.get('shippingAddress')?.value || invoiceForm.get('billingAddress')?.value }}</p>
+                <p style="font-size: 9pt; margin: 2px 0;">Phone: {{ invoiceForm.get('customerPhone')?.value }}</p>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <!-- TABLE -->
@@ -263,8 +278,8 @@
 
     <!-- SIGNATURE -->
     <div class="signature-section" style="margin-top: 30px;">
-      <p>{{ invoiceForm.get('companyName')?.value }}</p>
-      <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Signature_of_Rajat_Gupta.png" class="sign-img" alt="Digital Signature">
+      <p>{{ invoiceForm.get('authorizedSignatoryName')?.value }}</p>
+      <img *ngIf="signatureImageUrl" [src]="signatureImageUrl" class="sign-img" alt="Digital Signature">
       <div class="sign-label">Authorized Signatory</div>
     </div>
 
