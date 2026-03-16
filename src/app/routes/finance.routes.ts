@@ -75,5 +75,9 @@ export const FINANCE_ROUTES: Routes = [
                 loadComponent: () => import('../features/finance/expenses/expense-entry/expense-entry.component').then(m => m.ExpenseEntryComponent)
             }
         ]
+    },
+    {
+        path: 'sales-invoice',
+        loadComponent: () => import('../features/sales-invoice/sales-invoice/sales-invoice').then(m => m.SalesInvoice)
     }
 ];

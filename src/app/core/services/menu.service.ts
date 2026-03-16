@@ -106,6 +106,24 @@ export class MenuService {
                         });
                     }
                 }
+
+                // 🎯 Inject "Tax Invoice" into Finance menu
+                const financeMenu = filtered.find(m => m.title === 'Finance');
+                if (financeMenu && financeMenu.children) {
+                    const alreadyHas = financeMenu.children.some(c => c.title === 'Tax Invoice');
+                    if (!alreadyHas) {
+                        financeMenu.children.push({
+                            id: 9993, // Dummy ID
+                            title: 'Tax Invoice',
+                            url: '/app/finance/sales-invoice',
+                            icon: 'description',
+                            order: 90,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+                }
+
                 return filtered;
               })
             );

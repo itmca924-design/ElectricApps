@@ -1,99 +1,282 @@
 <div class="invoice-page" [formGroup]="invoiceForm">
 
-  <!-- ================= LEFT SIDE ================= -->
-  <div class="editor">
+  <!-- ================= EDITOR (LEFT SIDE) ================= -->
+  <div class="editor no-print">
+    <h2>Invoice Editor</h2>
 
-    <h2>Create Your First Invoice</h2>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Document Type</mat-label>
+      <mat-select formControlName="documentType">
+        <mat-option value="Tax Invoice">Tax Invoice</mat-option>
+        <mat-option value="Bill of Supply">Bill of Supply</mat-option>
+      </mat-select>
+    </mat-form-field>
 
     <div class="grid-2">
       <mat-form-field appearance="outline">
-        <mat-label>Customer Name</mat-label>
-        <input matInput formControlName="customerName">
+        <mat-label>Invoice No</mat-label>
+        <input matInput formControlName="invoiceNo">
       </mat-form-field>
-
       <mat-form-field appearance="outline">
-        <mat-label>Customer Phone</mat-label>
-        <input matInput formControlName="customerPhone">
+        <mat-label>Invoice Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="invoiceDate">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
       </mat-form-field>
     </div>
 
-    <!-- ITEMS -->
-    <table class="edit-table" formArrayName="items">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Item</th>
-          <th>Qty</th>
-          <th>Price</th>
-          <th>Discount %</th>
-          <th>Total</th>
-        </tr>
-      </thead>
+    <mat-divider style="margin-bottom: 16px;"></mat-divider>
 
-      <tbody>
-        <tr *ngFor="let row of items.controls; let i = index" [formGroupName]="i">
-          <td>{{ i + 1 }}</td>
-          <td><input matInput formControlName="name"></td>
-          <td><input matInput type="number" formControlName="qty" (input)="update(i)"></td>
-          <td><input matInput type="number" formControlName="price" (input)="update(i)"></td>
-          <td><input matInput type="number" formControlName="discount" (input)="update(i)"></td>
-          <td>{{ row.get('amount')?.value }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Customer Name</mat-label>
+      <input matInput formControlName="customerName">
+    </mat-form-field>
 
-    <button mat-button color="primary" (click)="addItem()">+ Add Row</button>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Phone</mat-label>
+      <input matInput formControlName="customerPhone">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Billing Address</mat-label>
+      <textarea matInput formControlName="billingAddress" rows="3"></textarea>
+    </mat-form-field>
+
+    <mat-checkbox formControlName="isTransportEnabled" style="margin-bottom: 16px;">Include Transport (GTA) Details</mat-checkbox>
+
+    <div *ngIf="invoiceForm.get('isTransportEnabled')?.value" style="background: #fdfdfd; padding: 12px; border: 1px dashed #ccc; margin-bottom: 16px; border-radius: 8px;">
+      <h4>Transport Info</h4>
+      <div class="grid-2">
+        <mat-form-field appearance="outline">
+          <mat-label>Gross Weight</mat-label>
+          <input matInput formControlName="grossWeight">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Vehicle Reg No.</mat-label>
+          <input matInput formControlName="registrationNo">
+        </mat-form-field>
+      </div>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Origin</mat-label>
+        <input matInput formControlName="placeOfOrigin">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Destination</mat-label>
+        <input matInput formControlName="destination">
+      </mat-form-field>
+    </div>
+
+    <h3 style="margin: 16px 0 8px;">Line Items</h3>
+    <div formArrayName="items">
+      <div *ngFor="let row of items.controls; let i = index" [formGroupName]="i" style="border: 1px solid #eee; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <small>Item #{{ i + 1 }}</small>
+          <button mat-icon-button color="warn" (click)="removeItem(i)" *ngIf="items.length > 1">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Description</mat-label>
+          <input matInput formControlName="description">
+        </mat-form-field>
+
+        <div class="grid-2">
+          <mat-form-field appearance="outline">
+            <mat-label>SAC/HSN</mat-label>
+            <input matInput formControlName="sacHsn">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Qty</mat-label>
+            <input matInput type="number" formControlName="qty" (input)="update(i)">
+          </mat-form-field>
+        </div>
+
+        <div class="grid-2">
+          <mat-form-field appearance="outline">
+            <mat-label>Price (Incl. Tax)</mat-label>
+            <input matInput type="number" formControlName="unitPrice" (input)="update(i)">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Discount (Amt)</mat-label>
+            <input matInput type="number" formControlName="discount" (input)="update(i)">
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Tax Rate (%)</mat-label>
+          <mat-select formControlName="taxRate" (selectionChange)="update(i)">
+            <mat-option [value]="0">0%</mat-option>
+            <mat-option [value]="5">5%</mat-option>
+            <mat-option [value]="12">12%</mat-option>
+            <mat-option [value]="18">18%</mat-option>
+            <mat-option [value]="28">28%</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+
+    <button mat-stroked-button color="primary" class="full-width" (click)="addItem()">+ Add Another Item</button>
 
     <div class="total-box">
-      <b>Total Amount (₹)</b>
-      <span>{{ invoiceForm.get('total')?.value }}</span>
+      <span>Final Payable</span>
+      <span>₹{{ invoiceForm.get('total')?.value | number:'1.2-2' }}</span>
     </div>
 
+    <button mat-flat-button color="primary" class="full-width" style="margin-top: 16px; padding: 24px;" onclick="window.print()">
+      <mat-icon>print</mat-icon> Print Invoice
+    </button>
   </div>
 
-  <!-- ================= RIGHT SIDE ================= -->
-  <div class="preview">
+  <!-- ================= PREVIEW / PRINT (RIGHT SIDE) ================= -->
+  <div class="preview-container">
+    
+    <!-- HEADER -->
+    <div class="invoice-header">
+      <div class="company-info">
+        <p><b>Sold By: {{ invoiceForm.get('companyName')?.value }}</b></p>
+        <p><i>Ship-from Address:</i> {{ invoiceForm.get('companyAddress')?.value }}</p>
+        <p><b>GSTIN:</b> {{ invoiceForm.get('companyGSTIN')?.value }}</p>
+      </div>
 
-    <h2 class="center">Tax Invoice</h2>
+      <div class="doc-title">{{ invoiceForm.get('documentType')?.value }}</div>
 
-    <div class="company">
-      <b>My Company</b>
-      <p>Phone: 8088377282</p>
+      <div class="qr-section">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{invoiceForm.get('invoiceNo')?.value}}" class="qr" alt="QR Code">
+        <br>
+        <div class="inv-no-box">Invoice Number # {{ invoiceForm.get('invoiceNo')?.value }}</div>
+      </div>
     </div>
 
-    <div class="invoice-info">
-      <p><b>Invoice No:</b> {{ invoiceForm.get('invoiceNo')?.value }}</p>
-      <p><b>Date:</b> {{ invoiceForm.get('invoiceDate')?.value | date }}</p>
+    <!-- META -->
+    <div class="meta-info">
+      <div class="left-meta">
+        <label>Order ID:</label> <span>{{ invoiceForm.get('orderId')?.value }}</span>
+        <label>Order Date:</label> <span>{{ invoiceForm.get('orderDate')?.value | date:'dd-MM-yyyy' }}</span>
+        <label>Invoice Date:</label> <span>{{ invoiceForm.get('invoiceDate')?.value | date:'dd-MM-yyyy' }}</span>
+        <label>PAN:</label> <span>{{ invoiceForm.get('companyPAN')?.value }}</span>
+        <label>CIN:</label> <span>{{ invoiceForm.get('companyCIN')?.value }}</span>
+      </div>
+      <div class="right-meta">
+        <div class="address-section" style="margin-bottom: 0;">
+          <div class="addr-col">
+            <h4>Bill To</h4>
+            <b>{{ invoiceForm.get('customerName')?.value }}</b>
+            <p>{{ invoiceForm.get('billingAddress')?.value }}</p>
+            <p>Phone: {{ invoiceForm.get('customerPhone')?.value }}</p>
+          </div>
+          <div class="addr-col">
+            <h4>Ship To</h4>
+            <b>{{ invoiceForm.get('customerName')?.value }}</b>
+            <p>{{ invoiceForm.get('shippingAddress')?.value || invoiceForm.get('billingAddress')?.value }}</p>
+            <p>Phone: {{ invoiceForm.get('customerPhone')?.value }}</p>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <table class="preview-table">
+    <!-- TABLE -->
+    <table class="items-table">
       <thead>
         <tr>
-          <th>#</th>
-          <th>Item</th>
+          <th style="width: 50px;">#</th>
+          <th>Description</th>
           <th>Qty</th>
-          <th>Price</th>
-          <th>Amount</th>
+          <th>Gross Amount ₹</th>
+          <th>Discount ₹</th>
+          <th>Taxable Value ₹</th>
+          <th>IGST ₹</th>
+          <th>Total ₹</th>
         </tr>
       </thead>
-
       <tbody>
-        <tr *ngFor="let row of items.controls; let i = index">
+        <tr *ngFor="let item of items.controls; let i = index">
           <td>{{ i + 1 }}</td>
-          <td>{{ row.get('name')?.value }}</td>
-          <td>{{ row.get('qty')?.value }}</td>
-          <td>₹ {{ row.get('price')?.value }}</td>
-          <td>₹ {{ row.get('amount')?.value }}</td>
+          <td>
+            <b>{{ item.get('description')?.value }}</b>
+            <span class="hsn" *ngIf="item.get('sacHsn')?.value">SAC/HSN: {{ item.get('sacHsn')?.value }}</span>
+            <span class="tax-desc">IGST: {{ item.get('taxRate')?.value }}%</span>
+          </td>
+          <td>{{ item.get('qty')?.value }}</td>
+          <td>{{ (item.get('qty')?.value * item.get('unitPrice')?.value) | number:'1.2-2' }}</td>
+          <td>{{ item.get('discount')?.value | number:'1.2-2' }}</td>
+          <td>{{ item.get('taxableValue')?.value | number:'1.2-2' }}</td>
+          <td>{{ item.get('taxAmount')?.value | number:'1.2-2' }}</td>
+          <td><b>{{ item.get('amount')?.value | number:'1.2-2' }}</b></td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="2">Total</td>
+          <td>{{ items.length }} items</td>
+          <td></td>
+          <td></td>
+          <td>{{ (invoiceForm.get('subTotal')?.value || 0) | number:'1.2-2' }}</td>
+          <td>{{ (invoiceForm.get('totalTax')?.value || 0) | number:'1.2-2' }}</td>
+          <td>{{ (invoiceForm.get('total')?.value || 0) | number:'1.2-2' }}</td>
         </tr>
       </tbody>
     </table>
 
-    <div class="preview-total">
-      <b>Total:</b> ₹ {{ invoiceForm.get('total')?.value }}
+    <!-- GRAND TOTAL -->
+    <div class="grand-total-section">
+      <div class="grand-label">
+        <span>Grand Total</span>
+        <span>₹ {{ invoiceForm.get('total')?.value | number:'1.2-2' }}</span>
+      </div>
     </div>
 
-    <div class="sign">
-      Authorized Signatory
+    <!-- GTA TRANSPORT SECTION -->
+    <div class="gta-section" *ngIf="invoiceForm.get('isTransportEnabled')?.value" style="margin-top: 20px; border: 1px solid #000; font-size: 11px;">
+      <div style="background: #f0f0f0; border-bottom: 1px solid #000; text-align: center; font-weight: 700; padding: 5px;">DETAILS OF GOODS TRANSPORTED BY GTA SUPPLIER</div>
+      
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="border-bottom: 1px solid #000;">
+            <th style="padding: 5px; text-align: left; border-right: 1px solid #000;">Description of Goods</th>
+            <th style="padding: 5px; text-align: right; border-right: 1px solid #000;">Qty</th>
+            <th style="padding: 5px; text-align: right; border-right: 1px solid #000;">Gross Weight of Consignment</th>
+            <th style="padding: 5px; text-align: right;">Value of goods</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of items.controls">
+            <td style="padding: 5px; border-right: 1px solid #000;">{{ item.get('description')?.value }}</td>
+            <td style="padding: 5px; text-align: right; border-right: 1px solid #000;">{{ item.get('qty')?.value }}</td>
+            <td style="padding: 5px; text-align: right; border-right: 1px solid #000;">{{ invoiceForm.get('grossWeight')?.value }}</td>
+            <td style="padding: 5px; text-align: right;">{{ item.get('amount')?.value | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.2fr; border-top: 1px solid #000;">
+        <div style="padding: 10px; border-right: 1px solid #000;">
+          <p><b>Consignor details:</b> {{ invoiceForm.get('companyName')?.value }}</p>
+          <p style="margin-top: 20px;"><b>Consignee details:</b> {{ invoiceForm.get('customerName')?.value }}</p>
+        </div>
+        <div style="padding: 10px;">
+          <p><b>Place of Origin:</b> {{ invoiceForm.get('placeOfOrigin')?.value }}</p>
+          <p><b>Destination:</b> {{ invoiceForm.get('destination')?.value }}</p>
+          <p><b>Registration No. of Goods Carriage:</b> {{ invoiceForm.get('registrationNo')?.value }}</p>
+          <p style="margin-top: 10px; font-style: italic;">(More than 1 goods carriage may be involved... Registration Number mentioned above pertains to the vehicle used...)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNATURE -->
+    <div class="signature-section" style="margin-top: 30px;">
+      <p>{{ invoiceForm.get('companyName')?.value }}</p>
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/4e/Signature_of_Rajat_Gupta.png" class="sign-img" alt="Digital Signature">
+      <div class="sign-label">Authorized Signatory</div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="invoice-footer">
+      <div class="regd-info">
+        Regd. office: {{ invoiceForm.get('companyAddress')?.value }}
+      </div>
+      <div class="footer-row">
+        <span>Returns Policy: At {{ invoiceForm.get('companyName')?.value }} we try to deliver perfectly each and every time. But in the off-chance that you need to return the item...</span>
+      </div>
+      <div class="eoe">E. & O.E.</div>
     </div>
 
   </div>
