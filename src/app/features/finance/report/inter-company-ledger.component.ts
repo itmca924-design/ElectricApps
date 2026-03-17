@@ -35,9 +35,11 @@ export class InterCompanyLedgerComponent implements OnInit {
     displayedColumns: string[] = ['date', 'voucherno', 'type', 'description', 'amount', 'balance'];
 
     totalBalance = 0;
+    companyName = 'ElectricApps';
 
     ngOnInit() {
         this.loadCompanies();
+        this.companyService.getCompanyProfile().subscribe((p: any) => this.companyName = p?.name || 'ElectricApps');
     }
 
     loadCompanies() {
@@ -119,7 +121,7 @@ export class InterCompanyLedgerComponent implements OnInit {
 ⚖️ *Outstanding Status:* ${status}
 💰 *Net Balance:* ₹${Math.abs(this.totalBalance).toLocaleString('en-IN')}
 ----------------------------
-_Generated via ElectricApps Multi-Company Audit_`;
+_Generated via ${this.companyName} Multi-Company Audit_`;
 
         const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');

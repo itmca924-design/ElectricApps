@@ -116,6 +116,23 @@ mat-card {
   flex: 1 1 200px;
 }
 
+.checkbox-field {
+  flex: 0 0 auto;
+  min-width: 150px;
+  align-self: center; /* Center the checkbox vertically in the row */
+  padding-top: 10px;
+  
+  .checkbox-label {
+    font-weight: 600;
+    color: #475569;
+    font-size: 14px;
+  }
+}
+
+.tax-disabled {
+  opacity: 0.6;
+}
+
 /* Supplier button alignment */
 /* Supplier button alignment */
 .add-btn-circle {

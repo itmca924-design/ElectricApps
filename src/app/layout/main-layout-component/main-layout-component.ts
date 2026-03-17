@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, ViewChild, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { MaterialModule } from '../../shared/material/material/material-module';
 import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet, Router } from '@angular/router';
@@ -42,6 +43,7 @@ export class MainLayoutComponent implements OnInit {
   private loadingService = inject(LoadingService);
   private companyService = inject(CompanyService);
   private dialog = inject(MatDialog);
+  private titleService = inject(Title);
 
   isMobile = false;
   isDarkMode = false;
@@ -110,6 +112,7 @@ export class MainLayoutComponent implements OnInit {
         if (profile) {
           this.companyName = profile.name || 'Electric Inventory';
           this.companyTagline = profile.tagline || 'Inventory Management System';
+          this.titleService.setTitle(this.companyName);
 
           if (profile.logoUrl && !profile.logoUrl.startsWith('http')) {
             // Remove leading slash from logoUrl if present to avoid double slashes

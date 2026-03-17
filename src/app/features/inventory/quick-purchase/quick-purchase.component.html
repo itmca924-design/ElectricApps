@@ -64,7 +64,7 @@
       </div>
 
       <div class="row">
-        <div class="col-6">
+        <div class="col-3">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Expected Delivery**</mat-label>
             <input matInput [matDatepicker]="deliveryPicker" formControlName="expectedDeliveryDate">
@@ -75,8 +75,13 @@
         <div class="col-6">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Remarks / Notes</mat-label>
-            <textarea matInput formControlName="remarks" rows="1" placeholder="e.g. Received via Tempo UP80-XXXX" style="resize: none;"></textarea>
+            <textarea matInput formControlName="remarks" rows="1" placeholder="Notes..." style="resize: none;"></textarea>
           </mat-form-field>
+        </div>
+        <div class="col-3 d-flex align-items-center" style="padding-bottom: 22px;">
+          <mat-checkbox formControlName="isTaxApplicable" color="primary">
+            <span style="font-weight: 600; color: #4b5563; font-size: 13px;">Apply GST (Tax)</span>
+          </mat-checkbox>
         </div>
       </div>
 
@@ -130,18 +135,12 @@
             </div>
             <div class="col-disc">
               <mat-form-field appearance="outline" dense>
-                <input matInput type="number" formControlName="discountPercent">
+                <input matInput type="number" formControlName="discountPercent" readonly style="color: #6b7280;">
               </mat-form-field>
             </div>
             <div class="col-gst">
-              <mat-form-field appearance="outline" dense>
-                <mat-select formControlName="gstPercent">
-                  <mat-option [value]="0">0%</mat-option>
-                  <mat-option [value]="5">5%</mat-option>
-                  <mat-option [value]="12">12%</mat-option>
-                  <mat-option [value]="18">18%</mat-option>
-                  <mat-option [value]="28">28%</mat-option>
-                </mat-select>
+              <mat-form-field appearance="outline" dense [class.tax-disabled]="!purchaseForm.get('isTaxApplicable')?.value">
+                <input matInput type="number" formControlName="gstPercent" readonly style="color: #6b7280;">
               </mat-form-field>
             </div>
             <div class="col-mfg">

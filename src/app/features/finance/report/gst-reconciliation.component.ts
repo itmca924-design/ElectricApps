@@ -11,10 +11,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 import { MatNativeDateModule } from '@angular/material/core';
 import { FinanceService } from '../service/finance.service';
 import { InventoryService } from '../../inventory/service/inventory.service';
+import { CompanyService } from '../../company/services/company.service';
 import { forkJoin, finalize } from 'rxjs';
 import { LoadingService } from '../../../core/services/loading.service';
 import { jsPDF } from 'jspdf';
@@ -26,7 +28,7 @@ import autoTable from 'jspdf-autotable';
     imports: [
         CommonModule, FormsModule, MatCardModule, MatIconModule, MatButtonModule, 
         MatTableModule, MatSelectModule, MatFormFieldModule, MatInputModule, 
-        MatDatepickerModule, MatProgressSpinnerModule, MatTooltipModule, MatSnackBarModule,
+        MatDatepickerModule, MatProgressSpinnerModule, MatTooltipModule, MatDialogModule,
         MatNativeDateModule
     ],
     templateUrl: './gst-reconciliation.component.html',
@@ -36,11 +38,14 @@ export class GstReconciliationComponent implements OnInit {
     private financeService = inject(FinanceService);
     private inventoryService = inject(InventoryService);
     private loadingService = inject(LoadingService);
+    private companyService = inject(CompanyService);
+    private dialog = inject(MatDialog);
     private cdr = inject(ChangeDetectorRef);
 
     isLoading = false;
     startDate: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     endDate: Date = new Date();
+    companyName: string = 'ElectricApps';
     
     outputGst: number = 0; 
     inputGst: number = 0;  
@@ -63,10 +68,10 @@ export class GstReconciliationComponent implements OnInit {
     logColumns: string[] = ['timestamp', 'partyName', 'invoiceNo', 'phone', 'status'];
 
     reminderLogs: any[] = [];
-    private snackBar = inject(MatSnackBar);
 
     ngOnInit() {
         this.loadGstData();
+        this.companyService.getCompanyProfile().subscribe(p => this.companyName = p?.name || 'ElectricApps');
     }
 
     loadGstData() {
@@ -95,50 +100,24 @@ export class GstReconciliationComponent implements OnInit {
                 this.outputGst = sales.reduce((sum: number, s: any) => sum + (s.totalTax || s.taxAmount || 0), 0);
                 this.inputGst = purchases.reduce((sum: number, p: any) => sum + (p.taxAmount || p.totalTax || 0), 0);
                 
-                // Simulation of TDS/TCS based on totals
-                this.tdsAmount = this.inputGst * 0.1; 
-                this.tcsAmount = this.outputGst * 0.05;
+                // TDS/TCS should come from actual transaction fields if available
+                this.tdsAmount = 0; 
+                this.tcsAmount = 0;
 
                 this.gstPayable = Math.max(0, this.outputGst - this.inputGst - this.tdsAmount + this.tcsAmount);
 
                 this.gstDetails = [
-                    { category: 'Output (Sales)', cgst: this.outputGst * 0.45, sgst: this.outputGst * 0.45, igst: this.outputGst * 0.1, tds: 0, tcs: this.tcsAmount, total: this.outputGst + this.tcsAmount },
-                    { category: 'Input (Purchases)', cgst: this.inputGst * 0.45, sgst: this.inputGst * 0.45, igst: this.inputGst * 0.1, tds: this.tdsAmount, tcs: 0, total: this.inputGst + this.tdsAmount }
+                    { category: 'Output (Sales)', cgst: this.outputGst / 2, sgst: this.outputGst / 2, igst: 0, tds: 0, tcs: this.tcsAmount, total: this.outputGst + this.tcsAmount },
+                    { category: 'Input (Purchases)', cgst: this.inputGst / 2, sgst: this.inputGst / 2, igst: 0, tds: this.tdsAmount, tcs: 0, total: this.inputGst + this.tdsAmount }
                 ];
 
-                // Simulated Party-wise breakdown with Validation Status
-                this.partyBreakdown = [
-                    { partyName: 'Global Electric Solutions', gstin: '27AABCU9603R1Z5', totalTax: this.outputGst * 0.4, tds: 0, tcs: this.tcsAmount * 0.4, type: 'Customer' },
-                    { partyName: 'Reliance Power Systems', gstin: '09AAACR2938B1Z2', totalTax: this.inputGst * 0.3, tds: this.tdsAmount * 0.3, tcs: 0, type: 'Supplier' },
-                    { partyName: 'Tata Power Corp', gstin: '19AAGC', totalTax: this.outputGst * 0.3, tds: 0, tcs: this.tcsAmount * 0.3, type: 'Customer' }, // Invalid short
-                    { partyName: 'Schneider Electric', gstin: '33AAAAS0000A1Z1', totalTax: this.inputGst * 0.5, tds: this.tdsAmount * 0.5, tcs: 0, type: 'Supplier' },
-                    { partyName: 'Local Contractor (No GST)', gstin: 'PENDING', totalTax: 500, tds: 50, tcs: 0, type: 'Supplier' } // Missing
-                ].map(p => ({
-                    ...p,
-                    isValidGstin: this.isValidGstin(p.gstin)
-                }));
+                // Clear mocked data arrays - these should be populated by real-time grouping from API or logic
+                this.partyBreakdown = [];
+                this.taxSlabs = [];
+                this.itcReversals = [];
 
-                this.hasGstinErrors = this.partyBreakdown.some(p => !p.isValidGstin);
-
-                // Simulated Tax Rate-wise grouping
-                this.taxSlabs = [
-                    { rate: '5%', taxableAmount: (this.outputGst + this.inputGst) * 20, cgst: (this.outputGst + this.inputGst) * 0.025 * 20, sgst: (this.outputGst + this.inputGst) * 0.025 * 20, igst: 0, totalTax: (this.outputGst + this.inputGst) * 0.05 * 20 },
-                    { rate: '12%', taxableAmount: (this.outputGst + this.inputGst) * 8.33 * 2, cgst: (this.outputGst + this.inputGst) * 0.06 * 8.33 * 2, sgst: (this.outputGst + this.inputGst) * 0.06 * 8.33 * 2, igst: 0, totalTax: (this.outputGst + this.inputGst) * 0.12 * 8.33 * 2 },
-                    { rate: '18%', taxableAmount: (this.outputGst + this.inputGst) * 5.55 * 5, cgst: (this.outputGst + this.inputGst) * 0.09 * 5.55 * 5, sgst: (this.outputGst + this.inputGst) * 0.09 * 5.55 * 5, igst: 0, totalTax: (this.outputGst + this.inputGst) * 0.18 * 5.55 * 5 },
-                    { rate: '28%', taxableAmount: (this.outputGst + this.inputGst) * 3.57, cgst: (this.outputGst + this.inputGst) * 0.14 * 3.57, sgst: (this.outputGst + this.inputGst) * 0.14 * 3.57, igst: 0, totalTax: (this.outputGst + this.inputGst) * 0.28 * 3.57 }
-                ];
-
-                // Simulated ITC Reversal (180 Days Rule)
-                const sixMonthsAgo = new Date();
-                sixMonthsAgo.setDate(sixMonthsAgo.getDate() - 185);
-
-                this.itcReversals = [
-                    { invoiceNo: 'PUR/23/088', invoiceDate: sixMonthsAgo, partyName: 'Schneider Electric', aging: 185, taxAmount: 4500, status: 'Unpaid', phone: '919876543210' },
-                    { invoiceNo: 'PUR/23/092', invoiceDate: new Date(sixMonthsAgo.getTime() - 864000000), partyName: 'Reliance Power Systems', aging: 195, taxAmount: 12000, status: 'Partially Paid', phone: '919988776655' }
-                ];
-
-                this.totalReversalAmount = this.itcReversals.reduce((sum: number, r: any) => sum + r.taxAmount, 0);
-                this.gstPayable += this.totalReversalAmount; // Reversal increases payable liability
+                this.hasGstinErrors = false;
+                this.totalReversalAmount = 0;
             }
         });
     }
@@ -209,7 +188,7 @@ export class GstReconciliationComponent implements OnInit {
 ⚖️ *Tax Payable:* ₹${this.gstPayable.toLocaleString('en-IN')}
 ⚠️ *Incl. ITC Reversal:* ₹${this.totalReversalAmount.toLocaleString('en-IN')}
 ----------------------------
-_ElectricApps Financial Compliance_`;
+_${this.companyName} Financial Compliance_`;
 
         const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
@@ -228,7 +207,7 @@ Please process the outstanding payment as soon as possible to avoid further comp
 
 *Invoice Amount:* ₹${element.taxAmount.toLocaleString('en-IN')} (GST Component)
 ----------------------------
-_Generated via ElectricApps Finance System_`;
+_Generated via ${this.companyName} Finance System_`;
 
         const url = `https://wa.me/${element.phone}?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
@@ -242,7 +221,9 @@ _Generated via ElectricApps Finance System_`;
             status: 'Delivered'
         });
 
-        this.snackBar.open(`Reminder sent to ${element.partyName}`, 'Close', { duration: 3000 });
+        this.dialog.open(StatusDialogComponent, { 
+            data: { isSuccess: true, message: `Reminder sent to ${element.partyName}` } 
+        });
     }
 
     exportReminderLog() {

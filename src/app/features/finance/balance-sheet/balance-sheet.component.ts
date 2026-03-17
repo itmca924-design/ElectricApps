@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { FinanceService } from '../service/finance.service';
 import { InventoryService } from '../../inventory/service/inventory.service';
+import { CompanyService } from '../../company/services/company.service';
 import { forkJoin, finalize } from 'rxjs';
 import { LoadingService } from '../../../core/services/loading.service';
 import { BaseChartDirective } from 'ng2-charts';
@@ -25,6 +26,7 @@ export class BalanceSheetComponent implements OnInit {
     private loadingService = inject(LoadingService);
     private financeService = inject(FinanceService);
     private inventoryService = inject(InventoryService);
+    private companyService = inject(CompanyService);
 
     isDashboardLoading: boolean = true;
     today: Date = new Date();
@@ -42,6 +44,7 @@ export class BalanceSheetComponent implements OnInit {
     // Equity/Profit
     netProfit: number = 0;
     capital: number = 0; // Dynamic capital (Initial investment)
+    companyName: string = 'ElectricApps';
 
     // Chart Data
     public assetsChartData: ChartConfiguration['data'] = {
@@ -72,6 +75,7 @@ export class BalanceSheetComponent implements OnInit {
 
     ngOnInit() {
         this.loadBalanceSheet();
+        this.companyService.getCompanyProfile().subscribe((p: any) => this.companyName = p?.name || 'ElectricApps');
     }
 
     loadBalanceSheet() {
@@ -164,7 +168,7 @@ export class BalanceSheetComponent implements OnInit {
         
         doc.setFontSize(11);
         doc.setTextColor(100, 116, 139);
-        doc.text(`Company Finance Report | As of: ${dateStr}`, 14, 30);
+        doc.text(`${this.companyName} Finance Report | As of: ${dateStr}`, 14, 30);
         
         autoTable(doc, {
             startY: 40,
@@ -221,7 +225,7 @@ export class BalanceSheetComponent implements OnInit {
 ----------------------------
 ✅ *Status:* ${isBalanced ? 'Balanced' : 'Unbalanced'}
 
-Generated via ElectricApps`;
+Generated via ${this.companyName}`;
 
         const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');

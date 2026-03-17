@@ -109,6 +109,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
   isReorder: boolean = false;
   reorderTooltipText: string = 'Items pre-filled from Reorder recommendations';
   minDate: Date = new Date();
+  selectedSupplierIsUnregistered: boolean = false;
 
   constructor() {
     const navigation = this.router.getCurrentNavigation();
@@ -228,7 +229,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [product.unit || 'PCS', Validators.required],
       price: [product.basePurchasePrice || 0, [Validators.required, Validators.min(1)]],
       discountPercent: [0],
-      gstPercent: [product.defaultGst || product.gstPercent || 0],
+      gstPercent: [this.selectedSupplierIsUnregistered ? 0 : (product.defaultGst || product.gstPercent || 0)],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
       currentStock: [product.currentStock || 0],
@@ -236,6 +237,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       mfgDate: [null, product.isExpiryRequired ? Validators.required : null],
       expDate: [null, product.isExpiryRequired ? Validators.required : null],
       isExpiryRequired: [product.isExpiryRequired ?? false],
+      originalGst: [product.defaultGst || product.gstPercent || 0],
       id: [0]
     });
 
@@ -271,7 +273,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [{ value: data.unit || 'PCS', disabled: false }],
       price: [data.rate || 0, [Validators.required, Validators.min(1)]],
       discountPercent: [0],
-      gstPercent: [data.gstPercent ?? 18],
+      gstPercent: [this.selectedSupplierIsUnregistered ? 0 : (data.gstPercent ?? 18)],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
       currentStock: [data.currentStock || 0],
@@ -279,6 +281,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       mfgDate: [null, data.isExpiryRequired ? Validators.required : null],
       expDate: [null, data.isExpiryRequired ? Validators.required : null],
       isExpiryRequired: [data.isExpiryRequired ?? false],
+      originalGst: [data.gstPercent ?? 18],
       id: [0]
     });
 
@@ -341,7 +344,24 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       expectedDeliveryDate: [new Date(), Validators.required],
       PoNumber: [{ value: '', disabled: true }],
       remarks: ['', Validators.required],
-      items: this.fb.array([])
+      items: this.fb.array([]),
+      isTaxApplicable: [true]
+    });
+
+    // Listen to manual checkbox change
+    this.poForm.get('isTaxApplicable')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
+      this.selectedSupplierIsUnregistered = !val;
+      this.items.controls.forEach((ctrl, idx) => {
+        if (!val) {
+          // Unchecked: Set display to 0
+          ctrl.get('gstPercent')?.setValue(0, { emitEvent: false });
+        } else {
+          // Checked: Restore original GST
+          const original = ctrl.get('originalGst')?.value || 0;
+          ctrl.get('gstPercent')?.setValue(original, { emitEvent: false });
+        }
+        this.updateTotal(idx);
+      });
     });
   }
 
@@ -354,6 +374,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       price: [item.rate, [Validators.required, Validators.min(1)]],
       discountPercent: [item.discountPercent || 0],
       gstPercent: [item.gstPercent || 0],
+      originalGst: [item.gstPercent || 0],
       taxAmount: [{ value: item.taxAmount, disabled: true }],
       total: [{ value: item.total, disabled: true }],
       currentStock: [item.currentStock || 0],
@@ -379,6 +400,11 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
 
       // Checking multiple common casing variations for the price list property
       const pListId = res.defaultpricelistId || res.defaultPriceListId || res.priceListId;
+      
+      this.selectedSupplierIsUnregistered = !res.gstIn || res.gstIn === '' || res.gstIn.toUpperCase() === 'PENDING';
+      
+      // Update checkbox based on GST status (triggers updateTotal via valueChanges)
+      this.poForm.get('isTaxApplicable')?.setValue(!this.selectedSupplierIsUnregistered, { emitEvent: true });
 
       if (pListId) {
         console.log('✅ Auto-populating Price List ID:', pListId);
@@ -428,12 +454,15 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    const isTaxOff = !this.poForm.get('isTaxApplicable')?.value;
+    
     row.patchValue({
       productId: product.id,
       productSearch: product,
       unit: product.unit || 'PCS',
       price: product.basePurchasePrice || 0,
-      gstPercent: product.defaultGst || product.gstPercent || 0, // Master GST
+      gstPercent: isTaxOff ? 0 : (product.defaultGst || product.gstPercent || 0), // Master GST
+      originalGst: product.defaultGst || product.gstPercent || 0,
       discountPercent: 0,
       qty: 1,
       currentStock: product.currentStock || 0,
@@ -482,7 +511,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
     const amount = qty * price;
     const discountAmount = (amount * discPercent) / 100;
     const taxableAmount = amount - discountAmount;
-    const taxAmt = (taxableAmount * gstPercent) / 100;
+    const isTaxApplicable = this.poForm.get('isTaxApplicable')?.value ?? true;
+    const taxAmt = isTaxApplicable ? (taxableAmount * gstPercent) / 100 : 0;
     const rowTotal = taxableAmount + taxAmt;
 
     row.patchValue({ taxAmount: taxAmt.toFixed(2), total: rowTotal.toFixed(2) }, { emitEvent: false });
@@ -519,6 +549,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       mfgDate: [null],
       expDate: [null],
       isExpiryRequired: [false],
+      originalGst: [0],
       id: [0]
     });
     this.items.push(row);

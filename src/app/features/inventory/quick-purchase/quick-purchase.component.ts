@@ -54,6 +54,7 @@ export class QuickPurchaseComponent implements OnInit {
     isEditMode = false;
     poId: any = null;
     currentStatus = '';
+    selectedSupplierIsUnregistered = false;
 
     constructor() {
         this.initForm();
@@ -121,7 +122,22 @@ export class QuickPurchaseComponent implements OnInit {
             date: [new Date()],
             expectedDeliveryDate: [new Date(), Validators.required],
             poNumber: [{ value: '', disabled: true }],
-            items: this.fb.array([], Validators.required)
+            items: this.fb.array([], Validators.required),
+            isTaxApplicable: [true]
+        });
+
+        // Listen to manual checkbox change
+        this.purchaseForm.get('isTaxApplicable')?.valueChanges.subscribe(val => {
+            this.selectedSupplierIsUnregistered = !val;
+            this.items.controls.forEach((ctrl, idx) => {
+                if (!val) {
+                    ctrl.get('gstPercent')?.setValue(0, { emitEvent: false });
+                } else {
+                    const original = ctrl.get('originalGst')?.value || 0;
+                    ctrl.get('gstPercent')?.setValue(original, { emitEvent: false });
+                }
+                this.calculateItemTotal(idx);
+            });
         });
 
         // Add initial item
@@ -173,6 +189,7 @@ export class QuickPurchaseComponent implements OnInit {
             gstPercent: [item.gstPercent || 0],
             total: [{ value: item.total, disabled: true }],
             id: [item.id || 0],
+            originalGst: [item.gstPercent || 0],
             manufacturingDate: [item.manufacturingDate ? DateHelper.toDateObject(item.manufacturingDate) : null, isExpReq ? Validators.required : []],
             expiryDate: [item.expiryDate ? DateHelper.toDateObject(item.expiryDate) : null, isExpReq ? Validators.required : []],
             isExpiryRequired: [isExpReq]
@@ -257,7 +274,8 @@ export class QuickPurchaseComponent implements OnInit {
             unit: [{ value: product.unit || 'PCS', disabled: true }],
             rate: [product.basePurchasePrice || product.purchasePrice || product.basePrice || product.rate || 0, [Validators.required, Validators.min(0)]],
             discountPercent: [0],
-            gstPercent: [product.gstPercent || 18],
+            gstPercent: [this.selectedSupplierIsUnregistered ? 0 : (product.gstPercent || 18)],
+            originalGst: [product.gstPercent || 18],
             taxAmount: [0],
             total: [{ value: 0, disabled: true }],
             manufacturingDate: [mfgDate, product.isExpiryRequired ? Validators.required : []],
@@ -311,7 +329,8 @@ export class QuickPurchaseComponent implements OnInit {
             unit: ['PCS', Validators.required],
             rate: [0, [Validators.required, Validators.min(0)]],
             discountPercent: [0],
-            gstPercent: [18],
+            gstPercent: [this.selectedSupplierIsUnregistered ? 0 : 18],
+            originalGst: [18],
             taxAmount: [0],
             total: [{ value: 0, disabled: true }],
             manufacturingDate: [null],
@@ -417,7 +436,8 @@ export class QuickPurchaseComponent implements OnInit {
         const gst = item.get('gstPercent')?.value || 0;
 
         const netRate = rate * (1 - disc / 100);
-        const tax = netRate * (gst / 100);
+        const isTaxApplicable = this.purchaseForm.get('isTaxApplicable')?.value ?? true;
+        const tax = isTaxApplicable ? (netRate * (gst / 100)) : 0;
         const total = qty * (netRate + tax);
 
         item.get('total')?.patchValue(total.toFixed(2), { emitEvent: false });
@@ -481,6 +501,12 @@ export class QuickPurchaseComponent implements OnInit {
         if (!supplierId) return;
         this.supplierService.getSupplierById(supplierId).subscribe((res: any) => {
             const pListId = res.defaultpricelistId || res.defaultPriceListId || res.priceListId;
+
+            this.selectedSupplierIsUnregistered = !res.gstIn || res.gstIn === '' || res.gstIn.toUpperCase() === 'PENDING';
+            
+            // Update checkbox based on GST status (triggers recalculation via valueChanges)
+            this.purchaseForm.get('isTaxApplicable')?.setValue(!this.selectedSupplierIsUnregistered, { emitEvent: true });
+
             if (pListId) {
                 this.purchaseForm.get('priceListId')?.setValue(pListId);
                 this.isPriceListAutoSelected = true;

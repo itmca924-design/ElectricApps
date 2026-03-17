@@ -8,8 +8,7 @@ import { SupplierService, Supplier } from '../../inventory/service/supplier.serv
 import { Observable, Subscription, Subject } from 'rxjs';
 import { map, startWith, finalize, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 import { LoadingService } from '../../../core/services/loading.service';
 import { PermissionService } from '../../../core/services/permission.service';
@@ -51,7 +50,6 @@ export class PaymentEntryComponent implements OnInit, OnDestroy {
   constructor(
     private financeService: FinanceService,
     private supplierService: SupplierService,
-    private snackBar: MatSnackBar,
     private dialog: MatDialog,
     private route: ActivatedRoute,
     private router: Router,
@@ -358,7 +356,9 @@ export class PaymentEntryComponent implements OnInit, OnDestroy {
 
   savePayment() {
     if (!this.payment.supplierId || !this.payment.amount) {
-      this.snackBar.open('Please select a supplier and enter an amount.', 'Close', { duration: 3000 });
+      this.dialog.open(StatusDialogComponent, { 
+        data: { isSuccess: false, message: 'Please select a supplier and enter an amount.' } 
+      });
       return;
     }
 

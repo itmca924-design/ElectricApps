@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { FinanceService } from '../service/finance.service';
 import { InventoryService } from '../../inventory/service/inventory.service';
+import { CompanyService } from '../../company/services/company.service';
 import { forkJoin, finalize } from 'rxjs';
 import { LoadingService } from '../../../core/services/loading.service';
 import { FormsModule } from '@angular/forms';
@@ -32,12 +33,14 @@ export class DayBookComponent implements OnInit {
     private loadingService = inject(LoadingService);
     private financeService = inject(FinanceService);
     private inventoryService = inject(InventoryService);
+    private companyService = inject(CompanyService);
 
     selectedDate: Date = new Date();
     transactions: DayBookTransaction[] = [];
     filteredTransactions: DayBookTransaction[] = [];
     isLoading = false;
     selectedType: string = 'All';
+    companyName: string = 'ElectricApps';
 
     totalIn = 0;
     totalOut = 0;
@@ -46,6 +49,7 @@ export class DayBookComponent implements OnInit {
 
     ngOnInit() {
         this.loadDayBook();
+        this.companyService.getCompanyProfile().subscribe((p: any) => this.companyName = p?.name || 'ElectricApps');
     }
 
     onDateChange() {
@@ -253,7 +257,7 @@ export class DayBookComponent implements OnInit {
 ----------------------------
 📊 *Transactions:* ${this.transactions.length} entries recorded.
 ----------------------------
-Generated via ElectricApps`;
+Generated via ${this.companyName}`;
 
         const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');

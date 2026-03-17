@@ -260,4 +260,28 @@
             color: #0c5460;
         }
     }
+    .empty-state-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 40px;
+        color: #94a3b8;
+        background: #f8fafc;
+        border-radius: 0 0 16px 16px;
+
+        mat-icon {
+            font-size: 48px;
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        p {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+    }
 }

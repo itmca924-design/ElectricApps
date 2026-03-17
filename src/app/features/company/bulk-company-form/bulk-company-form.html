@@ -1,0 +1,93 @@
+<div class="page-container" [formGroup]="bulkForm" [class.loading]="loading">
+    <div class="header-row">
+        <div class="title-section">
+            <h2 class="mat-h2">Multi-Company Add</h2>
+            <p class="text-muted">Register multiple sister companies quickly and efficiently</p>
+        </div>
+        <div class="action-section">
+            <button mat-stroked-button (click)="addRow()">
+                <mat-icon>add_circle_outline</mat-icon> Add New Row
+            </button>
+            <button mat-raised-button color="primary" (click)="onSave()">
+                <mat-icon>save</mat-icon> Register {{companies.length}} Companies
+            </button>
+            <button mat-button class="cancel-btn" routerLink="/app/company">Cancel</button>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-container">
+            <table class="bulk-table" formArrayName="companies">
+                <thead>
+                    <tr>
+                        <th class="col-num">#</th>
+                        <th class="col-name">Company Name *</th>
+                        <th class="col-gst">GSTIN *</th>
+                        <th class="col-email">Business Email</th>
+                        <th class="col-phone">Primary Phone</th>
+                        <th class="col-reg">Reg. No.</th>
+                        <th class="col-tag">Tagline</th>
+                        <th class="col-web">Website</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let group of companies.controls; let i = index" [formGroupName]="i">
+                        <td class="col-num">{{ i + 1 }}</td>
+                        <td class="col-name">
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="name" placeholder="Company Name">
+                            </mat-form-field>
+                        </td>
+                        <td class="col-gst">
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="gstin" placeholder="GST Number">
+                                <mat-error *ngIf="group.get('gstin')?.errors?.['pattern']">Invalid Format</mat-error>
+                            </mat-form-field>
+                        </td>
+                        <td class="col-email">
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="primaryEmail" placeholder="email@company.com">
+                            </mat-form-field>
+                        </td>
+                        <td class="col-phone">
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="primaryPhone" placeholder="+91 XXXX">
+                            </mat-form-field>
+                        </td>
+                        <td class="col-reg">
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="registrationNumber" placeholder="Registration #">
+                            </mat-form-field>
+                        </td>
+                        <td class="col-tag">
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="tagline" placeholder="Slogan/Tagline">
+                            </mat-form-field>
+                        </td>
+                        <td class="col-web">
+                            <mat-form-field appearance="outline">
+                                <input matInput formControlName="website" placeholder="www.example.com">
+                            </mat-form-field>
+                        </td>
+                        <td class="col-actions">
+                            <div class="action-buttons">
+                                <button mat-icon-button class="copy-btn" matTooltip="Duplicate this entry" (click)="duplicateRow(i)">
+                                    <mat-icon>content_copy</mat-icon>
+                                </button>
+                                <button mat-icon-button class="delete-btn" matTooltip="Remove company" (click)="removeRow(i)">
+                                    <mat-icon>delete_outline</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="info-footer">
+        <mat-icon>info</mat-icon>
+        <span><strong>Pro Tip:</strong> Only Name and GSTIN are required. Rest will be initialized automatically.</span>
+    </div>
+</div>

@@ -83,6 +83,12 @@
           <mat-datepicker #expPicker></mat-datepicker>
         </mat-form-field>
       </div>
+
+      <div class="field-item checkbox-field">
+        <mat-checkbox formControlName="isTaxApplicable" color="primary">
+          <span class="checkbox-label">Apply GST (Tax)</span>
+        </mat-checkbox>
+      </div>
     </div>
 
     <div class="mt-4 d-flex justify-content-between align-items-center">
@@ -172,9 +178,10 @@
           <input matInput type="number" formControlName="discountPercent" (input)="updateTotal(i)" readonly style="color:#888;">
         </mat-form-field>
 
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" [class.tax-disabled]="!poForm.get('isTaxApplicable')?.value">
           <mat-label>GST %</mat-label>
-          <input matInput type="number" formControlName="gstPercent" (input)="updateTotal(i)" readonly style="color:#888;">
+          <input matInput type="number" formControlName="gstPercent" (input)="updateTotal(i)" readonly 
+            [style.color]="!poForm.get('isTaxApplicable')?.value ? '#cbd5e1' : '#888'">
         </mat-form-field>
 
         <!-- Mfg Date: Only if IsExpiryRequired = true -->

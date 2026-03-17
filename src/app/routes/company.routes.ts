@@ -18,6 +18,11 @@ export const COMPANY_ROUTES: Routes = [
                 loadComponent: () => import('./../features/company/company-form/company-form').then(m => m.CompanyForm)
             },
             {
+                path: 'bulk-add',
+                data: { breadcrumb: 'Bulk Add' },
+                loadComponent: () => import('./../features/company/bulk-company-form/bulk-company-form').then(m => m.BulkCompanyForm)
+            },
+            {
                 path: 'edit/:id',
                 data: { breadcrumb: 'Edit' },
                 loadComponent: () => import('./../features/company/company-form/company-form').then(m => m.CompanyForm)

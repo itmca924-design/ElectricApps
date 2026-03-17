@@ -130,7 +130,7 @@
             <mat-card-subtitle>Aggregated Taxable Value and Tax Amount per GST Category (5%, 12%, 18%, 28%)</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-            <table mat-table [dataSource]="taxSlabs" class="gst-table">
+            <table mat-table [dataSource]="taxSlabs" class="gst-table" *ngIf="taxSlabs.length > 0">
                 <ng-container matColumnDef="rate">
                     <th mat-header-cell *matHeaderCellDef> GST Rate </th>
                     <td mat-cell *matCellDef="let element" class="font-bold"> 
@@ -166,6 +166,11 @@
                 <tr mat-header-row *matHeaderRowDef="slabColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: slabColumns;"></tr>
             </table>
+
+            <div class="empty-state-container" *ngIf="!isLoading && taxSlabs.length === 0">
+                <mat-icon>assessment</mat-icon>
+                <p>No GST rate-wise transactions found for the selected period.</p>
+            </div>
         </mat-card-content>
     </mat-card>
 
@@ -175,7 +180,7 @@
             <mat-card-subtitle>Breakdown of taxes per Customer/Supplier with GSTIN verification</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
-            <table mat-table [dataSource]="partyBreakdown" class="gst-table">
+            <table mat-table [dataSource]="partyBreakdown" class="gst-table" *ngIf="partyBreakdown.length > 0">
                 <ng-container matColumnDef="partyName">
                     <th mat-header-cell *matHeaderCellDef> Party Name </th>
                     <td mat-cell *matCellDef="let element" class="font-bold"> {{ element.partyName }} </td>
@@ -220,6 +225,11 @@
                 <tr mat-header-row *matHeaderRowDef="partyColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: partyColumns;"></tr>
             </table>
+
+            <div class="empty-state-container" *ngIf="!isLoading && partyBreakdown.length === 0">
+                <mat-icon>people_outline</mat-icon>
+                <p>No B2B party transactions recorded for this period.</p>
+            </div>
         </mat-card-content>
     </mat-card>
 

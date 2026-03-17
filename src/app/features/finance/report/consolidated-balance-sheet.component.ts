@@ -15,7 +15,8 @@ import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 
 export interface CompanyFinancialSummary {
     companyId: number;
@@ -35,7 +36,7 @@ export interface CompanyFinancialSummary {
     imports: [
         CommonModule, MaterialModule, SummaryStatsComponent, 
         MatDatepickerModule, MatFormFieldModule, MatInputModule, 
-        FormsModule, MatSnackBarModule
+        FormsModule, MatDialogModule
     ],
     templateUrl: './consolidated-balance-sheet.component.html',
     styleUrl: './consolidated-balance-sheet.component.scss'
@@ -47,6 +48,7 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
     private loadingService = inject(LoadingService);
     private cdr = inject(ChangeDetectorRef);
     private router = inject(Router);
+    private dialog = inject(MatDialog);
 
     companySummaries: CompanyFinancialSummary[] = [];
     interCompanyBalances: any[] = [];
@@ -59,13 +61,13 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
     totalGroupLiabilities = 0;
     totalGroupProfit = 0;
     totalGroupTaxPayable = 0;
-    
-    private snackBar = inject(MatSnackBar);
+    companyName = 'ElectricApps';
 
     displayedColumns: string[] = ['companyName', 'inventoryValue', 'receivables', 'payables', 'netProfit', 'totalAssets', 'actions'];
 
     ngOnInit() {
         this.loadConsolidatedData();
+        this.companyService.getCompanyProfile().subscribe(p => this.companyName = p?.name || 'ElectricApps');
     }
 
     loadConsolidatedData() {
@@ -214,11 +216,11 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
 📉 *Group Liabilities:* ₹${this.totalGroupLiabilities.toLocaleString('en-IN')}
 📈 *Group ${status}:* ₹${Math.abs(this.totalGroupProfit).toLocaleString('en-IN')}
 ----------------------------
-_ElectricApps Multi-Company ERP_`;
+_${this.companyName} Multi-Company ERP_`;
 
         const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
         window.open(url, '_blank');
-        this.snackBar.open('Sharing Group Summary via WhatsApp...', 'OK', { duration: 3000 });
+        this.dialog.open(StatusDialogComponent, { data: { isSuccess: true, message: 'Group Summary shared via WhatsApp.' } });
     }
 
     viewCompanyDetails(summary: CompanyFinancialSummary) {
@@ -232,7 +234,9 @@ _ElectricApps Multi-Company ERP_`;
             } 
         });
 
-        this.snackBar.open(`Opening P&L Dashboard for ${summary.companyName}`, 'OK', { duration: 2000 });
+        this.dialog.open(StatusDialogComponent, { 
+            data: { isSuccess: true, message: `Opening P&L Dashboard for ${summary.companyName}` } 
+        });
     }
 
     get groupStats(): any[] {
