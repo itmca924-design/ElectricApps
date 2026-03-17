@@ -1,0 +1,121 @@
+<div class="ic-container">
+    <div class="header-section">
+        <div class="title-group">
+            <h1 class="mat-h1">Inter-Company Ledger</h1>
+            <p class="mat-body-2 text-muted">Track balances and transactions between group business units</p>
+        </div>
+        
+        <div class="filter-actions">
+            <mat-form-field appearance="outline">
+                <mat-label>Primary Company</mat-label>
+                <mat-select [(ngModel)]="selectedFromCompany" (selectionChange)="loadLedger()">
+                    <mat-option *ngFor="let c of companies" [value]="c.id">{{ c.name }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-icon class="connector">swap_horiz</mat-icon>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Partner Company</mat-label>
+                <mat-select [(ngModel)]="selectedToCompany" (selectionChange)="loadLedger()">
+                    <mat-option *ngFor="let c of companies" [value]="c.id" [disabled]="c.id === selectedFromCompany">{{ c.name }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="date-picker">
+                <mat-label>From Date</mat-label>
+                <input matInput [matDatepicker]="fromPicker" [(ngModel)]="startDate" (dateChange)="loadLedger()">
+                <mat-datepicker-toggle matIconSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                <mat-datepicker #fromPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="date-picker">
+                <mat-label>To Date</mat-label>
+                <input matInput [matDatepicker]="toPicker" [(ngModel)]="endDate" (dateChange)="loadLedger()">
+                <mat-datepicker-toggle matIconSuffix [for]="toPicker"></mat-datepicker-toggle>
+                <mat-datepicker #toPicker></mat-datepicker>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" (click)="loadLedger()" [disabled]="isLoading || !selectedFromCompany || !selectedToCompany">
+                <mat-icon>search</mat-icon> View Ledger
+            </button>
+
+            <button mat-stroked-button color="primary" (click)="exportToPDF()" [disabled]="isLoading || transactions.length === 0">
+                <mat-icon>file_download</mat-icon> Export PDF
+            </button>
+
+            <button mat-flat-button class="whatsapp-btn" (click)="shareOnWhatsApp()" [disabled]="isLoading || transactions.length === 0">
+                <mat-icon>share</mat-icon> WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <div class="balance-summary" *ngIf="selectedFromCompany && selectedToCompany && !isLoading">
+        <div class="balance-info">
+            <span class="label">Outstanding Balance</span>
+            <h2 class="value" [class.negative]="totalBalance < 0">₹{{ totalBalance | number:'1.2-2' }}</h2>
+            <div class="company-gst-chips">
+                <span class="gst-tag primary">From: <strong>{{ getCompanyGstin(selectedFromCompany) }}</strong></span>
+                <span class="gst-tag partner">Partner: <strong>{{ getCompanyGstin(selectedToCompany) }}</strong></span>
+            </div>
+            <span class="note">{{ totalBalance >= 0 ? 'Receivable from partner' : 'Payable to partner' }}</span>
+        </div>
+    </div>
+
+    <mat-card class="ledger-card mat-elevation-z3">
+        <mat-card-header>
+            <mat-card-title>Transaction History</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="transactions" class="ic-table">
+                <ng-container matColumnDef="date">
+                    <th mat-header-cell *matHeaderCellDef> Date </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.date | date:'dd-MMM-yyyy' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="voucherno">
+                    <th mat-header-cell *matHeaderCellDef> Voucher No </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.voucherno }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="type">
+                    <th mat-header-cell *matHeaderCellDef> Type </th>
+                    <td mat-cell *matCellDef="let element"> 
+                        <span class="type-badge" [ngClass]="element.type.toLowerCase()">{{ element.type }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef> Description </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.description }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="amount">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> Amount </th>
+                    <td mat-cell *matCellDef="let element" class="text-right" [class.text-danger]="element.amount < 0" [class.text-success]="element.amount > 0"> 
+                        ₹{{ (element.amount < 0 ? -element.amount : element.amount) | number:'1.2-2' }} 
+                        {{ element.amount < 0 ? '(Cr)' : '(Dr)' }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="balance">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> Running Balance </th>
+                    <td mat-cell *matCellDef="let element" class="text-right font-bold"> ₹{{ element.balance | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+            <div class="empty-state" *ngIf="!isLoading && transactions.length === 0">
+                <mat-icon>find_in_page</mat-icon>
+                <p>Select companies and date range to view inter-company transaction history.</p>
+            </div>
+
+            <div class="table-loading" *ngIf="isLoading">
+                <mat-spinner diameter="40"></mat-spinner>
+                <span>Loading ledger details...</span>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

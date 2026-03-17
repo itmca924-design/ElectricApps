@@ -1,0 +1,132 @@
+<div class="balance-sheet-container">
+    <div class="dashboard-header">
+        <div class="header-info">
+            <h1 class="title">Balance Sheet</h1>
+            <p class="subtitle">Financial Position as of Today | {{ today | date:'mediumDate' }}</p>
+        </div>
+        <div class="header-actions">
+            <button mat-flat-button color="primary" (click)="loadBalanceSheet()">
+                <mat-icon>refresh</mat-icon> Refresh Data
+            </button>
+            <button mat-stroked-button color="primary" class="ml-2" (click)="exportToPDF()">
+                <mat-icon>download</mat-icon> Export PDF
+            </button>
+            <button mat-flat-button class="whatsapp-btn ml-2" (click)="shareOnWhatsApp()">
+                <mat-icon>share</mat-icon> WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <app-summary-stats [stats]="summaryStats" *ngIf="!isDashboardLoading"></app-summary-stats>
+
+    <div class="main-content-grid" *ngIf="!isDashboardLoading">
+        
+        <!-- ASSETS COLUMN -->
+        <mat-card class="financial-card asset-card">
+            <mat-card-header>
+                <div mat-card-avatar class="header-icon-container asset-icon">
+                    <mat-icon>account_balance</mat-icon>
+                </div>
+                <mat-card-title>Assets</mat-card-title>
+                <mat-card-subtitle>What the business owns</mat-card-subtitle>
+                <span class="spacer"></span>
+                <div class="header-total text-success">₹{{ totalAssets | number:'1.2-2' }}</div>
+            </mat-card-header>
+            
+            <mat-card-content>
+                <mat-list>
+                    <mat-list-item>
+                        <mat-icon matListItemIcon class="text-success">inventory_2</mat-icon>
+                        <div matListItemTitle>Closing Stock (Inventory)</div>
+                        <div matListItemLine>Valued at average cost price</div>
+                        <div matListItemMeta class="amount-text">₹{{ inventoryValue | number:'1.2-2' }}</div>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                    <mat-list-item>
+                        <mat-icon matListItemIcon class="text-info">people_alt</mat-icon>
+                        <div matListItemTitle>Customer Receivables</div>
+                        <div matListItemLine>Outstanding balance from customers</div>
+                        <div matListItemMeta class="amount-text">₹{{ totalReceivables | number:'1.2-2' }}</div>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                    <mat-list-item>
+                        <mat-icon matListItemIcon class="text-primary">account_balance</mat-icon>
+                        <div matListItemTitle>Bank Balance</div>
+                        <div matListItemLine>Funds in bank accounts</div>
+                        <div matListItemMeta class="amount-text">₹{{ bankBalance | number:'1.2-2' }}</div>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                    <mat-list-item>
+                        <mat-icon matListItemIcon class="text-warning">payments</mat-icon>
+                        <div matListItemTitle>Cash In Hand</div>
+                        <div matListItemLine>Physical cash available</div>
+                        <div matListItemMeta class="amount-text">₹{{ cashInHand | number:'1.2-2' }}</div>
+                    </mat-list-item>
+                </mat-list>
+
+                <div class="chart-wrapper">
+                    <canvas baseChart [data]="assetsChartData" [options]="chartOptions" [type]="'doughnut'"></canvas>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- LIABILITIES & EQUITY COLUMN -->
+        <mat-card class="financial-card liability-card">
+            <mat-card-header>
+                <div mat-card-avatar class="header-icon-container liability-icon">
+                    <mat-icon>account_balance_wallet</mat-icon>
+                </div>
+                <mat-card-title>Liabilities & Equity</mat-card-title>
+                <mat-card-subtitle>Capital and debts of the business</mat-card-subtitle>
+                <span class="spacer"></span>
+                <div class="header-total text-warn">₹{{ totalLiabilitiesAndEquity | number:'1.2-2' }}</div>
+            </mat-card-header>
+            
+            <mat-card-content>
+                <mat-list>
+                    <mat-list-item>
+                        <mat-icon matListItemIcon class="text-danger">local_shipping</mat-icon>
+                        <div matListItemTitle>Supplier Payables</div>
+                        <div matListItemLine>Amount due to vendors</div>
+                        <div matListItemMeta class="amount-text">₹{{ totalPayables | number:'1.2-2' }}</div>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                    <mat-list-item>
+                        <mat-icon matListItemIcon class="text-purple">business_center</mat-icon>
+                        <div matListItemTitle>Proprietor Capital</div>
+                        <div matListItemLine>Initial and added investment</div>
+                        <div matListItemMeta class="amount-text">₹{{ capital | number:'1.2-2' }}</div>
+                    </mat-list-item>
+                    <mat-divider></mat-divider>
+                    <mat-list-item [class.profit-bg]="netProfit >= 0" [class.loss-bg]="netProfit < 0">
+                        <mat-icon matListItemIcon [class.text-success]="netProfit >= 0" [class.text-danger]="netProfit < 0">
+                            {{ netProfit >= 0 ? 'trending_up' : 'trending_down' }}
+                        </mat-icon>
+                        <div matListItemTitle>Net Profit / Loss</div>
+                        <div matListItemLine>Accumulated from P&L Dashboard</div>
+                        <div matListItemMeta class="amount-text font-bold">₹{{ netProfit | number:'1.2-2' }}</div>
+                    </mat-list-item>
+                </mat-list>
+
+                <div class="chart-wrapper">
+                    <canvas baseChart [data]="liabilitiesChartData" [options]="chartOptions" [type]="'doughnut'"></canvas>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- LOADER -->
+    <div class="loading-overlay" *ngIf="isDashboardLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+        <p>Calculating Balance Sheet...</p>
+    </div>
+
+    <!-- BALANCE INDICATOR -->
+    <div class="balance-footer" *ngIf="!isDashboardLoading">
+        <div class="indicator" [class.balanced]="totalAssets === totalLiabilitiesAndEquity">
+            <mat-icon>{{ totalAssets === totalLiabilitiesAndEquity ? 'check_circle' : 'warning' }}</mat-icon>
+            {{ totalAssets === totalLiabilitiesAndEquity ? 'Sheet is Balanced' : 'Unbalanced (Discrepancy: ₹' + (totalAssets - totalLiabilitiesAndEquity | number) + ')' }}
+        </div>
+    </div>
+</div>

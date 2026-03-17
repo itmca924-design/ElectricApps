@@ -1,0 +1,333 @@
+<div class="gst-container">
+    <div class="header-section">
+        <div class="title-group">
+            <h1 class="mat-h1">GST & Tax Reconciliation</h1>
+            <p class="mat-body-2 text-muted">Monitor Tax Liability, ITC, TDS and TCS Compliance</p>
+        </div>
+        
+        <div class="filter-actions">
+            <mat-form-field appearance="outline" class="date-picker">
+                <mat-label>Start Date</mat-label>
+                <input matInput [matDatepicker]="startPicker" [(ngModel)]="startDate" (dateChange)="onFilterChange()">
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="date-picker">
+                <mat-label>End Date</mat-label>
+                <input matInput [matDatepicker]="endPicker" [(ngModel)]="endDate" (dateChange)="onFilterChange()">
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" (click)="loadGstData()" [disabled]="isLoading">
+                <mat-icon>refresh</mat-icon> Recalculate
+            </button>
+
+            <button mat-stroked-button color="primary" (click)="exportToPDF()" [disabled]="isLoading">
+                <mat-icon>file_download</mat-icon> Export PDF
+            </button>
+
+            <button mat-flat-button class="whatsapp-btn" (click)="shareOnWhatsApp()" [disabled]="isLoading">
+                <mat-icon>share</mat-icon> WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <div class="alert-banner warning" *ngIf="hasGstinErrors">
+        <mat-icon>warning</mat-icon>
+        <div class="alert-content">
+            <strong>GSTR Compliance Alert:</strong> Some parties have invalid or missing GSTINs. This may lead to credit rejection by the portal.
+        </div>
+        <button mat-button color="warn">Review Errors</button>
+    </div>
+
+    <div class="summary-cards">
+        <mat-card class="stat-card output">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>outbound</mat-icon>
+                <mat-card-title>Output GST</mat-card-title>
+                <mat-card-subtitle>Liability + TCS</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <h2 class="price-value">₹{{ outputGst + tcsAmount | number:'1.2-2' }}</h2>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card input">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>move_to_inbox</mat-icon>
+                <mat-card-title>Input GST (ITC)</mat-card-title>
+                <mat-card-subtitle>Credit + TDS</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <h2 class="price-value">₹{{ inputGst + tdsAmount | number:'1.2-2' }}</h2>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card payable" [class.refundable]="outputGst + tcsAmount < inputGst + tdsAmount">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>account_balance</mat-icon>
+                <mat-card-title>{{ (outputGst + tcsAmount >= inputGst + tdsAmount) ? 'Net Tax Payable' : 'Net Tax Credit' }}</mat-card-title>
+                <mat-card-subtitle>Period Balance</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <h2 class="price-value">₹{{ gstPayable | number:'1.2-2' }}</h2>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <mat-card class="detail-card mat-elevation-z3">
+        <mat-card-header>
+            <mat-card-title>Reconciliation Breakdown</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="gstDetails" class="gst-table">
+                <ng-container matColumnDef="category">
+                    <th mat-header-cell *matHeaderCellDef> Category </th>
+                    <td mat-cell *matCellDef="let element" class="font-bold"> {{ element.category }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="cgst">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> CGST </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.cgst | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="sgst">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> SGST </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.sgst | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="igst">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> IGST </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.igst | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="tds">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> TDS </th>
+                    <td mat-cell *matCellDef="let element" class="text-right text-info"> ₹{{ element.tds | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="tcs">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> TCS </th>
+                    <td mat-cell *matCellDef="let element" class="text-right text-warning"> ₹{{ element.tcs | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="total">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> Total </th>
+                    <td mat-cell *matCellDef="let element" class="text-right font-bold text-primary"> ₹{{ element.total | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="detail-card mat-elevation-z3 rate-card">
+        <mat-card-header>
+            <mat-card-title>GST Rate-wise Summary</mat-card-title>
+            <mat-card-subtitle>Aggregated Taxable Value and Tax Amount per GST Category (5%, 12%, 18%, 28%)</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="taxSlabs" class="gst-table">
+                <ng-container matColumnDef="rate">
+                    <th mat-header-cell *matHeaderCellDef> GST Rate </th>
+                    <td mat-cell *matCellDef="let element" class="font-bold"> 
+                        <span class="rate-badge">{{ element.rate }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="taxableAmount">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> Taxable Value </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.taxableAmount | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="cgst">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> CGST </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.cgst | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="sgst">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> SGST </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.sgst | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="igst">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> IGST </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.igst | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalTax">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> Net Tax </th>
+                    <td mat-cell *matCellDef="let element" class="text-right font-bold text-primary"> ₹{{ element.totalTax | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="slabColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: slabColumns;"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="detail-card mat-elevation-z3 party-card">
+        <mat-card-header>
+            <mat-card-title>Party-wise Reconciliation (B2B)</mat-card-title>
+            <mat-card-subtitle>Breakdown of taxes per Customer/Supplier with GSTIN verification</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="partyBreakdown" class="gst-table">
+                <ng-container matColumnDef="partyName">
+                    <th mat-header-cell *matHeaderCellDef> Party Name </th>
+                    <td mat-cell *matCellDef="let element" class="font-bold"> {{ element.partyName }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="gstin">
+                    <th mat-header-cell *matHeaderCellDef> GSTIN </th>
+                    <td mat-cell *matCellDef="let element"> 
+                        <div class="gstin-container">
+                            <code class="gstin-code" [class.invalid]="!element.isValidGstin">{{ element.gstin }}</code>
+                            <mat-icon *ngIf="!element.isValidGstin" 
+                                      class="error-icon" 
+                                      [matTooltip]="element.gstin === 'PENDING' ? 'GSTIN Missing' : 'Invalid GSTIN Format'">
+                                error
+                            </mat-icon>
+                        </div>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalTax">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> GST Amount </th>
+                    <td mat-cell *matCellDef="let element" class="text-right"> ₹{{ element.totalTax | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="tds">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> TDS </th>
+                    <td mat-cell *matCellDef="let element" class="text-right text-info"> ₹{{ element.tds | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="tcs">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> TCS </th>
+                    <td mat-cell *matCellDef="let element" class="text-right text-warning"> ₹{{ element.tcs | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef class="text-center"> Type </th>
+                    <td mat-cell *matCellDef="let element" class="text-center"> 
+                        <span class="type-chip" [class.customer]="element.type === 'Customer'">{{ element.type }}</span>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="partyColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: partyColumns;"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="detail-card mat-elevation-z3 reversal-card" *ngIf="itcReversals.length > 0">
+        <mat-card-header>
+            <mat-card-title class="text-danger">ITC Reversal Tracking (Rule 37 - 180 Days)</mat-card-title>
+            <mat-card-subtitle>Mandatory reversal of ITC for purchase invoices unpaid for more than 180 days</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="itcReversals" class="gst-table">
+                <ng-container matColumnDef="invoiceNo">
+                    <th mat-header-cell *matHeaderCellDef> Invoice No </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.invoiceNo }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="invoiceDate">
+                    <th mat-header-cell *matHeaderCellDef> Invoice Date </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.invoiceDate | date:'dd-MMM-yyyy' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="partyName">
+                    <th mat-header-cell *matHeaderCellDef> Supplier </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.partyName }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="aging">
+                    <th mat-header-cell *matHeaderCellDef class="text-center"> Aging </th>
+                    <td mat-cell *matCellDef="let element" class="text-center"> 
+                        <span class="aging-badge">{{ element.aging }} Days</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="taxAmount">
+                    <th mat-header-cell *matHeaderCellDef class="text-right"> Reversal GST </th>
+                    <td mat-cell *matCellDef="let element" class="text-right text-danger font-bold"> ₹{{ element.taxAmount | number:'1.2-2' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef class="text-center"> Payment Status </th>
+                    <td mat-cell *matCellDef="let element" class="text-center"> 
+                        <span class="status-chip warning">{{ element.status }}</span>
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                    <th mat-header-cell *matHeaderCellDef class="text-center"> Actions </th>
+                    <td mat-cell *matCellDef="let element" class="text-center"> 
+                        <button mat-icon-button color="warn" matTooltip="Send Payment Reminder" (click)="sendReminder(element)">
+                            <mat-icon>notification_important</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="reversalColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: reversalColumns;"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+
+    <mat-card class="detail-card mat-elevation-z3 log-card" *ngIf="reminderLogs.length > 0">
+        <mat-card-header>
+            <div class="log-header-group">
+                <mat-card-title>Reminder Activity Log</mat-card-title>
+                <mat-card-subtitle>History of payment reminders sent in current session</mat-card-subtitle>
+            </div>
+            <button mat-stroked-button color="primary" class="log-export-btn" (click)="exportReminderLog()">
+                <mat-icon>file_download</mat-icon> Export Log
+            </button>
+        </mat-card-header>
+        <mat-card-content>
+            <table mat-table [dataSource]="reminderLogs" class="gst-table">
+                <ng-container matColumnDef="timestamp">
+                    <th mat-header-cell *matHeaderCellDef> Time Sent </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.timestamp | date:'shortTime' }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="partyName">
+                    <th mat-header-cell *matHeaderCellDef> Supplier </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.partyName }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="invoiceNo">
+                    <th mat-header-cell *matHeaderCellDef> Invoice </th>
+                    <td mat-cell *matCellDef="let element"> <span class="invoice-badge">{{ element.invoiceNo }}</span> </td>
+                </ng-container>
+
+                <ng-container matColumnDef="phone">
+                    <th mat-header-cell *matHeaderCellDef> Phone </th>
+                    <td mat-cell *matCellDef="let element"> {{ element.phone }} </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef class="text-center"> Status </th>
+                    <td mat-cell *matCellDef="let element" class="text-center"> 
+                        <span class="status-chip success">
+                            <mat-icon>done</mat-icon> {{ element.status }}
+                        </span>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="logColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: logColumns;"></tr>
+            </table>
+        </mat-card-content>
+    </mat-card>
+
+    <div class="note-section">
+        <mat-icon>security</mat-icon>
+        <span>Data is aggregated from all finalized invoices, purchase bills, and TDS/TCS mappings for the selected period.</span>
+    </div>
+</div>

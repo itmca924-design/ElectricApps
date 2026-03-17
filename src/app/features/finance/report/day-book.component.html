@@ -1,0 +1,142 @@
+<div class="day-book-container">
+    <div class="header-section">
+        <div class="title-group">
+            <h1 class="mat-h1">Day Book</h1>
+            <p class="mat-body-2 text-muted">Chronological record of all transactions for the selected day</p>
+        </div>
+        
+        <div class="filter-actions">
+            <!-- Type Filter -->
+            <mat-form-field appearance="outline" class="type-filter">
+                <mat-label>Transaction Type</mat-label>
+                <mat-select [(ngModel)]="selectedType" (selectionChange)="onFilterChange()">
+                    <mat-option value="All">All Transactions</mat-option>
+                    <mat-option value="Sale">Sales Only</mat-option>
+                    <mat-option value="Purchase">Purchases Only</mat-option>
+                    <mat-option value="Receipt">Receipts Only</mat-option>
+                    <mat-option value="Payment">Payments Only</mat-option>
+                    <mat-option value="Expense">Expenses Only</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="date-picker">
+                <mat-label>Select Date</mat-label>
+                <input matInput [matDatepicker]="picker" [(ngModel)]="selectedDate" (dateChange)="onDateChange()">
+                <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+            
+            <button mat-flat-button color="primary" (click)="loadDayBook()" [disabled]="isLoading">
+                <mat-icon>refresh</mat-icon> Refresh
+            </button>
+
+            <button mat-stroked-button color="primary" (click)="exportToPDF()" [disabled]="isLoading || filteredTransactions.length === 0">
+                <mat-icon>picture_as_pdf</mat-icon> Export PDF
+            </button>
+
+            <button mat-flat-button class="whatsapp-btn" (click)="shareOnWhatsApp()" [disabled]="isLoading">
+                <mat-icon>share</mat-icon> WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <!-- Summary Overview -->
+    <div class="summary-cards" *ngIf="!isLoading">
+        <mat-card class="stat-card total-in">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>trending_up</mat-icon>
+                <mat-card-title>Total Inflow</mat-card-title>
+                <mat-card-subtitle>Sales & Receipts</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <h2 class="price-value">₹{{ totalIn | number:'1.2-2' }}</h2>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card total-out">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>trending_down</mat-icon>
+                <mat-card-title>Total Outflow</mat-card-title>
+                <mat-card-subtitle>Purchases, Payments, Expenses</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <h2 class="price-value">₹{{ totalOut | number:'1.2-2' }}</h2>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="stat-card net-balance" [class.negative]="netBalance < 0">
+            <mat-card-header>
+                <mat-icon mat-card-avatar>account_balance_wallet</mat-icon>
+                <mat-card-title>Net Cash Movement</mat-card-title>
+                <mat-card-subtitle>Difference for the day</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <h2 class="price-value">₹{{ netBalance | number:'1.2-2' }}</h2>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="table-container mat-elevation-z4">
+        <table mat-table [dataSource]="filteredTransactions" class="day-book-table">
+            
+            <ng-container matColumnDef="time">
+                <th mat-header-cell *matHeaderCellDef> Time </th>
+                <td mat-cell *matCellDef="let element"> {{ element.time | date:'hh:mm a' }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef> Type </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="type-badge" [ngClass]="element.type.toLowerCase()">
+                        {{ element.type }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="particulars">
+                <th mat-header-cell *matHeaderCellDef> Particulars </th>
+                <td mat-cell *matCellDef="let element"> 
+                    <div class="particulars-cell">
+                        <span class="name">{{ element.particulars }}</span>
+                        <span class="mode-label" *ngIf="element.paymentMode">
+                            <mat-icon>payments</mat-icon> {{ element.paymentMode }}
+                        </span>
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="voucherNo">
+                <th mat-header-cell *matHeaderCellDef> Voucher/Ref No. </th>
+                <td mat-cell *matCellDef="let element"> {{ element.voucherNo }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="inAmount">
+                <th mat-header-cell *matHeaderCellDef class="text-right"> IN (+) </th>
+                <td mat-cell *matCellDef="let element" class="text-right text-success font-bold"> 
+                    {{ element.inAmount > 0 ? '₹' + (element.inAmount | number:'1.2-2') : '-' }} 
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="outAmount">
+                <th mat-header-cell *matHeaderCellDef class="text-right"> OUT (-) </th>
+                <td mat-cell *matCellDef="let element" class="text-right text-danger font-bold"> 
+                    {{ element.outAmount > 0 ? '₹' + (element.outAmount | number:'1.2-2') : '-' }} 
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <!-- No Data Row -->
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell empty-state" [attr.colspan]="displayedColumns.length">
+                    <div class="empty-content">
+                        <mat-icon>receipt_long</mat-icon>
+                        <span>No {{ selectedType !== 'All' ? selectedType : '' }} transactions recorded for {{ selectedDate | date:'mediumDate' }}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

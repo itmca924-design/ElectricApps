@@ -56,12 +56,37 @@ export const FINANCE_ROUTES: Routes = [
                 canActivate: [PermissionGuard],
                 loadComponent: () => import('../features/finance/report/receipt-report.component').then(m => m.ReceiptReportComponent)
             },
+            {
+                path: 'day-book',
+                canActivate: [PermissionGuard],
+                loadComponent: () => import('../features/finance/report/day-book.component').then(m => m.DayBookComponent)
+            },
+            {
+                path: 'consolidated-financials',
+                canActivate: [PermissionGuard],
+                loadComponent: () => import('../features/finance/report/consolidated-balance-sheet.component').then(m => m.ConsolidatedBalanceSheetComponent)
+            },
+            {
+                path: 'gst-reconciliation',
+                canActivate: [PermissionGuard],
+                loadComponent: () => import('../features/finance/report/gst-reconciliation.component').then(m => m.GstReconciliationComponent)
+            },
+            {
+                path: 'inter-company-ledger',
+                canActivate: [PermissionGuard],
+                loadComponent: () => import('../features/finance/report/inter-company-ledger.component').then(m => m.InterCompanyLedgerComponent)
+            },
         ]
     },
     {
         path: 'p-and-l',
         canActivate: [PermissionGuard],
         loadComponent: () => import('../features/finance/pl-dashboard/pl-dashboard.component').then(m => m.PLDashboardComponent)
+    },
+    {
+        path: 'balance-sheet',
+        canActivate: [PermissionGuard],
+        loadComponent: () => import('../features/finance/balance-sheet/balance-sheet.component').then(m => m.BalanceSheetComponent)
     },
     {
         path: 'expenses',

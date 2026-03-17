@@ -1,0 +1,181 @@
+.day-book-container {
+    padding: 24px;
+    background: #f8fafc;
+    min-height: calc(100vh - 64px);
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 24px;
+
+        .title-group {
+            h1 {
+                margin: 0;
+                font-weight: 800;
+                color: #1e293b;
+                letter-spacing: -1px;
+            }
+            .text-muted { color: #64748b; }
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+
+            .type-filter {
+                width: 180px;
+                ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+            }
+
+            .date-picker {
+                width: 200px;
+                ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+            }
+        }
+    }
+
+    .particulars-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .name { font-weight: 500; }
+        .mode-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+
+            mat-icon { font-size: 14px; width: 14px; height: 14px; color: #94a3b8; }
+        }
+    }
+
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-bottom: 24px;
+
+        .stat-card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+
+            mat-card-header {
+                padding-bottom: 12px;
+                mat-icon {
+                    background: #f1f5f9;
+                    padding: 8px;
+                    border-radius: 12px;
+                    color: #64748b;
+                }
+                mat-card-title { font-weight: 600; font-size: 1rem; }
+            }
+
+            .price-value {
+                font-size: 1.8rem;
+                font-weight: 800;
+                margin: 0;
+                font-family: 'Outfit', sans-serif;
+            }
+
+            &.total-in {
+                border-left: 5px solid #10b981;
+                mat-card-header mat-icon { background: #ecfdf5; color: #10b981; }
+                .price-value { color: #10b981; }
+            }
+
+            &.total-out {
+                border-left: 5px solid #ef4444;
+                mat-card-header mat-icon { background: #fef2f2; color: #ef4444; }
+                .price-value { color: #ef4444; }
+            }
+
+            &.net-balance {
+                border-left: 5px solid #3b82f6;
+                mat-card-header mat-icon { background: #eff6ff; color: #3b82f6; }
+                .price-value { color: #3b82f6; }
+                
+                &.negative {
+                    border-left-color: #f59e0b;
+                    mat-card-header mat-icon { background: #fffbeb; color: #f59e0b; }
+                    .price-value { color: #f59e0b; }
+                }
+            }
+        }
+    }
+
+    .table-container {
+        border-radius: 16px;
+        overflow: hidden;
+        background: #fff;
+
+        .day-book-table {
+            width: 100%;
+
+            th {
+                background: #f1f5f9;
+                color: #475569;
+                font-weight: 700;
+                text-transform: uppercase;
+                font-size: 12px;
+                letter-spacing: 0.5px;
+                height: 56px;
+            }
+
+            td {
+                height: 64px;
+                color: #334155;
+            }
+
+            .type-badge {
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+
+                &.sale { background: #dcfce7; color: #15803d; }
+                &.purchase { background: #fee2e2; color: #b91c1c; }
+                &.receipt { background: #dbeafe; color: #1d4ed8; }
+                &.payment { background: #fef3c7; color: #92400e; }
+                &.expense { background: #f3e8ff; color: #7e22ce; }
+            }
+        }
+    }
+
+    .text-right { text-align: right; }
+    .text-success { color: #10b981; }
+    .text-danger { color: #ef4444; }
+    .font-bold { font-weight: 700; }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 0 !important;
+        
+        .empty-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: #94a3b8;
+
+            mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.5; }
+            span { font-size: 1.1rem; font-weight: 500; }
+        }
+    }
+
+    .whatsapp-btn {
+        background-color: #25d366 !important;
+        color: white !important;
+        font-weight: 600;
+        border-radius: 8px;
+
+        mat-icon { margin-right: 4px; }
+    }
+}

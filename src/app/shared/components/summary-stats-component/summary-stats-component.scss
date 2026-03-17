@@ -1,11 +1,12 @@
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
-  margin-bottom: 12px;
-  flex-shrink: 0;
+  margin-bottom: 24px;
+  width: 100%;
 
   .stat-card {
+    min-width: 180px;
     border-radius: 12px;
     border: none;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -58,6 +59,13 @@
         font-weight: 800;
         color: #1e293b;
         margin-top: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        @media screen and (max-width: 1400px) {
+          font-size: 1.4rem;
+        }
       }
     }
 

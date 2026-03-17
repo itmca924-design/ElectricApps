@@ -107,17 +107,82 @@ export class MenuService {
                     }
                 }
 
-                // 🎯 Inject "Tax Invoice" into Finance menu
+                // 🎯 Inject "Tax Invoice" and "Balance Sheet" into Finance menu
                 const financeMenu = filtered.find(m => m.title === 'Finance');
                 if (financeMenu && financeMenu.children) {
-                    const alreadyHas = financeMenu.children.some(c => c.title === 'Tax Invoice');
-                    if (!alreadyHas) {
+                    const alreadyHasTax = financeMenu.children.some(c => c.title === 'Tax Invoice');
+                    if (!alreadyHasTax) {
                         financeMenu.children.push({
                             id: 9993, // Dummy ID
                             title: 'Tax Invoice',
                             url: '/app/finance/sales-invoice',
                             icon: 'description',
                             order: 90,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+
+                    const alreadyHasBS = financeMenu.children.some(c => c.title === 'Balance Sheet');
+                    if (!alreadyHasBS) {
+                        financeMenu.children.push({
+                            id: 9994, // Dummy ID
+                            title: 'Balance Sheet',
+                            url: '/app/finance/balance-sheet',
+                            icon: 'account_balance',
+                            order: 85,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+
+                    const alreadyHasDB = financeMenu.children.some(c => c.title === 'Day Book');
+                    if (!alreadyHasDB) {
+                        financeMenu.children.push({
+                            id: 9995, // Dummy ID
+                            title: 'Day Book',
+                            url: '/app/finance/customers/day-book',
+                            icon: 'event_note',
+                            order: 80,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+
+                    const alreadyHasConsolidated = financeMenu.children.some(c => c.title === 'Group Summary');
+                    if (!alreadyHasConsolidated) {
+                        financeMenu.children.push({
+                            id: 9996, // Dummy ID
+                            title: 'Group Summary',
+                            url: '/app/finance/customers/consolidated-financials',
+                            icon: 'location_city',
+                            order: 90,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+
+                    const alreadyHasGst = financeMenu.children.some(c => c.title === 'GST Reconciliation');
+                    if (!alreadyHasGst) {
+                        financeMenu.children.push({
+                            id: 9997, // Dummy ID
+                            title: 'GST Reconciliation',
+                            url: '/app/finance/customers/gst-reconciliation',
+                            icon: 'assignment_turned_in',
+                            order: 100,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+
+                    const alreadyHasIC = financeMenu.children.some(c => c.title === 'Inter-Company Ledger');
+                    if (!alreadyHasIC) {
+                        financeMenu.children.push({
+                            id: 9998, // Dummy ID
+                            title: 'Inter-Company Ledger',
+                            url: '/app/finance/customers/inter-company-ledger',
+                            icon: 'swap_horiz',
+                            order: 110,
                             children: [],
                             permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
                         });

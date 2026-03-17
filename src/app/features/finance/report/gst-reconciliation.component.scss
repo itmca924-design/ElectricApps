@@ -1,0 +1,263 @@
+.gst-container {
+    padding: 24px;
+    background: #fdfdfd;
+    min-height: calc(100vh - 64px);
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+
+        .title-group {
+            h1 { margin: 0; font-weight: 800; color: #1a202c; letter-spacing: -1px; }
+            .text-muted { color: #718096; }
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+
+            mat-form-field {
+                width: 150px;
+                ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+            }
+        }
+    }
+
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-bottom: 32px;
+
+        .stat-card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+
+            mat-card-header {
+                padding-bottom: 12px;
+                mat-icon { border-radius: 12px; padding: 10px; font-size: 24px; width: 24px; height: 24px; }
+                mat-card-title { font-weight: 700; font-size: 1rem; }
+            }
+
+            .price-value { font-size: 2rem; font-weight: 800; margin: 0; }
+
+            &.output {
+                border-top: 4px solid #f56565;
+                mat-card-header mat-icon { background: #fff5f5; color: #f56565; }
+                .price-value { color: #e53e3e; }
+            }
+
+            &.input {
+                border-top: 4px solid #48bb78;
+                mat-card-header mat-icon { background: #f0fff4; color: #48bb78; }
+                .price-value { color: #38a169; }
+            }
+
+            &.payable {
+                border-top: 4px solid #ed8936;
+                mat-card-header mat-icon { background: #fffaf0; color: #ed8936; }
+                .price-value { color: #dd6b20; }
+
+                &.refundable {
+                    border-top-color: #4299e1;
+                    mat-card-header mat-icon { background: #ebf8ff; color: #4299e1; }
+                    .price-value { color: #3182ce; }
+                }
+            }
+        }
+    }
+
+    .detail-card {
+        border-radius: 16px;
+        mat-card-header { padding: 20px 24px; border-bottom: 1px solid #edf2f7; mat-card-title { font-weight: 700; color: #2d3748; } }
+        mat-card-content { padding: 0 !important; }
+    }
+
+    .gst-table {
+        width: 100%;
+        th { background: #f7fafc; color: #4a5568; font-weight: 700; text-transform: uppercase; font-size: 11px; padding: 16px; }
+        td { padding: 16px; color: #2d3748; }
+    }
+
+    .log-card {
+        margin-top: 32px;
+        border-left: 4px solid #10b981;
+        background: #f0fdf4;
+
+        mat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 16px 24px;
+            
+            .log-header-group { flex: 1; }
+            .log-export-btn { margin-left: auto; height: 36px; line-height: 36px; }
+        }
+        
+        .invoice-badge {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-chip.success {
+            background: #dcfce7;
+            color: #166534;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            mat-icon { font-size: 14px; width: 14px; height: 14px; }
+        }
+    }
+
+    .note-section {
+        margin-top: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #718096;
+        background: #f7fafc;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        mat-icon { font-size: 18px; width: 18px; height: 18px; }
+    }
+
+    .text-right { text-align: right; }
+    .text-primary { color: #3182ce; }
+    .font-bold { font-weight: 700; }
+
+    .whatsapp-btn {
+        background-color: #25d366 !important;
+        color: white !important;
+        font-weight: 600;
+        border-radius: 8px;
+        margin-left: 8px;
+
+        mat-icon { margin-right: 4px; }
+    }
+
+    .party-card {
+        margin-top: 32px;
+        border-left: 4px solid #3182ce;
+        
+        mat-card-subtitle { color: #a0aec0; }
+    }
+
+    .reversal-card {
+        margin-top: 32px;
+        border-left: 4px solid #e53e3e;
+        background: #fff5f5;
+
+        mat-card-header { border-bottom-color: #feb2b2; }
+    }
+
+    .aging-badge {
+        background: #fed7d7;
+        color: #9b2c2c;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.8rem;
+    }
+
+    .status-chip {
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        
+        &.warning {
+            background: #feebc8;
+            color: #744210;
+        }
+    }
+
+    .rate-card {
+        margin-top: 32px;
+        border-right: 4px solid #ed8936;
+        background: #fff;
+    }
+
+    .rate-badge {
+        background: #2d3748;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        display: inline-block;
+        min-width: 44px;
+        text-align: center;
+    }
+
+    .gstin-code {
+        background: #f1f5f9;
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: #475569;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.85rem;
+        border: 1px solid #e2e8f0;
+
+        &.invalid {
+            background: #fff5f5;
+            color: #c53030;
+            border-color: #feb2b2;
+        }
+    }
+
+    .gstin-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .error-icon {
+            color: #e53e3e;
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+    }
+
+    .alert-banner {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 24px;
+        border-radius: 12px;
+        margin-bottom: 32px;
+        
+        &.warning {
+            background: #fffaf0;
+            border: 1px solid #feebc8;
+            color: #744210;
+            mat-icon { color: #dd6b20; }
+        }
+
+        .alert-content { flex: 1; font-size: 0.95rem; }
+    }
+
+    .type-chip {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        background: #fff3cd;
+        color: #856404;
+
+        &.customer {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+    }
+}
