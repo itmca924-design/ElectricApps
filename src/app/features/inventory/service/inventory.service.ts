@@ -44,15 +44,32 @@ export class InventoryService {
         return this.api.post<any>('PurchaseOrders/get-paged-orders', { ...request, isQuick: true });
     }
 
-    getQuickPagedSales(page: number, size: number, sort: string, order: string, search: string): Observable<any> {
+    getQuickPagedPurchases(page: number, size: number, sort: string, order: string, search: string, startDate?: Date, endDate?: Date): Observable<any> {
         const request = {
+            pageIndex: page - 1, // 0-based index
+            pageSize: size,
+            sortField: sort === 'Date' ? 'CreatedDate' : sort,
+            sortOrder: order,
+            filter: search,
+            fromDate: startDate?.toISOString(),
+            toDate: endDate?.toISOString(),
+            isQuick: true
+        };
+        return this.api.post<any>('PurchaseOrders/get-paged-orders', request);
+    }
+
+    getQuickPagedSales(page: number, size: number, sort: string, order: string, search: string, startDate?: Date, endDate?: Date): Observable<any> {
+        const request: any = {
             pageNumber: page,
             pageSize: size,
-            sortBy: sort,
+            sortBy: sort === 'Date' ? 'SoDate' : sort,
             sortOrder: order,
             searchTerm: search,
             isQuick: true
         };
+        if (startDate) request.startDate = startDate.toISOString();
+        if (endDate) request.endDate = endDate.toISOString();
+        
         return this.api.get<any>(`saleorder?${this.api.toQueryString(request)}`);
     }
 
