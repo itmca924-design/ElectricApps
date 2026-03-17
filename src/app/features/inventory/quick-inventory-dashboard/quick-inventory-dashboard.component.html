@@ -1,0 +1,206 @@
+<div class="quick-dashboard-container">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="title-section">
+      <h1 class="mat-headline-medium">Quick Inventory Overview</h1>
+      <p class="mat-body-medium text-secondary">Manage your rapid transactions, quick sales, and fast-track warehouse activities.</p>
+    </div>
+    <div class="date-display mat-elevation-z1">
+      <mat-icon>calendar_today</mat-icon>
+      {{ today | date:'dd MMM yyyy' }}
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <mat-card class="stat-card blue-gradient mat-elevation-z2">
+      <mat-card-content>
+        <div class="card-icon"><mat-icon>shopping_cart</mat-icon></div>
+        <div class="card-data">
+          <span class="label">Quick Purchases</span>
+          <h2 class="value">{{ stats.totalQuickPurchase }}</h2>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card green-gradient mat-elevation-z2">
+      <mat-card-content>
+        <div class="card-icon"><mat-icon>bolt</mat-icon></div>
+        <div class="card-data">
+          <span class="label">Quick Sales</span>
+          <h2 class="value">{{ stats.totalQuickSaleCount }}</h2>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card purple-gradient mat-elevation-z2">
+      <mat-card-content>
+        <div class="card-icon"><mat-icon>move_to_inbox</mat-icon></div>
+        <div class="card-data">
+          <span class="label">Quick GRNs</span>
+          <h2 class="value">{{ stats.quickGRNCount }}</h2>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card orange-gradient mat-elevation-z2">
+      <mat-card-content>
+        <div class="card-icon"><mat-icon>pending_actions</mat-icon></div>
+        <div class="card-data">
+          <span class="label">Unpaid Sales</span>
+          <h2 class="value">{{ stats.unpaidQuickSales }}</h2>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Main Grid: Recent Purchases & Recent Sales -->
+  <div class="main-grid">
+    <div class="left-section">
+      <!-- Recent Quick Purchases -->
+      <mat-card class="data-card mat-elevation-z2 mb-32">
+        <mat-card-header>
+          <div class="header-icon-box blue"><mat-icon>history</mat-icon></div>
+          <mat-card-title>Recent Quick Purchases</mat-card-title>
+          <span class="spacer"></span>
+          <button mat-button color="primary" routerLink="/app/quick-inventory/purchase/list">
+            VIEW ALL <mat-icon>chevron_right</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="loading-overlay" *ngIf="loading">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          
+          <table mat-table [dataSource]="recentQuickPurchases" class="dashboard-mat-table" *ngIf="!loading && recentQuickPurchases.length > 0">
+            <ng-container matColumnDef="poNumber">
+              <th mat-header-cell *matHeaderCellDef> PO Number </th>
+              <td mat-cell *matCellDef="let po"> <span class="number-badge po">{{po.poNumber}}</span> </td>
+            </ng-container>
+
+            <ng-container matColumnDef="supplierName">
+              <th mat-header-cell *matHeaderCellDef> Supplier </th>
+              <td mat-cell *matCellDef="let po"> {{po.supplierName}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef> Date </th>
+              <td mat-cell *matCellDef="let po"> {{po.date | date:'dd/MM/yy hh:mm a'}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef> Status </th>
+              <td mat-cell *matCellDef="let po">
+                <span class="status-chip" [style.backgroundColor]="getStatusColor(po.status)">
+                  {{po.status}}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="['poNumber', 'supplierName', 'date', 'status']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['poNumber', 'supplierName', 'date', 'status'];"></tr>
+          </table>
+
+          <div class="empty-state" *ngIf="!loading && recentQuickPurchases.length === 0">
+            <mat-icon>receipt_long</mat-icon>
+            <p>No recent quick purchases found</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Recent Quick Sales -->
+      <mat-card class="data-card mat-elevation-z2">
+        <mat-card-header>
+          <div class="header-icon-box green"><mat-icon>assessment</mat-icon></div>
+          <mat-card-title>Recent Quick Sales</mat-card-title>
+          <span class="spacer"></span>
+          <button mat-button color="primary" routerLink="/app/quick-inventory/sale/list">
+            VIEW ALL <mat-icon>chevron_right</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="loading-overlay" *ngIf="loading">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+          
+          <table mat-table [dataSource]="recentQuickSales" class="dashboard-mat-table" *ngIf="!loading && recentQuickSales.length > 0">
+            <ng-container matColumnDef="soNumber">
+              <th mat-header-cell *matHeaderCellDef> SO Number </th>
+              <td mat-cell *matCellDef="let so"> <span class="number-badge grn">{{so.soNumber}}</span> </td>
+            </ng-container>
+
+            <ng-container matColumnDef="customerName">
+              <th mat-header-cell *matHeaderCellDef> Customer </th>
+              <td mat-cell *matCellDef="let so"> {{so.customerName}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef> Date </th>
+              <td mat-cell *matCellDef="let so"> {{so.date | date:'dd/MM/yy hh:mm a'}} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef> Status </th>
+              <td mat-cell *matCellDef="let so">
+                <span class="status-chip" [style.backgroundColor]="getStatusColor(so.status)">
+                  {{so.status}}
+                </span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="['soNumber', 'customerName', 'date', 'status']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['soNumber', 'customerName', 'date', 'status'];"></tr>
+          </table>
+
+          <div class="empty-state" *ngIf="!loading && recentQuickSales.length === 0">
+            <mat-icon>shopping_bag</mat-icon>
+            <p>No recent quick sales found</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Right Column: Quick Actions & Status -->
+    <div class="right-section">
+      <mat-card class="actions-card mat-elevation-z2 mb-32">
+        <mat-card-header>
+          <mat-card-title>Quick Actions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="action-buttons">
+            <button mat-flat-button *ngFor="let action of quickActions" 
+                    [routerLink]="action.link" 
+                    class="action-btn"
+                    [style.borderLeftColor]="action.color">
+              <mat-icon>{{action.icon}}</mat-icon>
+              <span>{{action.label}}</span>
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Small Summary Card -->
+      <mat-card class="stock-alerts mat-elevation-z2">
+        <mat-card-header>
+          <mat-card-title>Activity Insights</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="alert-item">
+            <div class="alert-info">
+              <mat-icon class="text-blue">flash_on</mat-icon>
+              <span>Quick Turnaround</span>
+            </div>
+            <span class="alert-badge blue">Top Speed</span>
+          </div>
+          <div class="alert-item">
+            <div class="alert-info">
+              <mat-icon class="text-orange">warning</mat-icon>
+              <span>Unpaid Payments</span>
+            </div>
+            <span class="alert-badge orange">{{stats.unpaidQuickSales}} Orders</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

@@ -3,6 +3,11 @@ import { PermissionGuard } from '../core/gaurds/permission.guard';
 
 export const QUICK_INVENTORY_ROUTES: Routes = [
     {
+        path: '',
+        data: { breadcrumb: 'Dashboard' },
+        loadComponent: () => import('../features/inventory/quick-inventory-dashboard/quick-inventory-dashboard.component').then(m => m.QuickInventoryDashboardComponent)
+    },
+    {
         path: 'purchase',
         canActivate: [PermissionGuard],
         data: { breadcrumb: 'Quick Purchase' },

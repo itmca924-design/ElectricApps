@@ -21,6 +21,7 @@ export const routes: Routes = [
         .then(m => m.MainLayoutComponent),
 
     children: [
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'dashboard',
         data: { breadcrumb: 'Dashboard' },

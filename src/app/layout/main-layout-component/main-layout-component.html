@@ -86,6 +86,11 @@
       <div class="nav-actions">
         <span *ngIf="userEmail" class="welcome-text">Welcome, {{ userEmail }}</span>
         
+        <!-- Live Stock Drawer Toggle -->
+        <button mat-icon-button (click)="toggleStockDrawer()" matTooltip="Live Inventory" class="nav-icon stock-trigger">
+          <mat-icon [class.pulse]="true">inventory_2</mat-icon>
+        </button>
+
         <!-- Theme Selector -->
         <button mat-icon-button [matMenuTriggerFor]="themeMenu" matTooltip="Change Theme" class="nav-icon">
           <mat-icon>palette</mat-icon>
@@ -211,3 +216,6 @@
   </mat-sidenav-content>
 
 </mat-sidenav-container>
+
+<!-- Live Stock Drawer Component -->
+<app-stock-drawer [isOpen]="isStockDrawerOpen" (close)="isStockDrawerOpen = false"></app-stock-drawer>

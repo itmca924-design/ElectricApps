@@ -1,6 +1,7 @@
-<nav class="breadcrumb">
-  <span *ngFor="let crumb of breadcrumbs; let last = last">
-    <span class="crumb">{{ crumb | titlecase }}</span>
-    <span *ngIf="!last"> / </span>
+<nav class="breadcrumb-nav">
+  <span *ngFor="let crumb of breadcrumbs; let last = last" class="breadcrumb-item">
+    <a *ngIf="!last" [routerLink]="crumb.url" class="crumb-link">{{ crumb.label | titlecase }}</a>
+    <span *ngIf="last" class="crumb-active">{{ crumb.label | titlecase }}</span>
+    <mat-icon *ngIf="!last" class="separator-icon">chevron_right</mat-icon>
   </span>
 </nav>

@@ -1,13 +1,37 @@
-.breadcrumb {
+.breadcrumb-nav {
   padding: 12px 32px;
-  background: #f8fafc; // Match the page background for a seamless look, or keep #f1f1f1
-  // Let's use a very light gray that blends well
-  background-color: #ffffff; 
-  font-size: 14px;
-  color: #64748b;
-  font-weight: 500;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.crumb {
-  color: #3f51b5;
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.crumb-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+}
+
+.crumb-active {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.separator-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: #cbd5e1;
+  margin: 0 8px;
 }

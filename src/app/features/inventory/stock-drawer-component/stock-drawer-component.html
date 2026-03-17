@@ -1,0 +1,111 @@
+<div class="drawer-overlay" *ngIf="isOpen" (click)="closeDrawer()"></div>
+
+<div class="stock-drawer" [@drawerSlide]="isOpen ? 'open' : 'closed'">
+  <div class="drawer-header">
+    <div class="header-main">
+      <mat-icon class="header-icon">inventory_2</mat-icon>
+      <div class="header-text">
+        <h2>Live Inventory</h2>
+        <span class="subtitle">{{totalStockItems}} Products | {{totalAvailableQty}} Total Units</span>
+      </div>
+    </div>
+    <button mat-icon-button (click)="closeDrawer()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="drawer-search">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search Stock...</mat-label>
+      <input matInput (input)="onSearch($event)" placeholder="Search product name..." [(ngModel)]="searchTerm">
+      <button *ngIf="searchTerm" matSuffix mat-icon-button (click)="searchTerm=''; loadStock()">
+        <mat-icon>clear</mat-icon>
+      </button>
+    </mat-form-field>
+  </div>
+
+  <div class="drawer-content custom-scrollbar">
+    <div *ngIf="isLoading" class="loading-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span>Syncing Stock Data...</span>
+    </div>
+
+    <div *ngIf="!isLoading && stockItems.length === 0" class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <p>No stock found matching your search.</p>
+    </div>
+
+    <div class="stock-list" *ngIf="!isLoading">
+      <div class="stock-item-wrapper" *ngFor="let item of stockItems">
+        <div class="stock-item-card" [class.expanded]="expandedProductId === item.productId" (click)="toggleExpand(item.productId)">
+          <div class="item-main-info">
+            <div class="item-name-section">
+              <span class="product-name">{{item.productName}}</span>
+              <span class="product-sku" *ngIf="item.sku">SKU: {{item.sku}}</span>
+            </div>
+            <div class="item-stock-section">
+              <span class="stock-badge" [class.low-stock]="isLowStock(item)">
+                {{item.availableStock}} {{item.unit}}
+              </span>
+              <mat-icon class="expand-icon">{{expandedProductId === item.productId ? 'expand_less' : 'expand_more'}}</mat-icon>
+            </div>
+          </div>
+
+          <!-- Quick Indicators -->
+          <div class="item-indicators">
+            <span class="indicator expiry" *ngIf="isExpired(item.expiryDate)">
+              <mat-icon>error_outline</mat-icon> Expired
+            </span>
+            <span class="indicator near-expiry" *ngIf="!isExpired(item.expiryDate) && isNearExpiry(item.expiryDate)">
+              <mat-icon>history</mat-icon> Near Expiry
+            </span>
+            <span class="indicator low" *ngIf="isLowStock(item)">
+              <mat-icon>warning_amber</mat-icon> Low Stock
+            </span>
+          </div>
+        </div>
+
+        <!-- Expansion Detail: Batch Wise Details -->
+        <div class="batch-details" [@detailExpand]="expandedProductId === item.productId ? 'expanded' : 'collapsed'">
+          <div class="batch-header">
+            <span>Batch Details</span>
+            <mat-divider></mat-divider>
+          </div>
+          
+          <div class="batch-list" *ngIf="item.history && item.history.length > 0">
+            <div class="batch-row" *ngFor="let batch of item.history">
+              <div class="batch-info-top">
+                <span class="batch-loc">
+                  <mat-icon>location_on</mat-icon>
+                  {{batch.warehouseName}} - {{batch.rackName}}
+                </span>
+                <span class="batch-qty">{{batch.receivedQty - batch.rejectedQty}} {{item.unit}}</span>
+              </div>
+              <div class="batch-info-bottom">
+                <span class="batch-date" *ngIf="item.isExpiryRequired">
+                  <span [class.expired-text]="isExpired(batch.expiryDate)">
+                    Exp: {{batch.expiryDate | date:'dd MMM yyyy'}}
+                  </span>
+                </span>
+                <span class="batch-po">PO: #{{batch.poNumber}}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="no-batches" *ngIf="!item.history || item.history.length === 0">
+            <mat-icon>info_outline</mat-icon>
+            <span>No batch details available</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <button mat-flat-button color="primary" class="full-view-btn" (click)="closeDrawer()" routerLink="/app/inventory/current-stock">
+      <mat-icon>open_in_new</mat-icon>
+      Go to Inventory Menu
+    </button>
+  </div>
+</div>

@@ -118,14 +118,14 @@ export class QuickPurchaseListComponent implements OnInit {
 
   private initColumns() {
     this.poColumns = [
-      { field: 'poNumber', header: 'PO No.', sortable: true, isFilterable: true, isResizable: true, width: 135 },
+      { field: 'poNumber', header: 'PO No.', sortable: true, isFilterable: true, isResizable: true, width: 120 },
       { field: 'id', header: 'ID', sortable: true, isFilterable: true, visible: false, isResizable: true, width: 80 },
       {
         field: 'poDate',
         header: 'Date',
         sortable: true,
         isResizable: true,
-        width: 145,
+        width: 140,
         cell: (row: any) => {
           try {
             const rawDate = row.CreatedAt || row.createdAt || row.CreatedDate || row.createdDate || row.poDate;
@@ -136,14 +136,14 @@ export class QuickPurchaseListComponent implements OnInit {
           }
         }
       },
-      { field: 'createdBy', header: 'Created By', sortable: true, isFilterable: true, isResizable: true, width: 150 },
-      { field: 'supplierName', header: 'Supplier Name', sortable: true, isResizable: true, width: 180, isFilterable: true },
+      { field: 'createdBy', header: 'Created By', sortable: true, isFilterable: true, isResizable: true, width: 130 },
+      { field: 'supplierName', header: 'Supplier Name', sortable: true, isResizable: true, width: 150, isFilterable: true },
       {
         field: 'grandTotal',
         header: 'Grand Total',
         sortable: true,
         isResizable: true,
-        width: 140,
+        width: 110,
         align: 'left',
         cell: (row: any) => this.currencyPipe.transform(row.grandTotal, 'INR', 'symbol', '1.2-2')
       },
@@ -152,7 +152,7 @@ export class QuickPurchaseListComponent implements OnInit {
         header: 'Status',
         sortable: true,
         isResizable: true,
-        width: 180,
+        width: 140,
         isFilterable: true,
         cell: (row: any) => row.status || '-'
       },
@@ -161,7 +161,7 @@ export class QuickPurchaseListComponent implements OnInit {
         header: 'Remarks',
         sortable: false,
         isResizable: true,
-        width: 200,
+        width: 150,
         isFilterable: false,
         cell: (row: any) => row.remarks || ''
       }

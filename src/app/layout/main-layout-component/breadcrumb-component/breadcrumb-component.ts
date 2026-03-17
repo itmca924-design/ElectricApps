@@ -1,18 +1,24 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd, RouterModule } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { MaterialModule } from '../../../shared/material/material/material-module';
+
+export interface Breadcrumb {
+  label: string;
+  url: string;
+}
 
 @Component({
   selector: 'app-breadcrumb',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule, MaterialModule],
   templateUrl: './breadcrumb-component.html',
   styleUrls: ['./breadcrumb-component.scss'],
 })
 export class BreadcrumbComponent {
 
-  breadcrumbs: string[] = [];
+  breadcrumbs: Breadcrumb[] = [];
 
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -27,20 +33,33 @@ export class BreadcrumbComponent {
 
   private buildBreadcrumb(
     route: ActivatedRoute,
-    crumbs: string[] = []
-  ): string[] {
+    url: string = '',
+    crumbs: Breadcrumb[] = []
+  ): Breadcrumb[] {
 
     const children = route.children;
-    if (!children.length) return crumbs;
+    if (children.length === 0) return crumbs;
 
-    const child = children[0];
-    const label = child.snapshot.data['breadcrumb'];
+    for (const child of children) {
+      const routeURL: string = child.snapshot.url.map(segment => segment.path).join('/');
+      let nextUrl = url;
+      if (routeURL !== '') {
+        nextUrl += `/${routeURL}`;
+      }
 
-    // 🛡️ Prevent duplicate labels (common in nested routes without own breadcrumbs)
-    if (label && crumbs[crumbs.length - 1] !== label) {
-      crumbs.push(label);
+      const label = child.snapshot.data['breadcrumb'];
+      if (label) {
+        // Special Case: Direct Home/App link should go to dashboard if current path is app
+        let finalUrl = nextUrl;
+        if (routeURL === 'app' && label === 'Home') {
+          finalUrl = '/app/dashboard';
+        }
+        crumbs.push({ label, url: finalUrl });
+      }
+
+      return this.buildBreadcrumb(child, nextUrl, crumbs);
     }
 
-    return this.buildBreadcrumb(child, crumbs);
+    return crumbs;
   }
 }

@@ -1,9 +1,9 @@
 :host {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 64px);
+  height: calc(100vh - 84px);
   overflow: hidden;
-  padding: 4px 20px 20px 20px;
+  padding: 4px 20px 10px 20px;
   box-sizing: border-box;
   background-color: #f8fafc;
 }
@@ -53,84 +53,81 @@
   padding: 0;
 
   .stat-card {
-      border-radius: 12px;
+      border-radius: 16px;
       border: none;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       overflow: hidden;
-      background: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+      position: relative;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
 
       &:hover {
           transform: translateY(-5px);
-          box-shadow: 0 12px 20px rgba(0,0,0,0.1) !important;
+          box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.15) !important;
       }
 
       mat-card-content {
           display: flex;
           align-items: center;
-          padding: 12px 16px !important;
+          padding: 20px 24px !important;
           gap: 16px;
           position: relative;
+          z-index: 1;
       }
 
       .stat-icon {
-          width: 56px;
-          height: 56px;
+          width: 52px;
+          height: 52px;
           border-radius: 12px;
           display: flex;
           align-items: center;
           justify-content: center;
+          background: rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(4px);
 
           mat-icon {
-              font-size: 32px;
-              width: 32px;
-              height: 32px;
+              font-size: 28px;
+              width: 28px;
+              height: 28px;
+              color: white;
           }
       }
 
       .stat-info {
           display: flex;
           flex-direction: column;
+          color: white;
 
           .label {
-              font-size: 0.8rem;
-              color: #64748b;
-              font-weight: 600;
+              font-size: 11px;
+              font-weight: 700;
               text-transform: uppercase;
-              letter-spacing: 0.5px;
+              letter-spacing: 0.8px;
+              opacity: 0.85;
           }
 
           .value {
-              font-size: 1.75rem;
+              font-size: 24px;
               font-weight: 800;
-              color: #1e293b;
-              margin-top: 4px;
+              margin-top: 2px;
+              line-height: 1.2;
           }
       }
 
-      &.total {
-          background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-          border-left: 6px solid #22c55e;
-          .stat-icon { background: #dcfce7; color: #16a34a; }
-      }
+      // Gradients
+      &.blue-gradient { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+      &.orange-gradient { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+      &.green-gradient { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+      &.purple-gradient { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); }
 
-      &.overdue {
-          background: linear-gradient(135deg, #fff5f5 0%, #fff0f0 100%);
-          border-left: 6px solid #ef4444;
-          .stat-icon { background: #fee2e2; color: #dc2626; }
-          .value { color: #dc2626; }
-      }
-
-      &.active {
-          background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
-          border-left: 6px solid #3b82f6;
-          .stat-icon { background: #dbeafe; color: #2563eb; }
-      }
-
-      &.inward {
-          background: linear-gradient(135deg, #ffffff 0%, #fdf4ff 100%);
-          border-left: 6px solid #a855f7;
-          .stat-icon { background: #f3e8ff; color: #9333ea; }
+      &::after {
+        content: '';
+        position: absolute;
+        top: -15px;
+        right: -15px;
+        width: 70px;
+        height: 70px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
       }
   }
 }
@@ -166,12 +163,11 @@ app-enterprise-hierarchical-grid {
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    overflow-x: hidden !important;
+    overflow-x: hidden !important; /* Force content to fit 100% */
     overflow-y: auto !important;
     position: relative;
     min-height: 0;
-    -webkit-overflow-scrolling: touch;
-
+    
     &::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -187,10 +183,12 @@ app-enterprise-hierarchical-grid {
 
   .mat-table {
     width: 100% !important;
-    table-layout: fixed !important;
-    border-collapse: separate;
+    min-width: 100% !important; /* Force fit without overflow */
+    table-layout: fixed !important; 
+    border-collapse: separate; /* Required for sticky header */
   }
 
+  /* Force Sticky Header */
   .mat-mdc-header-row, .mat-header-row {
     position: sticky !important;
     top: 0;
@@ -198,11 +196,13 @@ app-enterprise-hierarchical-grid {
     background: #ffffff !important;
   }
 
+  /* Standardized table cells */
   th.mat-header-cell,
   td.mat-cell {
     line-height: normal !important;
   }
 
+  /* Right alignment force karein numbers ke liye */
   .text-right {
     text-align: right !important;
     justify-content: flex-end !important;
@@ -210,11 +210,12 @@ app-enterprise-hierarchical-grid {
     padding-right: 15px !important;
   }
 
+  /* Child Table Scroll Specific Fix */
   .child-table-scroll {
     overflow-x: auto !important;
     display: block;
     width: 100%;
-
+    
     &::-webkit-scrollbar:horizontal {
       height: 2px !important;
     }
@@ -225,20 +226,27 @@ app-enterprise-hierarchical-grid {
       background: transparent !important;
     }
     &::-webkit-scrollbar-thumb {
-      background: #22c55e !important;
+      background: #3b82f6 !important; /* Theme blue to match the side line */
       border-radius: 4px;
       opacity: 0.8;
     }
     &::-webkit-scrollbar-thumb:hover {
-      background: #16a34a !important;
+      background: #2563eb !important;
     }
-    scrollbar-width: thin !important;
+    scrollbar-width: thin !important; /* Firefox */
   }
 
+  /* Ensure the inner table can exceed the wrapper width to trigger scroll */
   .inner-table {
-    min-width: 1000px !important;
+    min-width: 1530px !important; /* Slightly wider to ensure room for all columns */
     width: 100% !important;
     border-collapse: collapse;
+  }
+
+  .child-footer-summary {
+    margin-top: 15px;
+    padding-right: 20px;
+    padding-bottom: 25px; /* Added extra padding to ensure visibility */
   }
 }
 

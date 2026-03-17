@@ -19,11 +19,12 @@ import { LoadingService } from '../../core/services/loading.service';
 import { CompanyService } from '../../features/company/services/company.service';
 import { environment } from '../../enviornments/environment';
 import { map } from 'rxjs/operators';
+import { StockDrawerComponent } from '../../features/inventory/stock-drawer-component/stock-drawer-component';
 
 @Component({
   selector: 'app-main-layout-component',
   imports: [CommonModule, RouterOutlet, RouterModule, BreadcrumbComponent,
-    MaterialModule],
+    MaterialModule, StockDrawerComponent],
   templateUrl: './main-layout-component.html',
   styleUrl: './main-layout-component.scss',
 })
@@ -56,6 +57,8 @@ export class MainLayoutComponent implements OnInit {
   companyName = 'Electric Inventory';
   companyTagline = 'Inventory Management System';
   companyLogoUrl: string | null = null;
+
+  isStockDrawerOpen = false;
 
   availableThemes: { name: string, label: string, color: string }[] = [];
 
@@ -171,6 +174,11 @@ export class MainLayoutComponent implements OnInit {
 
   toggleSidenav(): void {
     this.sidenav.toggle();
+  }
+
+  toggleStockDrawer(): void {
+    this.isStockDrawerOpen = !this.isStockDrawerOpen;
+    this.cdr.detectChanges();
   }
 
   logout(): void {

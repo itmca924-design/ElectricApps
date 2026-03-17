@@ -2,7 +2,11 @@ import { Routes } from '@angular/router';
 import { PermissionGuard } from '../core/gaurds/permission.guard';
 
 export const INVENTORY_ROUTES: Routes = [
-
+  {
+    path: '',
+    data: { breadcrumb: 'Dashboard' },
+    loadComponent: () => import('../features/inventory/inventory-dashboard/inventory-dashboard-component').then(m => m.InventoryDashboardComponent)
+  },
   {
     path: 'polist',
     canActivate: [PermissionGuard],
