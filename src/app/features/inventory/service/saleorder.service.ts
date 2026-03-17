@@ -23,14 +23,17 @@ export class SaleOrderService {
         return this.api.getBlob('saleorder/export-list');
     }
 
-    getSaleOrders(page: number, size: number, sort: string, order: string, search: string): Observable<any> {
-        const request = {
+    getSaleOrders(page: number, size: number, sort: string, order: string, search: string, startDate?: Date, endDate?: Date): Observable<any> {
+        const request: any = {
             pageNumber: page,
             pageSize: size,
             sortBy: sort,
             sortOrder: order,
             searchTerm: search
         };
+        if (startDate) request.startDate = startDate.toISOString();
+        if (endDate) request.endDate = endDate.toISOString();
+        
         return this.api.get<any>(`saleorder?${this.api.toQueryString(request)}`);
     }
 

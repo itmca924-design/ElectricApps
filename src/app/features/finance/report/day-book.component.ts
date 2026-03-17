@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { FinanceService } from '../service/finance.service';
 import { InventoryService } from '../../inventory/service/inventory.service';
+import { SaleOrderService } from '../../inventory/service/saleorder.service';
 import { CompanyService } from '../../company/services/company.service';
 import { forkJoin, finalize } from 'rxjs';
 import { LoadingService } from '../../../core/services/loading.service';
@@ -34,6 +35,7 @@ export class DayBookComponent implements OnInit {
     private financeService = inject(FinanceService);
     private inventoryService = inject(InventoryService);
     private companyService = inject(CompanyService);
+    private saleOrderService = inject(SaleOrderService);
 
     selectedDate: Date = new Date();
     transactions: DayBookTransaction[] = [];
@@ -41,9 +43,6 @@ export class DayBookComponent implements OnInit {
     isLoading = false;
     selectedType: string = 'All';
     companyName: string = 'ElectricApps';
-
-    totalIn = 0;
-    totalOut = 0;
 
     displayedColumns: string[] = ['time', 'type', 'particulars', 'voucherNo', 'inAmount', 'outAmount'];
 
@@ -123,133 +122,89 @@ export class DayBookComponent implements OnInit {
             expenses: this.financeService.getExpenseEntries(1, 1000), 
             purchases: this.inventoryService.getPagedOrders(purchaseParams),
             quickPurchases: this.inventoryService.getQuickPagedPurchases(1, 1000, 'Date', 'desc', '', startOfDay, endOfDay),
-            sales: this.inventoryService.getQuickPagedSales(1, 1000, 'Date', 'desc', '', startOfDay, endOfDay)
+            quickSales: this.inventoryService.getQuickPagedSales(1, 1000, 'Date', 'desc', '', startOfDay, endOfDay),
+            standardSales: this.saleOrderService.getSaleOrders(1, 1000, 'soDate', 'desc', '', startOfDay, endOfDay)
         }).subscribe({
-            next: (results) => {
-                const combined: DayBookTransaction[] = [];
+            next: (results: any) => {
+                const combinedMap = new Map<string, DayBookTransaction>();
 
-                // 1. Process Supplier Payments
-                const paymentItems = results.payments?.items || [];
-                paymentItems.forEach((p: any) => {
-                    const dateStr = p.paymentDate || p.PaymentDate || p.date || p.Date;
-                    if (!dateStr) return;
-                    const d = new Date(this.normalizeDate(dateStr));
-                    if (this.isSameDay(d, this.selectedDate)) {
-                        combined.push({
-                            time: d,
-                            type: 'Payment',
-                            particulars: p.supplierName || p.SupplierName || 'Supplier Payment',
-                            voucherNo: p.referenceNumber || p.ReferenceNumber || '-',
-                            inAmount: 0,
-                            outAmount: p.amount || p.Amount || 0,
-                            paymentMode: p.paymentMode || p.PaymentMode || 'Cash'
-                        });
+                const addTransaction = (t: DayBookTransaction) => {
+                    const key = `${t.type}-${t.voucherNo}-${t.particulars}`;
+                    if (!combinedMap.has(key)) {
+                        combinedMap.set(key, t);
                     }
+                };
+
+                // Process all using the addTransaction helper to automatically deduplicate
+                const processItems = (items: any[], type: DayBookTransaction['type'], dateFields: string[], specifics: any) => {
+                    items.forEach(item => {
+                        let dateFound = null;
+                        for (const f of dateFields) {
+                            if (item[f]) { dateFound = item[f]; break; }
+                        }
+                        if (!dateFound) return;
+                        
+                        const d = new Date(this.normalizeDate(dateFound));
+                        if (this.isSameDay(d, this.selectedDate)) {
+                            addTransaction({
+                                time: d,
+                                type: type,
+                                particulars: specifics.particulars(item),
+                                voucherNo: specifics.voucher(item),
+                                inAmount: specifics.in(item),
+                                outAmount: specifics.out(item),
+                                paymentMode: item.paymentMode || item.PaymentMode || 'Cash'
+                            });
+                        }
+                    });
+                };
+
+                // 1. Payments
+                processItems(results.payments?.items || [], 'Payment', ['paymentDate', 'PaymentDate', 'date', 'Date'], {
+                    particulars: (p: any) => p.supplierName || p.SupplierName || 'Supplier Payment',
+                    voucher: (p: any) => p.referenceNumber || p.ReferenceNumber || '-',
+                    in: () => 0,
+                    out: (p: any) => p.amount || p.Amount || 0
                 });
 
-                // 2. Process Customer Receipts
-                const receiptItems = results.receipts?.items || [];
-                receiptItems.forEach((r: any) => {
-                    const dateStr = r.receiptDate || r.ReceiptDate || r.date || r.Date;
-                    if (!dateStr) return;
-                    const d = new Date(this.normalizeDate(dateStr));
-                    if (this.isSameDay(d, this.selectedDate)) {
-                        combined.push({
-                            time: d,
-                            type: 'Receipt',
-                            particulars: r.customerName || r.CustomerName || 'Customer Receipt',
-                            voucherNo: r.referenceNumber || r.ReferenceNumber || '-',
-                            inAmount: r.amount || r.Amount || 0,
-                            outAmount: 0,
-                            paymentMode: r.paymentMode || r.PaymentMode || 'Cash'
-                        });
-                    }
+                // 2. Receipts
+                processItems(results.receipts?.items || [], 'Receipt', ['receiptDate', 'ReceiptDate', 'date', 'Date'], {
+                    particulars: (r: any) => r.customerName || r.CustomerName || 'Customer Receipt',
+                    voucher: (r: any) => r.referenceNumber || r.ReferenceNumber || '-',
+                    in: (r: any) => r.amount || r.Amount || 0,
+                    out: () => 0
                 });
 
-                // 3. Process Expenses
-                const expenseItems = results.expenses?.items || [];
-                expenseItems.forEach((e: any) => {
-                    const dateStr = e.expenseDate || e.ExpenseDate || e.date || e.Date;
-                    if (!dateStr) return;
-                    const d = new Date(this.normalizeDate(dateStr));
-                    if (this.isSameDay(d, this.selectedDate)) {
-                        combined.push({
-                            time: d,
-                            type: 'Expense',
-                            particulars: (e.category?.name || e.Category?.Name || e.categoryName || 'General Expense') + (e.remarks ? ` (${e.remarks})` : ''),
-                            voucherNo: '-',
-                            inAmount: 0,
-                            outAmount: e.amount || e.Amount || 0,
-                            paymentMode: e.paymentMode || 'Cash'
-                        });
-                    }
+                // 3. Expenses
+                processItems(results.expenses?.items || [], 'Expense', ['expenseDate', 'ExpenseDate', 'date', 'Date'], {
+                    particulars: (e: any) => (e.category?.name || e.Category?.Name || e.categoryName || 'General Expense') + (e.remarks ? ` (${e.remarks})` : ''),
+                    voucher: () => '-',
+                    in: () => 0,
+                    out: (e: any) => e.amount || e.Amount || 0
                 });
 
-                // 4. Process Sales
-                const saleItems = results.sales?.data || results.sales?.items || [];
-                saleItems.forEach((s: any) => {
-                    const dateStr = s.soDate || s.SoDate || s.date || s.Date;
-                    if (!dateStr) return;
-                    const d = new Date(this.normalizeDate(dateStr));
-                    if (this.isSameDay(d, this.selectedDate)) {
-                        combined.push({
-                            time: d,
-                            type: 'Sale',
-                            particulars: s.customerName || s.CustomerName || 'Cash Sale',
-                            voucherNo: s.soNumber || s.SoNumber || '-',
-                            inAmount: s.grandTotal || s.GrandTotal || 0,
-                            outAmount: 0,
-                            paymentMode: s.paymentMode || 'Cash'
-                        });
-                    }
+                // 4. Sales
+                const allSales = [...(results.quickSales?.data || results.quickSales?.items || []), ...(results.standardSales?.data || results.standardSales?.items || [])];
+                processItems(allSales, 'Sale', ['soDate', 'SoDate', 'date', 'Date'], {
+                    particulars: (s: any) => s.customerName || s.CustomerName || 'Cash Sale',
+                    voucher: (s: any) => s.soNumber || s.SoNumber || '-',
+                    in: (s: any) => s.grandTotal || s.GrandTotal || 0,
+                    out: () => 0
                 });
 
-                // 5. Process Purchases (Standard)
-                const purchaseItems = results.purchases?.data || results.purchases?.items || [];
-                purchaseItems.forEach((p: any) => {
-                    const dateStr = p.poDate || p.PoDate || p.date || p.Date || p.orderDate;
-                    if (!dateStr) return;
-                    const d = new Date(this.normalizeDate(dateStr));
-                    if (this.isSameDay(d, this.selectedDate)) {
-                        combined.push({
-                            time: d,
-                            type: 'Purchase',
-                            particulars: p.supplierName || p.SupplierName || 'Purchase Order',
-                            voucherNo: p.poNumber || p.PoNumber || '-',
-                            inAmount: 0,
-                            outAmount: p.grandTotal || p.GrandTotal || 0,
-                            paymentMode: p.paymentMode || 'Cash'
-                        });
-                    }
+                // 5. Purchases
+                const allPurchases = [...(results.purchases?.data || results.purchases?.items || []), ...(results.quickPurchases?.data || results.quickPurchases?.items || [])];
+                processItems(allPurchases, 'Purchase', ['poDate', 'PoDate', 'date', 'Date', 'orderDate'], {
+                    particulars: (p: any) => p.supplierName || p.SupplierName || 'Purchase/Quick Purchase',
+                    voucher: (p: any) => p.poNumber || p.PoNumber || p.pNumber || p.voucherNo || '-',
+                    in: () => 0,
+                    out: (p: any) => p.grandTotal || p.GrandTotal || 0
                 });
 
-                // 6. Process Quick Purchases
-                const quickPurchaseItems = results.quickPurchases?.data || results.quickPurchases?.items || [];
-                quickPurchaseItems.forEach((p: any) => {
-                    const dateStr = p.poDate || p.PoDate || p.date || p.Date;
-                    if (!dateStr) return;
-                    const d = new Date(this.normalizeDate(dateStr));
-                    if (this.isSameDay(d, this.selectedDate)) {
-                        combined.push({
-                            time: d,
-                            type: 'Purchase',
-                            particulars: p.supplierName || p.SupplierName || 'Quick Purchase',
-                            voucherNo: p.pNumber || p.voucherNo || p.poNumber || '-',
-                            inAmount: 0,
-                            outAmount: p.grandTotal || p.GrandTotal || 0,
-                            paymentMode: p.paymentMode || 'Cash'
-                        });
-                    }
-                });
-
-                // Sort by time descending
-                this.transactions = combined.sort((a, b) => b.time.getTime() - a.time.getTime());
+                // Convert Map to sorted array
+                this.transactions = Array.from(combinedMap.values()).sort((a, b) => b.time.getTime() - a.time.getTime());
                 this.applyFilters();
                 
-                // Calculate totals
-                this.totalIn = this.transactions.reduce((acc, curr) => acc + curr.inAmount, 0);
-                this.totalOut = this.transactions.reduce((acc, curr) => acc + curr.outAmount, 0);
-
                 this.isLoading = false;
                 this.loadingService.setLoading(false);
                 this.cdr.detectChanges();
@@ -277,6 +232,14 @@ export class DayBookComponent implements OnInit {
             return dateStr + 'Z';
         }
         return dateStr;
+    }
+
+    get totalIn(): number {
+        return this.filteredTransactions.reduce((sum, t) => sum + t.inAmount, 0);
+    }
+
+    get totalOut(): number {
+        return this.filteredTransactions.reduce((sum, t) => sum + t.outAmount, 0);
     }
 
     get netBalance(): number {
