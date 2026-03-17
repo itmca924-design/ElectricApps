@@ -121,15 +121,34 @@ export class FinanceService {
         const paymentReq = this.http.post<any>(`${this.supplierApi}/total-payments`, filters);
         const receiptReq = this.http.post<any>(`${this.customerApi}/total-receipts`, filters);
         const expensesReq = this.http.post<any[]>(`${this.inventoryApi}/expense-entries/chart-data`, filters);
+        
+        const purchaseParams = {
+            pageIndex: 0,
+            pageSize: 2000,
+            fromDate: filters.startDate,
+            toDate: filters.endDate
+        };
+        const purchaseReq = this.http.post<any>(`${this.inventoryApi}/PurchaseOrders/get-paged-orders`, purchaseParams);
+        
+        const saleUrl = `${this.inventoryApi}/saleorder?pageNumber=1&pageSize=2000&startDate=${filters.startDate}&endDate=${filters.endDate}`;
+        const saleReq = this.http.get<any>(saleUrl);
 
-        return forkJoin([paymentReq, receiptReq, expensesReq]).pipe(
-            map(([paymentRes, receiptRes, expensesRes]) => {
+        return forkJoin([paymentReq, receiptReq, expensesReq, purchaseReq, saleReq]).pipe(
+            map(([paymentRes, receiptRes, expensesRes, purchaseRes, saleRes]) => {
                 const supplierPayments = paymentRes.totalPayments || 0;
                 const generalExpenses = Array.isArray(expensesRes) ? expensesRes.reduce((sum, e) => sum + (e.amount || 0), 0) : 0;
+                
+                const purchaseItems = purchaseRes.data || purchaseRes.items || [];
+                const totalPurchases = purchaseItems.reduce((sum: number, p: any) => sum + (p.grandTotal || p.GrandTotal || 0), 0);
+
+                const saleItems = saleRes.data || saleRes.items || [];
+                const totalSales = saleItems.reduce((sum: number, s: any) => sum + (s.grandTotal || s.GrandTotal || 0), 0);
 
                 return {
                     totalIncome: receiptRes.totalReceipts || 0,
-                    totalExpenses: supplierPayments + generalExpenses
+                    totalExpenses: supplierPayments + generalExpenses,
+                    totalPurchases,
+                    totalSales
                 };
             })
         );

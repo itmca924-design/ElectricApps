@@ -22,6 +22,8 @@ export class PLDashboardComponent implements OnInit {
 
     totalIncome: number = 0;
     totalExpenses: number = 0;
+    totalPurchases: number = 0;
+    totalSales: number = 0;
     totalReceivables: number = 0;
     totalPayables: number = 0;
     isDashboardLoading: boolean = true;
@@ -162,6 +164,8 @@ export class PLDashboardComponent implements OnInit {
                 if (results.pl) {
                     this.totalIncome = results.pl.totalIncome || results.pl.TotalReceipts || 0;
                     this.totalExpenses = results.pl.totalExpenses || results.pl.TotalPayments || 0;
+                    this.totalPurchases = results.pl.totalPurchases || 0;
+                    this.totalSales = results.pl.totalSales || 0;
                 }
 
                 // Map Receivables
@@ -267,6 +271,7 @@ export class PLDashboardComponent implements OnInit {
         const net = this.netProfit;
         return [
             { label: 'Total Income', value: '₹' + this.totalIncome.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'trending_up', type: 'success', badge: 'Income' },
+            { label: 'Total Purchase', value: '₹' + this.totalPurchases.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'shopping_cart', type: 'warning', badge: 'Accrual Sum' },
             { label: 'Net Profit', value: (net < 0 ? '-₹' : '₹') + Math.abs(net).toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'account_balance_wallet', type: net >= 0 ? 'success' : 'overdue', badge: 'Margin: ' + this.profitMargin.toFixed(1) + '%' },
             { label: 'Receivables', value: '₹' + Math.abs(this.totalReceivables).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + (this.totalReceivables < 0 ? ' (Adv)' : ''), icon: 'call_received', type: 'active', badge: 'From Customers' },
             { label: 'Payables', value: '₹' + Math.abs(this.totalPayables).toLocaleString('en-IN', { minimumFractionDigits: 2 }) + (this.totalPayables < 0 ? ' (Adv)' : ''), icon: 'call_made', type: 'warning', badge: 'To Suppliers' }
