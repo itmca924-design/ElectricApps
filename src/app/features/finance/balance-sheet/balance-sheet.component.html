@@ -54,7 +54,12 @@
                         <mat-icon matListItemIcon class="text-primary">account_balance</mat-icon>
                         <div matListItemTitle>Bank Balance</div>
                         <div matListItemLine>Funds in bank accounts</div>
-                        <div matListItemMeta class="amount-text">₹{{ bankBalance | number:'1.2-2' }}</div>
+                        <div matListItemMeta class="amount-text d-flex align-items-center">
+                            <span class="me-2">₹{{ bankBalance | number:'1.2-2' }}</span>
+                            <button mat-icon-button (click)="setBankBalance()" color="primary" matTooltip="Update Bank Balance" style="width: 24px; height: 24px; line-height: 24px;">
+                                <mat-icon style="font-size: 16px;">edit</mat-icon>
+                            </button>
+                        </div>
                     </mat-list-item>
                     <mat-divider></mat-divider>
                     <mat-list-item>
@@ -96,7 +101,12 @@
                         <mat-icon matListItemIcon class="text-purple">business_center</mat-icon>
                         <div matListItemTitle>Proprietor Capital</div>
                         <div matListItemLine>Initial and added investment</div>
-                        <div matListItemMeta class="amount-text">₹{{ capital | number:'1.2-2' }}</div>
+                        <div matListItemMeta class="amount-text d-flex align-items-center">
+                            <span class="me-2">₹{{ capital | number:'1.2-2' }}</span>
+                            <button mat-icon-button (click)="setInitialCapital()" color="primary" matTooltip="Update Capital" style="width: 24px; height: 24px; line-height: 24px;">
+                                <mat-icon style="font-size: 16px;">edit</mat-icon>
+                            </button>
+                        </div>
                     </mat-list-item>
                     <mat-divider></mat-divider>
                     <mat-list-item [class.profit-bg]="netProfit >= 0" [class.loss-bg]="netProfit < 0">
