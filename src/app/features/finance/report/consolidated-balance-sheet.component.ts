@@ -27,6 +27,7 @@ export interface CompanyFinancialSummary {
     inventoryValue: number;
     receivables: number;
     payables: number;
+    taxPayable: number;
     isBalanced: boolean;
 }
 
@@ -51,16 +52,25 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
     private dialog = inject(MatDialog);
 
     companySummaries: CompanyFinancialSummary[] = [];
-    interCompanyBalances: any[] = [];
     isLoading = false;
     
-    startDate: Date = new Date(new Date().getFullYear(), 3, 1); // Financial Year Start (April 1st)
+    startDate: Date;
     endDate: Date = new Date();
+
+    constructor() {
+        // Indian Financial Year: Starts April 1st.
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const startYear = today.getMonth() < 3 ? currentYear - 1 : currentYear;
+        this.startDate = new Date(startYear, 3, 1);
+    }
 
     totalGroupAssets = 0;
     totalGroupLiabilities = 0;
     totalGroupProfit = 0;
     totalGroupTaxPayable = 0;
+    totalGroupITC = 0;
+    interCompanyBalances: any[] = [];
     companyName = 'ElectricApps';
 
     displayedColumns: string[] = ['companyName', 'inventoryValue', 'receivables', 'payables', 'netProfit', 'totalAssets', 'actions'];
@@ -74,7 +84,6 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
         this.isLoading = true;
         this.loadingService.setLoading(true);
 
-        // 1. Fetch all companies
         this.companyService.getPaged({ pageNumber: 1, pageSize: 50 }).subscribe({
             next: (res: any) => {
                 const companies = res?.items || [];
@@ -84,12 +93,7 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
                     return;
                 }
 
-                // Note: In a real multi-tenant app, the backend should provide a bulk API.
-                // Here we'll simulate by fetching data. 
-                // Since APIs currently don't take companyId, we'll map existing data 
-                // but structure it so it's ready for future multi-company API support.
-                
-                this.companySummaries = companies.map((c: any, index: number) => ({
+                this.companySummaries = companies.map((c: any) => ({
                     companyId: c.id,
                     companyName: c.name,
                     totalAssets: 0,
@@ -98,15 +102,28 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
                     inventoryValue: 0,
                     receivables: 0,
                     payables: 0,
+                    taxPayable: 0,
                     isBalanced: true
                 }));
 
-                // Fetch real-time data for the current active company
-                this.fetchFinancialsForCompany(companies[0]);
-
-                // Inter-Company Outstandings (Should come from API ideally)
                 this.interCompanyBalances = [];
+                // Fetch financials for all companies
+                const financialRequests = companies.map((c: any) => this.fetchFinancialsForCompany(c));
+                
+                forkJoin(financialRequests).subscribe({
+                    next: () => {
+                        this.calculateGroupTotals();
+                        this.isLoading = false;
+                        this.loadingService.setLoading(false);
+                        this.cdr.detectChanges();
+                    },
+                    error: () => {
+                        this.isLoading = false;
+                        this.loadingService.setLoading(false);
+                    }
+                });
 
+                this.interCompanyBalances = [];
                 this.totalGroupTaxPayable = 0;
             },
             error: () => {
@@ -116,52 +133,91 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
         });
     }
 
-    fetchFinancialsForCompany(company: any) {
+    fetchFinancialsForCompany(company: any): Observable<any> {
         const filters = { 
             startDate: this.startDate.toISOString(), 
             endDate: this.endDate.toISOString() 
         };
 
-        forkJoin({
+        return forkJoin({
             pl: this.financeService.getProfitAndLossReport(filters),
-            receivables: this.financeService.getTotalReceivables(),
+            receivables: this.financeService.getOutstandingTracker({ pageNumber: 1, pageSize: 100, sortBy: 'PendingAmount', sortOrder: 'desc' }),
             payables: this.financeService.getTotalPayables(),
-            stock: this.inventoryService.getCurrentStock('', '', 0, 1000, '')
+            stock: this.inventoryService.getCurrentStock('', '', 0, 1000, ''),
+            sales: this.inventoryService.getQuickPagedSales(1, 1000, 'Date', 'desc', '', this.startDate, this.endDate),
+            purchases: this.inventoryService.getPagedOrders({ ...filters, pageSize: 1000 })
         }).pipe(
-            finalize(() => {
-                this.isLoading = false;
-                this.loadingService.setLoading(false);
-                this.calculateGroupTotals();
-                this.cdr.detectChanges();
-            })
-        ).subscribe({
-            next: (results) => {
+            map(results => {
                 const summary = this.companySummaries.find(s => s.companyId === company.id);
                 if (summary) {
-                    const income = results.pl.totalIncome || 0;
-                    const expenses = results.pl.totalExpenses || 0;
+                    // Mapping Net Profit with fallbacks
+                    const income = results.pl.totalIncome || results.pl.TotalIncome || results.pl.totalReceipts || results.pl.TotalReceipts || 0;
+                    const expenses = results.pl.totalExpenses || results.pl.TotalExpenses || results.pl.totalPayments || results.pl.TotalPayments || 0;
                     summary.netProfit = income - expenses;
-                    summary.receivables = results.receivables?.totalOutstanding || 0;
-                    summary.payables = results.payables?.totalPending || 0;
-
-                    const stockItems = results.stock?.data || [];
+                    
+                    // Mapping Inventory Value
+                    const stockItems = results.stock?.items || results.stock?.data || [];
                     summary.inventoryValue = stockItems.reduce((sum: number, item: any) => {
-                        return sum + ((item.currentStock || 0) * (item.purchaseRate || 0));
+                        const qty = item.availableStock || item.currentStock || item.qty || 0;
+                        const rate = item.lastRate || item.unitRate || item.purchaseRate || item.rate || 0;
+                        return sum + (qty * rate);
                     }, 0);
 
-                    // Simplistic calculation for this view
+                    // Mapping Tax
+                    const sales = results.sales?.items || results.sales?.data || [];
+                    const purchases = results.purchases?.items || results.purchases?.data || [];
+                    const outputGst = sales.reduce((sum: number, s: any) => sum + (s.totalTax || s.taxAmount || s.TaxAmount || 0), 0);
+                    const inputGst = purchases.reduce((sum: number, p: any) => sum + (p.taxAmount || p.totalTax || p.TaxAmount || 0), 0);
+                    
+                    summary.taxPayable = Math.max(0, outputGst - inputGst);
+                    (summary as any).itcBalance = Math.max(0, inputGst - outputGst);
+
+                    // Identify Inter-Company Balances
+                    const companyNames = this.companySummaries.map(c => c.companyName.toLowerCase());
+                    const currentCompany = company.name.toLowerCase();
+
+                    // Check Receivables for other company names
+                    const receivablesItems = results.receivables?.items?.items || results.receivables?.items || [];
+                    receivablesItems.forEach((item: any) => {
+                        const custName = (item.customerName || item.CustomerName || '').toLowerCase();
+                        if (companyNames.includes(custName) && custName !== currentCompany) {
+                            this.interCompanyBalances.push({
+                                fromCompany: company.name,
+                                toCompany: item.customerName || item.CustomerName,
+                                amount: item.pendingAmount || item.PendingAmount || 0,
+                                type: 'Receivable'
+                            });
+                        }
+                    });
+
+                    // Mapping Receivables from Tracker response total
+                    summary.receivables = results.receivables?.totalOutstandingAmount || results.receivables?.TotalOutstandingAmount || 
+                                          results.receivables?.totalOutstanding || results.receivables?.TotalOutstanding || 0;
+                    
+                    // Mapping Payables
+                    summary.payables = results.payables?.totalPending || results.payables?.TotalPending || 
+                                       results.payables?.totalPendingAmount || results.payables?.TotalPendingAmount || 
+                                       results.payables?.amount || 0;
+
                     summary.totalAssets = summary.inventoryValue + summary.receivables;
                     summary.totalLiabilities = summary.payables;
                     summary.isBalanced = true;
                 }
-            }
-        });
+                return summary;
+            }),
+            catchError(err => {
+                console.error(`Error fetching financials for ${company.name}:`, err);
+                return of(null);
+            })
+        );
     }
 
     calculateGroupTotals() {
         this.totalGroupAssets = this.companySummaries.reduce((sum, c) => sum + c.totalAssets, 0);
         this.totalGroupLiabilities = this.companySummaries.reduce((sum, c) => sum + c.totalLiabilities, 0);
         this.totalGroupProfit = this.companySummaries.reduce((sum, c) => sum + c.netProfit, 0);
+        this.totalGroupTaxPayable = this.companySummaries.reduce((sum, c) => sum + c.taxPayable, 0);
+        this.totalGroupITC = this.companySummaries.reduce((sum, c) => sum + (c as any).itcBalance || 0, 0);
     }
 
     exportToPDF() {
@@ -241,10 +297,10 @@ _${this.companyName} Multi-Company ERP_`;
 
     get groupStats(): any[] {
         return [
-            { label: 'Group Assets', value: this.totalGroupAssets, icon: 'location_city', type: 'success' },
-            { label: 'Group Liabilities', value: this.totalGroupLiabilities, icon: 'account_balance', type: 'warning' },
-            { label: 'Group Net Profit', value: this.totalGroupProfit, icon: 'trending_up', type: 'info' },
-            { label: 'Group Tax Payable', value: this.totalGroupTaxPayable, icon: 'receipt_long', type: 'warning' }
+            { label: 'Group Assets', value: '₹' + this.totalGroupAssets.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'location_city', type: 'success' },
+            { label: 'Group Liabilities', value: '₹' + this.totalGroupLiabilities.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'account_balance', type: 'warning' },
+            { label: 'Group Net Profit', value: '₹' + this.totalGroupProfit.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'trending_up', type: 'info' },
+            { label: 'Group Tax Payable', value: '₹' + this.totalGroupTaxPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 }), icon: 'receipt_long', type: 'warning' }
         ];
     }
 }

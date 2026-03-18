@@ -138,9 +138,17 @@
                     <mat-card-subtitle>Consolidated GST liability for the group</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
-                    <div class="tax-ledger-item">
+                    <div class="tax-ledger-item" *ngIf="totalGroupTaxPayable > 0">
                         <span class="label">Net Group GST Payable</span>
                         <span class="value text-danger">₹{{ totalGroupTaxPayable | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="tax-ledger-item" *ngIf="totalGroupTaxPayable === 0 && totalGroupITC > 0">
+                        <span class="label">ITC Balance (Carry Forward)</span>
+                        <span class="value text-primary">₹{{ totalGroupITC | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="tax-ledger-item" *ngIf="totalGroupTaxPayable === 0 && totalGroupITC === 0">
+                        <span class="label">Net GST Liability</span>
+                        <span class="value">₹0.00</span>
                     </div>
                     <div class="tax-audit-badge">
                         <mat-icon>security</mat-icon>
