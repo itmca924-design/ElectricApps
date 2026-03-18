@@ -180,13 +180,24 @@ export class ConsolidatedBalanceSheetComponent implements OnInit {
                     const receivablesItems = results.receivables?.items?.items || results.receivables?.items || [];
                     receivablesItems.forEach((item: any) => {
                         const custName = (item.customerName || item.CustomerName || '').toLowerCase();
+                        const targetName = item.customerName || item.CustomerName;
+                        const amt = item.pendingAmount || item.PendingAmount || 0;
+
                         if (companyNames.includes(custName) && custName !== currentCompany) {
-                            this.interCompanyBalances.push({
-                                fromCompany: company.name,
-                                toCompany: item.customerName || item.CustomerName,
-                                amount: item.pendingAmount || item.PendingAmount || 0,
-                                type: 'Receivable'
-                            });
+                            // Deduplicate globally: If this specific balance to this company is already listed, skip
+                            const isExisting = this.interCompanyBalances.some(b => 
+                                b.toCompany.toLowerCase() === custName && 
+                                Math.abs(b.amount - amt) < 0.01
+                            );
+                            
+                            if (!isExisting) {
+                                this.interCompanyBalances.push({
+                                    fromCompany: company.name,
+                                    toCompany: targetName,
+                                    amount: amt,
+                                    type: 'Receivable'
+                                });
+                            }
                         }
                     });
 
