@@ -65,14 +65,14 @@
             </mat-card-content>
         </mat-card>
 
-        <mat-card class="stat-card payable" [class.refundable]="outputGst + tcsAmount < inputGst + tdsAmount">
+        <mat-card class="stat-card payable" [class.refundable]="netTaxCredit > 0">
             <mat-card-header>
                 <mat-icon mat-card-avatar>account_balance</mat-icon>
-                <mat-card-title>{{ (outputGst + tcsAmount >= inputGst + tdsAmount) ? 'Net Tax Payable' : 'Net Tax Credit' }}</mat-card-title>
+                <mat-card-title>{{ (gstPayable > 0 || netTaxCredit === 0) ? 'Net Tax Payable' : 'Net Tax Credit' }}</mat-card-title>
                 <mat-card-subtitle>Period Balance</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
-                <h2 class="price-value">₹{{ gstPayable | number:'1.2-2' }}</h2>
+                <h2 class="price-value">₹{{ (gstPayable > 0 ? gstPayable : netTaxCredit) | number:'1.2-2' }}</h2>
             </mat-card-content>
         </mat-card>
     </div>

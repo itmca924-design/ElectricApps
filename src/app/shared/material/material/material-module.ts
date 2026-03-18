@@ -24,6 +24,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
@@ -71,6 +72,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
 
 
         MatRadioModule,
+        MatButtonToggleModule
     ],
     exports: [
         MatToolbarModule,
@@ -112,6 +114,7 @@ import { ScrollingModule } from '@angular/cdk/scrolling';
         MatPaginatorModule,
         ScrollingModule,
         MatRadioModule,
+        MatButtonToggleModule
     ]
 })
 export class MaterialModule { }

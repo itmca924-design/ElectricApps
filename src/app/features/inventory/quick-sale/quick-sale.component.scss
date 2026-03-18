@@ -80,6 +80,8 @@
     margin-bottom: 16px;
 
     .col-6 { flex: 0 0 calc(50% - 12px); max-width: calc(50% - 12px); }
+    .col-8 { flex: 0 0 calc(66.6% - 12px); max-width: calc(66.6% - 12px); }
+    .col-4 { flex: 0 0 calc(33.3% - 12px); max-width: calc(33.3% - 12px); }
     .col-3 { flex: 0 0 calc(25% - 18px); max-width: calc(25% - 18px); }
     .col-12 { flex: 0 0 100%; max-width: 100%; }
 
@@ -333,8 +335,8 @@
   z-index: 10;
 
   .summary-box {
-    min-width: 320px;
-    max-width: 350px;
+    min-width: 330px;
+    max-width: 360px;
     background: #f0fdf4;
     border-radius: 8px;
     padding: 24px;
@@ -345,7 +347,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       font-size: 15px;
       color: #166534;
 
@@ -353,6 +355,10 @@
         font-weight: 700; 
         color: #14532d;
         text-align: right;
+
+        &.tax-value {
+          color: #ea580c;
+        }
       }
 
       &.grand-total {
@@ -372,6 +378,80 @@
     }
   }
 }
+
+.tax-type-toggle {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #d1fae5;
+  height: 38px;
+  background: white;
+  
+  mat-button-toggle {
+    font-size: 12px;
+    font-weight: 600;
+    color: #065f46;
+    border-left: 1px solid #d1fae5;
+    background: #f0fdf4;
+
+    &:first-child { border-left: none; }
+    
+    &.mat-button-toggle-checked {
+      background-color: #10b981;
+      color: white;
+    }
+  }
+}
+
+.tax-type-tag {
+  font-size: 10px;
+  background: #dcfce7;
+  color: #166534;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.extra-tax-row {
+  align-items: center !important;
+  margin-bottom: 12px;
+
+  .tax-input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+
+    .small-tax-input {
+      width: 55px;
+      height: 30px;
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      padding: 0 8px;
+      text-align: right;
+      font-size: 14px;
+      color: #14532d;
+      font-weight: 700;
+      background: white;
+      transition: all 0.2s;
+
+      &:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+        outline: none;
+      }
+    }
+
+    .tax-calc-val {
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+  }
+}
+
+.info-text { color: #3b82f6 !important; }
+.warn-text { color: #f59e0b !important; }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {

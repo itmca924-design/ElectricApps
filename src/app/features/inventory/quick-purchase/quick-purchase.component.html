@@ -78,10 +78,15 @@
             <textarea matInput formControlName="remarks" rows="1" placeholder="Notes..." style="resize: none;"></textarea>
           </mat-form-field>
         </div>
-        <div class="col-3 d-flex align-items-center" style="padding-bottom: 22px;">
+        <div class="col-3 d-flex align-items-center" style="padding-bottom: 22px; gap: 15px;">
           <mat-checkbox formControlName="isTaxApplicable" color="primary">
-            <span style="font-weight: 600; color: #4b5563; font-size: 13px;">Apply GST (Tax)</span>
+            <span style="font-weight: 600; color: #4b5563; font-size: 13px;">Apply GST</span>
           </mat-checkbox>
+          
+          <mat-button-toggle-group formControlName="taxType" class="tax-type-toggle" *ngIf="purchaseForm.get('isTaxApplicable')?.value">
+            <mat-button-toggle value="local">Local</mat-button-toggle>
+            <mat-button-toggle value="interState">Inter-State</mat-button-toggle>
+          </mat-button-toggle-group>
         </div>
       </div>
 
@@ -188,12 +193,31 @@
 
             <div class="summary-row">
               <span class="label">Total Tax (GST):</span>
-              <span class="value tax-value">{{ totalTax | currency:'INR':'symbol':'1.2-2' }}</span>
+              <span class="value tax-value">
+                {{ totalTax | currency:'INR':'symbol':'1.2-2' }}
+                <small class="tax-type-tag" *ngIf="purchaseForm.get('isTaxApplicable')?.value">({{ purchaseForm.get('taxType')?.value === 'local' ? 'CGST+SGST' : 'IGST' }})</small>
+              </span>
+            </div>
+
+            <div class="summary-row tax-extra-row">
+              <span class="label">TDS (%):</span>
+              <div class="tax-input-group">
+                <input matInput type="number" formControlName="tdsPercent" class="small-tax-input" placeholder="0">
+                <span class="tax-calculated-val text-info">-{{ tdsAmount | currency:'INR':'symbol':'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <div class="summary-row tax-extra-row">
+              <span class="label">TCS (%):</span>
+              <div class="tax-input-group">
+                <input matInput type="number" formControlName="tcsPercent" class="small-tax-input" placeholder="0">
+                <span class="tax-calculated-val text-warning">+{{ tcsAmount | currency:'INR':'symbol':'1.2-2' }}</span>
+              </div>
             </div>
 
             <div class="summary-row grand-total">
               <span class="label">Grand Total:</span>
-              <span class="value">{{ grandTotal | currency:'INR':'symbol':'1.2-2' }}</span>
+              <span class="value">{{ finalGrandTotal | currency:'INR':'symbol':'1.2-2' }}</span>
             </div>
 
           </div>

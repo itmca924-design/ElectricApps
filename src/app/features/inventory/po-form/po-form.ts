@@ -345,7 +345,10 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       PoNumber: [{ value: '', disabled: true }],
       remarks: ['', Validators.required],
       items: this.fb.array([]),
-      isTaxApplicable: [true]
+      isTaxApplicable: [true],
+      taxType: ['local'],
+      tdsPercent: [0],
+      tcsPercent: [0]
     });
 
     // Listen to manual checkbox change
@@ -533,6 +536,18 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
     this.cdr.detectChanges();
   }
 
+  get tdsAmount(): number {
+    return (this.subTotal * (this.poForm.get('tdsPercent')?.value || 0)) / 100;
+  }
+
+  get tcsAmount(): number {
+    return (this.subTotal * (this.poForm.get('tcsPercent')?.value || 0)) / 100;
+  }
+
+  get finalGrandTotal(): number {
+    return this.grandTotal - this.tdsAmount + this.tcsAmount;
+  }
+
   addRow(): void {
     const row = this.fb.group({
       productSearch: ['', Validators.required],
@@ -702,7 +717,15 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
           expectedDeliveryDate: DateHelper.toLocalISOString(formValue.expectedDeliveryDate),
           poNumber: formValue.PoNumber,
           remarks: formValue.remarks || '',
-          grandTotal: this.grandTotal,
+          taxType: formValue.taxType || 'local',
+          tdsPercent: Number(formValue.tdsPercent || 0),
+          tcsPercent: Number(formValue.tcsPercent || 0),
+          tdsAmount: this.tdsAmount,
+          tcsAmount: this.tcsAmount,
+          igstAmount: formValue.taxType === 'interState' ? this.totalTaxAmount : 0,
+          cgstAmount: formValue.taxType === 'local' ? this.totalTaxAmount / 2 : 0,
+          sgstAmount: formValue.taxType === 'local' ? this.totalTaxAmount / 2 : 0,
+          grandTotal: this.finalGrandTotal,
           subTotal: this.subTotal,
           totalTax: this.totalTaxAmount,
           totalQuantity: this.totalQty,

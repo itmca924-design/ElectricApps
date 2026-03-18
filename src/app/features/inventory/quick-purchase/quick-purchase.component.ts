@@ -123,7 +123,10 @@ export class QuickPurchaseComponent implements OnInit {
             expectedDeliveryDate: [new Date(), Validators.required],
             poNumber: [{ value: '', disabled: true }],
             items: this.fb.array([], Validators.required),
-            isTaxApplicable: [true]
+            isTaxApplicable: [true],
+            taxType: ['local'],
+            tdsPercent: [0],
+            tcsPercent: [0]
         });
 
         // Listen to manual checkbox change
@@ -480,6 +483,18 @@ export class QuickPurchaseComponent implements OnInit {
         }, 0);
     }
 
+    get tdsAmount(): number {
+        return (this.subTotal * (this.purchaseForm.get('tdsPercent')?.value || 0)) / 100;
+    }
+
+    get tcsAmount(): number {
+        return (this.subTotal * (this.purchaseForm.get('tcsPercent')?.value || 0)) / 100;
+    }
+
+    get finalGrandTotal(): number {
+        return this.grandTotal - this.tdsAmount + this.tcsAmount;
+    }
+
     loadNextPoNumber() {
         this.inventoryService.getNextPoNumber().subscribe(res => {
             this.purchaseForm.patchValue({ poNumber: res.poNumber });
@@ -601,7 +616,15 @@ export class QuickPurchaseComponent implements OnInit {
             expectedDeliveryDate: DateHelper.toLocalISOString(formValue.expectedDeliveryDate) || '',
             poNumber: formValue.poNumber,
             remarks: formValue.remarks || '',
-            grandTotal: this.grandTotal,
+            taxType: formValue.taxType || 'local',
+            tdsPercent: Number(formValue.tdsPercent || 0),
+            tcsPercent: Number(formValue.tcsPercent || 0),
+            tdsAmount: this.tdsAmount,
+            tcsAmount: this.tcsAmount,
+            igstAmount: formValue.taxType === 'interState' ? this.totalTax : 0,
+            cgstAmount: formValue.taxType === 'local' ? this.totalTax / 2 : 0,
+            sgstAmount: formValue.taxType === 'local' ? this.totalTax / 2 : 0,
+            grandTotal: this.finalGrandTotal,
             subTotal: this.subTotal,
             totalTax: this.totalTax,
             totalQuantity: this.totalQty,

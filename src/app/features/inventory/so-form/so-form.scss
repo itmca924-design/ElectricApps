@@ -545,3 +545,62 @@ mat-card.so-card {
   50% { transform: scale(1.02); opacity: 0.8; }
   100% { transform: scale(1); opacity: 1; }
 }
+/* Tax options premium styling */
+.tax-type-toggle-small {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  height: 32px;
+  background: #f8fafc;
+  
+  mat-button-toggle {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 32px;
+    color: #64748b;
+    border-left: 1px solid #e2e8f0;
+
+    &:first-child { border-left: none; }
+    
+    &.mat-button-toggle-checked {
+      background-color: #3f51b5;
+      color: white;
+    }
+  }
+}
+
+.tax-type-tag {
+  font-size: 10px;
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 1px 4px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-weight: 600;
+}
+
+.extra-tax-input-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.footer-tax-input {
+  width: 65px;
+  height: 28px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 8px;
+  text-align: right;
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 700;
+  transition: all 0.2s;
+
+  &:focus {
+    border-color: #3f51b5;
+    box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
+    outline: none;
+  }
+}

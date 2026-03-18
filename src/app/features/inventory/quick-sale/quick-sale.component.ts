@@ -176,7 +176,10 @@ export class QuickSaleComponent implements OnInit {
             date: [new Date()],
             expectedDeliveryDate: [new Date()],
             status: ['Confirmed'],
-            items: this.fb.array([], Validators.required)
+            items: this.fb.array([], Validators.required),
+            taxType: ['local'],
+            tdsPercent: [0],
+            tcsPercent: [0]
         });
 
         this.addItem();
@@ -539,6 +542,18 @@ export class QuickSaleComponent implements OnInit {
         }, 0);
     }
 
+    get tdsAmount(): number {
+        return (this.subTotal * (this.saleForm.get('tdsPercent')?.value || 0)) / 100;
+    }
+
+    get tcsAmount(): number {
+        return (this.subTotal * (this.saleForm.get('tcsPercent')?.value || 0)) / 100;
+    }
+
+    get finalGrandTotal(): number {
+        return this.grandTotal - this.tdsAmount + this.tcsAmount;
+    }
+
     loadCustomers() {
         this.isLoadingCustomers = true;
         this.customerService.getAllCustomers().subscribe({
@@ -659,9 +674,17 @@ export class QuickSaleComponent implements OnInit {
                     status: formRaw.status,
                     soDate: formRaw.date,
                     expectedDeliveryDate: formRaw.expectedDeliveryDate,
+                    taxType: formRaw.taxType || 'local',
+                    tdsPercent: Number(formRaw.tdsPercent || 0),
+                    tcsPercent: Number(formRaw.tcsPercent || 0),
+                    tdsAmount: this.tdsAmount,
+                    tcsAmount: this.tcsAmount,
+                    igstAmount: formRaw.taxType === 'interState' ? this.totalTax : 0,
+                    cgstAmount: formRaw.taxType === 'local' ? this.totalTax / 2 : 0,
+                    sgstAmount: formRaw.taxType === 'local' ? this.totalTax / 2 : 0,
                     subTotal: this.subTotal,
                     totalTax: this.totalTax,
-                    grandTotal: this.grandTotal,
+                    grandTotal: this.finalGrandTotal,
                     createdBy: this.authService.getUserEmail(),
                     isQuick: true,
                     items: this.items.getRawValue().map((i: any) => ({

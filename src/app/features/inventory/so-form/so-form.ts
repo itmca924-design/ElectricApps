@@ -441,7 +441,10 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       subTotal: [0],
       totalTax: [0],
       grandTotal: [0],
-      items: this.fb.array([])
+      items: this.fb.array([]),
+      taxType: ['local'],
+      tdsPercent: [0],
+      tcsPercent: [0]
     });
   }
 
@@ -648,6 +651,18 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
     this.cdr.detectChanges();
   }
 
+  get tdsAmount(): number {
+    return (this.subTotal * (this.soForm.get('tdsPercent')?.value || 0)) / 100;
+  }
+
+  get tcsAmount(): number {
+    return (this.subTotal * (this.soForm.get('tcsPercent')?.value || 0)) / 100;
+  }
+
+  get finalGrandTotal(): number {
+    return this.grandTotal - this.tdsAmount + this.tcsAmount;
+  }
+
   getMinExpDate(mfgDateValue: any): Date | null {
     if (!mfgDateValue) return null;
     const d = new Date(mfgDateValue);
@@ -769,9 +784,17 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
           soDate: formValues.soDate,
           expectedDeliveryDate: formValues.expectedDeliveryDate,
           remarks: formValues.remarks || '',
+          taxType: formValues.taxType || 'local',
+          tdsPercent: Number(formValues.tdsPercent || 0),
+          tcsPercent: Number(formValues.tcsPercent || 0),
+          tdsAmount: this.tdsAmount,
+          tcsAmount: this.tcsAmount,
+          igstAmount: formValues.taxType === 'interState' ? this.totalTax : 0,
+          cgstAmount: formValues.taxType === 'local' ? this.totalTax / 2 : 0,
+          sgstAmount: formValues.taxType === 'local' ? this.totalTax / 2 : 0,
           subTotal: Number(formValues.subTotal) || 0,
           totalTax: Number(formValues.totalTax) || 0,
-          grandTotal: Number(formValues.grandTotal) || 0,
+          grandTotal: this.finalGrandTotal,
           createdBy: userId,
           items: this.items.controls.map(item => {
             const val = (item as FormGroup).getRawValue();

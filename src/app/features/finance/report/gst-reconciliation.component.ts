@@ -52,6 +52,7 @@ export class GstReconciliationComponent implements OnInit {
     tdsAmount: number = 0;
     tcsAmount: number = 0;
     gstPayable: number = 0;
+    netTaxCredit: number = 0;
 
     hasGstinErrors: boolean = false;
     totalReversalAmount: number = 0;
@@ -84,7 +85,7 @@ export class GstReconciliationComponent implements OnInit {
         };
 
         forkJoin({
-            sales: this.inventoryService.getQuickPagedSales(1, 1000, 'Date', 'desc', ''),
+            sales: this.inventoryService.getQuickPagedSales(1, 1000, 'Date', 'desc', '', this.startDate, this.endDate),
             purchases: this.inventoryService.getPagedOrders({ ...filters, pageSize: 1000 })
         }).pipe(
             finalize(() => {
@@ -94,21 +95,40 @@ export class GstReconciliationComponent implements OnInit {
             })
         ).subscribe({
             next: (results) => {
-                const sales = results.sales?.items || [];
-                const purchases = results.purchases?.items || [];
+                const sales = results.sales?.items || results.sales?.data || [];
+                const purchases = results.purchases?.items || results.purchases?.data || [];
 
-                this.outputGst = sales.reduce((sum: number, s: any) => sum + (s.totalTax || s.taxAmount || 0), 0);
-                this.inputGst = purchases.reduce((sum: number, p: any) => sum + (p.taxAmount || p.totalTax || 0), 0);
+                this.outputGst = sales.reduce((sum: number, s: any) => sum + (s.totalTax || s.taxAmount || s.TaxAmount || 0), 0);
+                this.inputGst = purchases.reduce((sum: number, p: any) => sum + (p.taxAmount || p.totalTax || p.TaxAmount || 0), 0);
                 
-                // TDS/TCS should come from actual transaction fields if available
-                this.tdsAmount = 0; 
-                this.tcsAmount = 0;
+                this.tdsAmount = purchases.reduce((sum: number, p: any) => sum + (p.tdsAmount || p.TdsAmount || 0), 0); 
+                this.tcsAmount = sales.reduce((sum: number, s: any) => sum + (s.tcsAmount || s.TcsAmount || 0), 0);
 
-                this.gstPayable = Math.max(0, this.outputGst - this.inputGst - this.tdsAmount + this.tcsAmount);
+                this.gstPayable = Math.max(0, (this.outputGst + this.tcsAmount) - (this.inputGst + this.tdsAmount));
+                this.netTaxCredit = Math.max(0, (this.inputGst + this.tdsAmount) - (this.outputGst + this.tcsAmount));
+
+                const o_igst = sales.reduce((sum: number, s: any) => sum + (s.igstAmount || s.IgstAmount || 0), 0);
+                const i_igst = purchases.reduce((sum: number, p: any) => sum + (p.igstAmount || p.IgstAmount || 0), 0);
 
                 this.gstDetails = [
-                    { category: 'Output (Sales)', cgst: this.outputGst / 2, sgst: this.outputGst / 2, igst: 0, tds: 0, tcs: this.tcsAmount, total: this.outputGst + this.tcsAmount },
-                    { category: 'Input (Purchases)', cgst: this.inputGst / 2, sgst: this.inputGst / 2, igst: 0, tds: this.tdsAmount, tcs: 0, total: this.inputGst + this.tdsAmount }
+                    { 
+                        category: 'Output (Sales)', 
+                        cgst: o_igst > 0 ? 0 : this.outputGst / 2, 
+                        sgst: o_igst > 0 ? 0 : this.outputGst / 2, 
+                        igst: o_igst, 
+                        tds: 0, 
+                        tcs: this.tcsAmount, 
+                        total: this.outputGst + this.tcsAmount 
+                    },
+                    { 
+                        category: 'Input (Purchases)', 
+                        cgst: i_igst > 0 ? 0 : this.inputGst / 2, 
+                        sgst: i_igst > 0 ? 0 : this.inputGst / 2, 
+                        igst: i_igst, 
+                        tds: this.tdsAmount, 
+                        tcs: 0, 
+                        total: this.inputGst + this.tdsAmount 
+                    }
                 ];
 
                 // Clear mocked data arrays - these should be populated by real-time grouping from API or logic

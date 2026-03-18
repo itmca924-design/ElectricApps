@@ -84,10 +84,15 @@
         </mat-form-field>
       </div>
 
-      <div class="field-item checkbox-field">
+      <div class="field-item checkbox-field d-flex align-items-center gap-3">
         <mat-checkbox formControlName="isTaxApplicable" color="primary">
           <span class="checkbox-label">Apply GST (Tax)</span>
         </mat-checkbox>
+
+        <mat-button-toggle-group formControlName="taxType" class="tax-type-toggle-small" *ngIf="poForm.get('isTaxApplicable')?.value">
+          <mat-button-toggle value="local">Local</mat-button-toggle>
+          <mat-button-toggle value="interState">Inter-State</mat-button-toggle>
+        </mat-button-toggle-group>
       </div>
     </div>
 
@@ -255,13 +260,35 @@
               <span>₹{{ grandTotal - totalTaxAmount | number:'1.2-2' }}</span>
             </div>
             <div class="total-row">
-              <span>Total Tax:</span>
+              <span class="tax-label">
+                Total Tax:
+                <small class="tax-tag" *ngIf="poForm.get('isTaxApplicable')?.value">
+                  ({{ poForm.get('taxType')?.value === 'local' ? 'CGST+SGST' : 'IGST' }})
+                </small>
+              </span>
               <span>₹{{ totalTaxAmount | number:'1.2-2' }}</span>
             </div>
+
+            <div class="total-row extra-tax">
+              <span class="label">TDS (%):</span>
+              <div class="tax-input-group">
+                <input type="number" formControlName="tdsPercent" class="footer-tax-input" placeholder="0">
+                <span class="tax-val text-info">-₹{{ tdsAmount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <div class="total-row extra-tax">
+              <span class="label">TCS (%):</span>
+              <div class="tax-input-group">
+                <input type="number" formControlName="tcsPercent" class="footer-tax-input" placeholder="0">
+                <span class="tax-val text-warning">+₹{{ tcsAmount | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
             <hr>
             <div class="total-row grand-total">
               <strong>GRAND TOTAL:</strong>
-              <strong>₹{{ grandTotal | number:'1.2-2' }}</strong>
+              <strong>₹{{ finalGrandTotal | number:'1.2-2' }}</strong>
             </div>
           </div>
 

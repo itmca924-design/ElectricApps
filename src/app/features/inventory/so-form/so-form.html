@@ -49,6 +49,14 @@
             <mat-datepicker-toggle matSuffix [for]="delPicker"></mat-datepicker-toggle>
             <mat-datepicker #delPicker></mat-datepicker>
           </mat-form-field>
+
+          <!-- Tax Type Toggle -->
+          <div class="field-item checkbox-field d-flex align-items-center" style="padding-top: 5px;">
+             <mat-button-toggle-group formControlName="taxType" class="tax-type-toggle-small">
+               <mat-button-toggle value="local">Local (CGST+SGST)</mat-button-toggle>
+               <mat-button-toggle value="interState">Inter-State (IGST)</mat-button-toggle>
+             </mat-button-toggle-group>
+          </div>
         </div>
 
         <div class="mt-4 d-flex justify-content-between align-items-center mb-2">
@@ -202,19 +210,39 @@
 
           <!-- Right: Totals -->
           <div class="col-md-4 col-12" *ngIf="items.length">
-            <div class="po-footer p-3 bg-white rounded" style="margin-top: 0; margin-bottom: 25px;">
+            <div class="po-footer p-3 bg-white rounded shadow-sm border" style="margin-top: 0; margin-bottom: 25px;">
               <div class="summary-area text-end">
-                <div class="summary-line mb-1">
+                <div class="summary-line mb-1 d-flex justify-content-between">
                   <span class="text-muted">Sub-Total:</span>
-                  <span class="ms-3 fw-bold">₹ {{ soForm.get('subTotal')?.value | number:'1.2-2' }}</span>
+                  <span class="fw-bold">₹ {{ subTotal | number:'1.2-2' }}</span>
                 </div>
-                <div class="summary-line mb-1">
-                  <span class="text-muted">Total Tax:</span>
-                  <span class="ms-3 text-danger fw-bold">+ ₹ {{ soForm.get('totalTax')?.value | number:'1.2-2' }}</span>
+                <div class="summary-line mb-2 d-flex justify-content-between align-items-center">
+                  <span class="text-muted">
+                    Total Tax:
+                    <small class="tax-type-tag text-uppercase">({{ soForm.get('taxType')?.value === 'local' ? 'CGST+SGST' : 'IGST' }})</small>
+                  </span>
+                  <span class="text-danger fw-bold">+ ₹ {{ totalTax | number:'1.2-2' }}</span>
                 </div>
-                <div class="po-grand-total mt-2 border-top pt-2">
+
+                <div class="summary-line mb-2 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">TDS (%):</span>
+                    <div class="extra-tax-input-wrap">
+                        <input type="number" formControlName="tdsPercent" class="footer-tax-input" placeholder="0">
+                        <span class="text-primary fw-bold small ms-2">-₹{{ tdsAmount | number:'1.2-2' }}</span>
+                    </div>
+                </div>
+
+                <div class="summary-line mb-3 d-flex justify-content-between align-items-center">
+                    <span class="text-muted">TCS (%):</span>
+                    <div class="extra-tax-input-wrap">
+                        <input type="number" formControlName="tcsPercent" class="footer-tax-input" placeholder="0">
+                        <span class="text-warning fw-bold small ms-2">+₹{{ tcsAmount | number:'1.2-2' }}</span>
+                    </div>
+                </div>
+
+                <div class="po-grand-total mt-2 border-top pt-2 d-flex justify-content-between align-items-center">
                    <span class="text-primary fw-bold h5 m-0">GRAND TOTAL:</span>
-                   <span class="ms-3 text-primary fw-bold h3 m-0">₹ {{ soForm.get('grandTotal')?.value | number:'1.2-2' }}</span>
+                   <span class="text-primary fw-bold h3 m-0">₹ {{ finalGrandTotal | number:'1.2-2' }}</span>
                 </div>
               </div>
             </div>
