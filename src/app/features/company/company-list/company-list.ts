@@ -14,6 +14,7 @@ import { StatusDialogComponent } from '../../../shared/components/status-dialog-
 import { LoadingService } from '../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../shared/components/summary-stats-component/summary-stats-component';
 import { PermissionService } from '../../../core/services/permission.service';
+import { PermissionDirective } from '../../../core/directives/permission.directive';
 
 @Component({
     selector: 'app-company-list',
@@ -24,7 +25,8 @@ import { PermissionService } from '../../../core/services/permission.service';
         MaterialModule,
         ServerDatagridComponent,
         RouterLink,
-        SummaryStatsComponent
+        SummaryStatsComponent,
+        PermissionDirective
     ],
     templateUrl: './company-list.html',
     styleUrl: './company-list.scss',

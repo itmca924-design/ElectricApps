@@ -11,4 +11,5 @@ export interface RolePermission {
     canAdd: boolean;
     canEdit: boolean;
     canDelete: boolean;
+    additionalActions?: string; // New: comma separated keys
 }

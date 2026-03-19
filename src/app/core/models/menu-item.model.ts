@@ -14,4 +14,5 @@ export interface MenuPermissions {
   canAdd: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  additionalActions?: string;
 }

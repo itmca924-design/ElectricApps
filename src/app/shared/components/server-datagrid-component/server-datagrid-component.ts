@@ -2,6 +2,15 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { PageEvent } from '@angular/material/paginator';
 import { GridRequest } from '../../models/grid-request.model';
 import { GridColumn } from '../../../shared/models/grid-column.model';
+import { PermissionDirective } from '../../../core/directives/permission.directive';
+
+export interface GridAction {
+  icon: string;
+  permission: string;
+  color?: string;
+  tooltip?: string;
+  action: (row: any) => void;
+}
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from '../../material/material/material-module';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -12,7 +21,7 @@ import { PermissionService } from '../../../core/services/permission.service';
 @Component({
   selector: 'app-server-datagrid',
   standalone: true,
-  imports: [CommonModule, MaterialModule, DragDropModule],
+  imports: [CommonModule, MaterialModule, DragDropModule, PermissionDirective],
   templateUrl: './server-datagrid-component.html',
   styleUrl: './server-datagrid-component.scss',
 })
@@ -21,6 +30,7 @@ export class ServerDatagridComponent<T> implements OnChanges, OnInit, OnDestroy 
   @Input() data: T[] = [];
   @Input() totalCount = 0;
   @Input() loading = false;
+  @Input() extraActions: GridAction[] = [];
 
   @Output() loadData = new EventEmitter<GridRequest>();
 

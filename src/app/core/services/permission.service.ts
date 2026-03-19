@@ -184,4 +184,22 @@ export class PermissionService {
     hasPermission(action: 'CanView' | 'CanAdd' | 'CanEdit' | 'CanDelete'): boolean {
         return this.checkPermissionWithData(this.menuItems, this.router.url, action);
     }
+
+    /**
+     * Checks if the user has a custom action permission (e.g. 'BULK_ADD')
+     * stored in the additionalActions comma-separated string.
+     */
+    hasAction(actionKey: string): boolean {
+        const currentUrl = this.router.url;
+        const normalizedUrl = this._normalize(currentUrl);
+        const menuItem = this._searchBestMatch(this.menuItems, normalizedUrl);
+
+        if (!menuItem || !(menuItem as any).permissions) return false;
+
+        const perm = (menuItem as any).permissions as any;
+        if (!perm.additionalActions) return false;
+
+        const actions = (perm.additionalActions as string).split(',').map(a => a.trim().toLowerCase());
+        return actions.includes(actionKey.toLowerCase());
+    }
 }

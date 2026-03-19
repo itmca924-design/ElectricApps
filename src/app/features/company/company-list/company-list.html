@@ -9,7 +9,7 @@
         <mat-icon>delete_sweep</mat-icon>
         Delete Selected ({{selectedRows.length}})
       </button>
-      <button *ngIf="canAdd && selectedRows.length === 0" mat-raised-button routerLink="/app/company/bulk-add" class="bulk-add-btn">
+      <button *appPermission="'BULK_ADD'" mat-raised-button routerLink="/app/company/bulk-add" class="bulk-add-btn">
         <mat-icon>library_add</mat-icon>
         Bulk Add
       </button>

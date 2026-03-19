@@ -43,6 +43,7 @@
           <div class="cell checkbox-col">Add</div>
           <div class="cell checkbox-col">Edit</div>
           <div class="cell checkbox-col">Delete</div>
+          <div class="cell action-col">Specific Permissions (CSV)</div>
         </div>
 
         <div class="tree-body">
@@ -80,6 +81,14 @@
                 <mat-checkbox [(ngModel)]="getPermission(node.id).canDelete" 
                               (change)="handlePermissionChange(node, 'canDelete', $event.checked)"
                               color="primary"></mat-checkbox>
+              </div>
+
+              <!-- Additional Actions Column -->
+              <div class="cell action-col">
+                <mat-form-field appearance="outline" class="compact-input w-100">
+                  <input matInput [(ngModel)]="getPermission(node.id).additionalActions" 
+                         placeholder="e.g. BULK_ADD, APPROVE">
+                </mat-form-field>
               </div>
             </mat-tree-node>
           </mat-tree>

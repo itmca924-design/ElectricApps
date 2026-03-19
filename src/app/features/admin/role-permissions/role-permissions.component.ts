@@ -34,7 +34,7 @@ export class RolePermissionsComponent implements OnInit {
   loading = false;
   summaryStats: SummaryStat[] = [];
 
-  displayedColumns = ['menu', 'canView', 'canAdd', 'canEdit', 'canDelete'];
+  displayedColumns = ['menu', 'canView', 'canAdd', 'canEdit', 'canDelete', 'additionalActions'];
 
   private _transformer = (node: MenuItem, level: number) => {
     return {
