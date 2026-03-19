@@ -8,6 +8,7 @@ import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
+import { ProductTransactionHistory } from '../product-transaction-history/product-transaction-history';
 
 @Component({
   selector: 'app-product-dashboard',
@@ -100,8 +101,10 @@ export class ProductDashboard implements OnInit {
   }
 
   onHistory(product: Product) {
-    this.dialog.open(StatusDialogComponent, {
-      data: { isSuccess: true, message: `Transaction history for ${product.sku} is under development.` }
+    this.dialog.open(ProductTransactionHistory, {
+      data: { product },
+      width: '900px',
+      panelClass: 'custom-dialog-container'
     });
   }
 

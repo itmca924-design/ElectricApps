@@ -1,0 +1,68 @@
+<div class="transaction-history-container">
+  <div class="dialog-header">
+    <div class="header-info">
+      <mat-icon class="header-icon">history</mat-icon>
+      <div class="title-group">
+        <h2 mat-dialog-title>Transaction History</h2>
+        <p class="subtitle">{{ data.product.productName || data.product.name }} ({{ data.product.sku }})</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="close()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content class="content-scroll">
+    <div class="loading-spinner" *ngIf="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Fetching transaction records...</p>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && transactions.length === 0">
+      <mat-icon class="large-icon">inventory_2</mat-icon>
+      <h3>No Transactions Found</h3>
+      <p>This product hasn't been moved or sold yet.</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && transactions.length > 0">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Ref ID / Invoice</th>
+            <th>Location</th>
+            <th class="text-right">Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let t of transactions">
+            <td class="date-cell">
+              {{ t.createdOn | date:'dd MMM yyyy' }}
+              <span class="time">{{ t.createdOn | date:'hh:mm a' }}</span>
+            </td>
+            <td>
+              <span class="type-badge" [ngClass]="t.transactionType.toLowerCase()">
+                {{ t.transactionType }}
+              </span>
+            </td>
+            <td class="ref-cell">{{ t.referenceId }}</td>
+            <td class="loc-cell">
+              <div class="loc-info" *ngIf="t.warehouseName">
+                <mat-icon class="s-14">location_on</mat-icon>
+                {{ t.warehouseName }} - {{ t.rackName }}
+              </div>
+            </td>
+            <td class="qty-cell" [ngClass]="t.quantity > 0 ? 'pos' : 'neg'">
+              {{ t.quantity > 0 ? '+' : '' }}{{ t.quantity }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="dialog-footer">
+    <button mat-stroked-button color="primary" (click)="close()">Close</button>
+  </mat-dialog-actions>
+</div>

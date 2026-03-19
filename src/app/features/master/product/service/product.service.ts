@@ -45,6 +45,10 @@ export class ProductService {
         return this.api.get<Product>(`products/${id}`);
     }
 
+    getTransactions(id: string): Observable<any[]> {
+        return this.api.get<any[]>(`products/${id}/transactions`);
+    }
+
     deleteMany(ids: string[]): Observable<any> {
         return this.api.post<any>(`products/bulk-delete`, ids);
     }
