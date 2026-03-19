@@ -26,6 +26,14 @@ export class PLDashboardComponent implements OnInit {
     totalSales: number = 0;
     totalReceivables: number = 0;
     totalPayables: number = 0;
+
+    monthlyIncome: number = 0;
+    yearlyIncome: number = 0;
+    dailyIncome: number = 0;
+    monthlyExpenses: number = 0;
+    yearlyExpenses: number = 0;
+    dailyExpenses: number = 0;
+
     isDashboardLoading: boolean = true;
 
     // Chart Data
@@ -149,8 +157,43 @@ export class PLDashboardComponent implements OnInit {
         this.loadingService.setLoading(true); // Global loading ON
         this.cdr.detectChanges();
 
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        // Daily Filter (Today)
+        const dailyFilters = {
+            startDate: new Date(now.setHours(0, 0, 0, 0)).toISOString(),
+            endDate: new Date(now.setHours(23, 59, 59, 999)).toISOString()
+        };
+
+        // Reset 'now' for other filters
+        const today = new Date();
+
+        // Monthly Filter (Current Month)
+        const monthlyFilters = {
+            startDate: new Date(currentYear, currentMonth, 1).toISOString(),
+            endDate: today.toISOString()
+        };
+
+        // Indian Financial Year (April 1st to March 31st)
+        let fyStartDate;
+        if (currentMonth >= 3) { // April onwards
+            fyStartDate = new Date(currentYear, 3, 1);
+        } else { // Jan-Mar (belongs to previous year's FY)
+            fyStartDate = new Date(currentYear - 1, 3, 1);
+        }
+
+        const yearlyFilters = {
+            startDate: fyStartDate.toISOString(),
+            endDate: today.toISOString()
+        };
+
         forkJoin({
-            pl: this.financeService.getProfitAndLossReport(this.filters),
+            pl: this.financeService.getProfitAndLossReport(this.filters), // User selected or default
+            dailyPl: this.financeService.getProfitAndLossReport(dailyFilters),
+            monthlyPl: this.financeService.getProfitAndLossReport(monthlyFilters),
+            yearlyPl: this.financeService.getProfitAndLossReport(yearlyFilters),
             receivables: this.financeService.getTotalReceivables(),
             payables: this.financeService.getTotalPayables(),
             expenseChart: this.financeService.getExpenseChartData(this.filters),
@@ -162,10 +205,25 @@ export class PLDashboardComponent implements OnInit {
 
                 // Map P&L
                 if (results.pl) {
-                    this.totalIncome = results.pl.totalIncome || results.pl.TotalReceipts || 0;
-                    this.totalExpenses = results.pl.totalExpenses || results.pl.TotalPayments || 0;
+                    this.totalIncome = results.pl.totalIncome || 0;
+                    this.totalExpenses = results.pl.totalExpenses || 0;
                     this.totalPurchases = results.pl.totalPurchases || 0;
                     this.totalSales = results.pl.totalSales || 0;
+                }
+
+                if (results.dailyPl) {
+                    this.dailyIncome = results.dailyPl.totalIncome || 0;
+                    this.dailyExpenses = results.dailyPl.totalExpenses || 0;
+                }
+
+                if (results.monthlyPl) {
+                    this.monthlyIncome = results.monthlyPl.totalIncome || 0;
+                    this.monthlyExpenses = results.monthlyPl.totalExpenses || 0;
+                }
+
+                if (results.yearlyPl) {
+                    this.yearlyIncome = results.yearlyPl.totalIncome || 0;
+                    this.yearlyExpenses = results.yearlyPl.totalExpenses || 0;
                 }
 
                 // Map Receivables

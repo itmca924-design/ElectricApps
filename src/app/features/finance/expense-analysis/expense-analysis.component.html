@@ -1,0 +1,99 @@
+<div class="analysis-container" [class.disabled-content]="isDashboardLoading">
+
+    <!-- Summary Stats Bar -->
+    <app-summary-stats [stats]="summaryStats" [isLoading]="isDashboardLoading"></app-summary-stats>
+
+    <div class="page-header">
+        <div class="title-section">
+            <h1 class="mat-headline-4">Expense Analysis</h1>
+            <p class="subtitle">Deep dive into your business spending patterns and trends.</p>
+        </div>
+        <div class="header-actions">
+            <button mat-stroked-button color="primary" (click)="loadAnalysis()">
+                <mat-icon>refresh</mat-icon> Refresh
+            </button>
+            <button mat-raised-button color="primary" routerLink="/app/finance/expenses/entry">
+                <mat-icon>add</mat-icon> New Expense
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="analysis-grid">
+        
+        <!-- Category Distribution (Donut Chart) -->
+        <mat-card class="analysis-card donut-section">
+            <mat-card-header>
+                <mat-card-title>Spending by Category</mat-card-title>
+                <mat-card-subtitle>Contribution of each category to total monthly spend</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content class="chart-content">
+                <div class="chart-wrapper" *ngIf="donutChartData.datasets[0].data.length > 0">
+                    <canvas baseChart 
+                            [data]="donutChartData" 
+                            [options]="donutChartOptions" 
+                            [type]="'doughnut'">
+                    </canvas>
+                    <div class="donut-center">
+                        <span class="total-label">Total</span>
+                        <span class="total-value">₹{{ totalExpense | number:'1.0-0' }}</span>
+                    </div>
+                </div>
+                <div class="empty-state" *ngIf="donutChartData.datasets[0].data.length === 0">
+                    <mat-icon>pie_chart_outline</mat-icon>
+                    <p>No expense data for selected period</p>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Monthly Trends (Area Chart) -->
+        <mat-card class="analysis-card trend-section">
+            <mat-card-header>
+                <mat-card-title>Expense Trends</mat-card-title>
+                <mat-card-subtitle>Monthly spending over the last 12 months</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content class="chart-content">
+                <div class="chart-wrapper" *ngIf="trendChartData.labels && trendChartData.labels.length > 0">
+                    <canvas baseChart 
+                            [data]="trendChartData" 
+                            [options]="trendChartOptions" 
+                            [type]="'line'">
+                    </canvas>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Recent Large Expenses -->
+        <mat-card class="analysis-card recent-section">
+            <mat-card-header>
+                <mat-card-title>Recent Transactions</mat-card-title>
+                <mat-card-subtitle>Latest spending entries</mat-card-subtitle>
+                <span class="spacer"></span>
+                <button mat-button color="primary" routerLink="/app/finance/expenses/entry">View All</button>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="transaction-list">
+                    <div class="transaction-item" *ngFor="let item of topExpenses">
+                        <div class="item-icon" [ngStyle]="{'background-color': '#f8fafc'}">
+                            <mat-icon color="primary">receipt_long</mat-icon>
+                        </div>
+                        <div class="item-info">
+                            <span class="item-name">{{ item.remarks || item.Remarks || 'Expense Entry' }}</span>
+                            <span class="item-category">{{ item.categoryName || item.CategoryName || 'General' }}</span>
+                        </div>
+                        <div class="item-meta">
+                            <span class="item-date">{{ (item.expenseDate || item.ExpenseDate) | date:'dd MMM' }}</span>
+                            <span class="item-amount">₹{{ (item.amount || item.Amount) | number:'1.2-2' }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="empty-list" *ngIf="topExpenses.length === 0">
+                        <p>No recent expenses found.</p>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+    </div>
+
+</div>

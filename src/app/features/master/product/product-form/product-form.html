@@ -43,6 +43,23 @@
 
   <mat-card-content class="pt-3">
     <form [formGroup]="productsForm" class="form-grid">
+      <!-- 🖼️ Product Image Section -->
+      <div class="image-upload-wrapper">
+        <div class="image-preview" (click)="imageInput.click()">
+          <img [src]="previewImage || 'assets/images/placeholder-product.png'" alt="Product">
+          <div class="upload-hint">
+            <mat-icon>camera_alt</mat-icon>
+            <span>Upload Photo</span>
+          </div>
+        </div>
+        <input #imageInput type="file" (change)="onImageSelected($event)" accept="image/*" class="d-none">
+        
+        <div class="image-actions" *ngIf="previewImage">
+          <button mat-button color="warn" (click)="$event.stopPropagation(); previewImage = null; productsForm.get('imageUrl')?.setValue(null)">
+            <mat-icon>delete</mat-icon> Remove
+          </button>
+        </div>
+      </div>
 
       <!-- 🔍 Category Autocomplete -->
       <mat-form-field appearance="outline" class="search-field">

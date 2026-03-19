@@ -34,6 +34,7 @@ export interface Product {
   isExpiryRequired?: boolean;
   defaultRackName?: string;
   rackName?: string;
+  imageUrl?: string;
 
   createdAt?: Date;
   updatedAt?: Date;

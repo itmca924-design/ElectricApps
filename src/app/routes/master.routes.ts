@@ -30,7 +30,8 @@ export const MASTER_ROUTES: Routes = [
     canActivate: [PermissionGuard],
     data: { breadcrumb: 'Products' },
     children: [
-      { path: '', data: { breadcrumb: 'List' }, loadComponent: () => import('./../features/master/product/product-list/product-list').then(m => m.ProductList) },
+      { path: '', data: { breadcrumb: 'Dashboard' }, loadComponent: () => import('./../features/master/product/product-dashboard/product-dashboard').then(m => m.ProductDashboard) },
+      { path: 'list', data: { breadcrumb: 'List' }, loadComponent: () => import('./../features/master/product/product-list/product-list').then(m => m.ProductList) },
       { path: 'add', data: { breadcrumb: 'Add New' }, loadComponent: () => import('./../features/master/product/product-form/product-form').then(m => m.ProductForm) },
       { path: 'edit/:id', data: { breadcrumb: 'Edit' }, loadComponent: () => import('./../features/master/product/product-form/product-form').then(m => m.ProductForm) }
     ]

@@ -1,0 +1,371 @@
+.dashboard-container {
+  padding: 30px;
+  background-color: #f8fafc;
+  min-height: calc(100vh - 84px);
+  font-family: 'Inter', sans-serif;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  border-left: 5px solid #3b82f6;
+  padding-left: 20px;
+
+  .title-section {
+    h1 {
+      color: #1a202c;
+      font-size: 2.2rem;
+      letter-spacing: -0.5px;
+    }
+    p {
+      color: #718096;
+      font-size: 1.1rem;
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 15px;
+
+    button {
+      border-radius: 12px;
+      font-weight: 600;
+      padding: 0 20px;
+      height: 48px;
+    }
+  }
+}
+
+.filter-card {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    padding-bottom: 10px;
+  }
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 30px; // Increased gap to prevent overlap
+  padding: 15px;
+}
+
+.product-card {
+  border-radius: 20px;
+  overflow: hidden; // Keep hidden to contain content and prevent bleed
+  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  z-index: 1;
+
+  &:hover {
+    z-index: 10; // Bring hovered card to front
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.15) !important;
+    border-color: #3b82f6;
+
+    .card-image-wrapper img {
+      transform: scale(1.1);
+    }
+  }
+
+    // 🏆 Top Header Area
+    .card-header-section {
+      padding: 14px 20px 8px;
+      display: flex;
+      justify-content: space-between; // Back to right side
+      align-items: center;
+      background: #ffffff;
+      
+      .brand-tag {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .sku-label {
+        font-size: 0.7rem;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-right: 65px; // Move "thoda aur left" from the right edge
+        z-index: 1;
+      }
+    }
+
+    // 🏷️ Elegant Corner Ribbon
+    .offer-ribbon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 70px; // Slightly smaller to be less intrusive
+      height: 70px;
+      overflow: hidden;
+      z-index: 10;
+      pointer-events: none;
+
+      .ribbon-text {
+        position: absolute;
+        display: block;
+        width: 100px;
+        padding: 3px 0;
+        background: linear-gradient(45deg, #f43f5e, #e11d48);
+        color: #fff;
+        font-size: 0.6rem;
+        font-weight: 900;
+        text-align: center;
+        text-transform: uppercase;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        transform: rotate(45deg) translate(20px, -10px);
+        letter-spacing: 0.8px;
+      }
+    }
+
+    .card-image-wrapper {
+      width: 100%;
+      height: 220px; // Increased height for better centering
+      position: relative;
+      background: #ffffff;
+      display: flex;
+      align-items: center; // Vertical center
+      justify-content: center; // Horizontal center
+      padding: 15px;
+      border-bottom: 1px solid #f1f5f9;
+      overflow: hidden;
+
+      img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain; // Maintains aspect ratio while centering
+        transition: transform 0.6s ease;
+        filter: drop-shadow(0 5px 15px rgba(0,0,0,0.08));
+        display: block;
+        margin: auto; // Extra insurance for centering
+      }
+    }
+
+  .product-info-grid {
+    padding: 24px;
+    flex-grow: 1;
+
+    .header-info {
+      margin-bottom: 18px;
+    }
+
+    .product-name {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #111827;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 6px;
+    }
+
+    .product-sku {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #6b7280;
+      letter-spacing: -0.2px;
+    }
+
+    .pricing-container {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 20px;
+
+      .price-chip {
+        color: #2563eb;
+        padding: 0;
+        font-weight: 900;
+        font-size: 1.6rem;
+        display: flex;
+        align-items: baseline;
+        
+        .currency {
+          font-size: 1rem;
+          margin-right: 2px;
+          opacity: 0.7;
+        }
+      }
+
+      .original-price {
+        font-size: 1rem;
+        color: #9ca3af;
+        text-decoration: line-through;
+        font-weight: 500;
+      }
+    }
+
+    .meta-row {
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid #f3f4f6;
+      padding-top: 18px;
+      gap: 10px;
+
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #374151;
+        background: #f9fafb;
+        padding: 6px 10px;
+        border-radius: 12px;
+        flex: 1;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+          opacity: 0.9;
+        }
+
+        .label { 
+          font-size: 0.72rem; 
+          font-weight: 700; 
+          white-space: nowrap;
+        }
+
+        &.stock-status {
+          color: #059669;
+          background: #ecfdf5;
+          
+          &.low-stock {
+            color: #dc2626;
+            background: #fef2f2;
+          }
+        }
+      }
+    }
+  }
+
+  .card-footer-actions {
+    background: #fcfdfe;
+    border-top: 1px solid #f3f4f6;
+    margin: 0 !important;
+    padding: 12px 20px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    min-height: 60px;
+    border-radius: 0 0 24px 24px;
+
+    .quick-status {
+      display: flex;
+      align-items: center;
+
+      mat-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .edit-btn {
+        background-color: #eff6ff;
+        color: #2563eb;
+        font-weight: 800;
+        font-size: 0.85rem;
+        letter-spacing: 0.8px;
+        border-radius: 14px;
+        padding-left: 12px;
+        padding-right: 18px;
+        height: 40px;
+        
+        mat-icon {
+          margin-right: 6px;
+          font-size: 18px;
+          width: 18px;
+          height: 18px;
+        }
+
+        &:hover {
+          background-color: #2563eb;
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  grid-column: 1 / -1;
+
+  .empty-content {
+    text-align: center;
+    max-width: 400px;
+    
+    .huge-icon {
+      font-size: 80px;
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    h3 { font-size: 1.5rem; color: #2d3748; margin-bottom: 10px; }
+    p { color: #718096; margin-bottom: 25px; }
+
+    button { border-radius: 10px; }
+  }
+}
+
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 150px;
+  grid-column: 1 / -1;
+  color: #a0aec0;
+}
+
+/* Animations */
+.animate__animated {
+  animation-duration: 0.6s;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translate3d(0, -20px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translate3d(0, 20px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.animate__fadeInDown { animation-name: fadeInDown; }
+.animate__fadeInUp { animation-name: fadeInUp; }

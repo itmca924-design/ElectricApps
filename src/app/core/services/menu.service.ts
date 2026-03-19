@@ -187,6 +187,19 @@ export class MenuService {
                             permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
                         });
                     }
+
+                    const alreadyHasEA = financeMenu.children.some(c => c.title === 'Expense Analysis');
+                    if (!alreadyHasEA) {
+                        financeMenu.children.push({
+                            id: 9999, // Dummy ID
+                            title: 'Expense Analysis',
+                            url: '/app/finance/expenses/analysis',
+                            icon: 'analytics',
+                            order: 120,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
                 }
 
                 return filtered;

@@ -118,6 +118,11 @@ export const FINANCE_ROUTES: Routes = [
                 path: 'entry',
                 data: { breadcrumb: 'Expense Entry' },
                 loadComponent: () => import('../features/finance/expenses/expense-entry/expense-entry.component').then(m => m.ExpenseEntryComponent)
+            },
+            {
+                path: 'analysis',
+                data: { breadcrumb: 'Expense Analysis' },
+                loadComponent: () => import('../features/finance/expense-analysis/expense-analysis.component').then(m => m.ExpenseAnalysisComponent)
             }
         ]
     },

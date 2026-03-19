@@ -20,7 +20,20 @@
             </mat-card-header>
             <mat-card-content>
                 <h2 class="stat-value">₹{{ totalIncome | number:'1.2-2' }}</h2>
-                <span class="trend up"><mat-icon>arrow_upward</mat-icon> 12% vs last month</span>
+                <div class="stat-breakdown">
+                    <div class="breakdown-item daily">
+                        <span class="label">Today:</span>
+                        <span class="value success">₹{{ dailyIncome | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Monthly:</span>
+                        <span class="value success">₹{{ monthlyIncome | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Yearly:</span>
+                        <span class="value primary">₹{{ yearlyIncome | number:'1.2-2' }}</span>
+                    </div>
+                </div>
             </mat-card-content>
         </mat-card>
 
@@ -34,7 +47,20 @@
             </mat-card-header>
             <mat-card-content>
                 <h2 class="stat-value">₹{{ totalExpenses | number:'1.2-2' }}</h2>
-                <span class="trend down"><mat-icon>arrow_downward</mat-icon> 5% vs last month</span>
+                <div class="stat-breakdown">
+                    <div class="breakdown-item daily">
+                        <span class="label">Today:</span>
+                        <span class="value warn">₹{{ dailyExpenses | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Monthly:</span>
+                        <span class="value warn">₹{{ monthlyExpenses | number:'1.2-2' }}</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span class="label">Yearly:</span>
+                        <span class="value accent">₹{{ yearlyExpenses | number:'1.2-2' }}</span>
+                    </div>
+                </div>
             </mat-card-content>
         </mat-card>
 

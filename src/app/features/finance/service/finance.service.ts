@@ -188,6 +188,16 @@ export class FinanceService {
         return this.http.delete(`${this.inventoryApi}/expense-entries/${id}`);
     }
 
+    getPurchaseOrders(filters: any): Observable<any> {
+        const purchaseParams = {
+            pageIndex: 0,
+            pageSize: 5000,
+            fromDate: filters.startDate,
+            toDate: filters.endDate
+        };
+        return this.http.post<any>(`${this.inventoryApi}/PurchaseOrders/get-paged-orders`, purchaseParams);
+    }
+
     getExpenseChartData(filters: any = {}): Observable<any[]> {
         return this.http.post<any[]>(`${this.inventoryApi}/expense-entries/chart-data`, filters);
     }

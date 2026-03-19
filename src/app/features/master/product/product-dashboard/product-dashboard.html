@@ -1,0 +1,124 @@
+<div class="dashboard-container">
+  <div class="dashboard-header animate__animated animate__fadeInDown">
+    <div class="title-section">
+      <h1 class="m-0 fw-bold">Product Catalog Dashboard</h1>
+      <p class="text-muted mb-0">Discover and manage your products with interactive cards</p>
+    </div>
+    <div class="actions">
+      <button mat-raised-button color="primary" routerLink="add">
+        <mat-icon>add_circle</mat-icon> New Product
+      </button>
+      <button mat-stroked-button color="accent" routerLink="/app/master/products/list">
+        <mat-icon>table_chart</mat-icon> List View
+      </button>
+    </div>
+  </div>
+
+  <!-- 🔍 Reactive Filter Dashboard Form -->
+  <mat-card class="filter-card shadow-sm mb-4 animate__animated animate__fadeInUp">
+    <mat-card-content class="pt-3 pb-0">
+      <form [formGroup]="searchForm" class="filter-grid">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Quick Search</mat-label>
+          <input matInput formControlName="query" placeholder="Type Product Name or SKU...">
+          <mat-icon matPrefix color="primary">search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Current Inventory Status</mat-label>
+          <mat-select formControlName="stockStatus">
+            <mat-option value="all">📊 All Inventory</mat-option>
+            <mat-option value="in" class="text-success">✅ In Stock</mat-option>
+            <mat-option value="low" class="text-warning">⚠️ Low Stock</mat-option>
+            <mat-option value="out" class="text-danger">❌ Out of Stock</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- 📦 Interactive Product Grid -->
+  <div class="product-grid" *ngIf="!loading; else loader">
+    <mat-card class="product-card clickable shadow-sm" *ngFor="let product of filteredProducts; let i = index">
+      <!-- 🏷️ Discount Ribbon -->
+      <div class="offer-ribbon" *ngIf="product.mrp && product.saleRate && product.mrp > product.saleRate">
+        <span class="ribbon-text">SALE OFF</span>
+      </div>
+
+      <div class="card-header-section">
+        <div class="brand-tag">{{ product.brand || 'Generic' }}</div>
+        <div class="sku-label">{{ product.sku }}</div>
+      </div>
+
+      <div class="card-image-wrapper">
+        <img [src]="getProductImage(product)" alt="{{ product.productName }}" (error)="product.imageUrl = undefined">
+      </div>
+
+      <mat-card-content class="product-info-grid">
+        <div class="header-info">
+          <h3 class="product-name" [matTooltip]="product.productName">{{ product.productName || product.name }}</h3>
+        </div>
+        
+        <div class="pricing-container">
+          <div class="price-chip">
+            <span class="currency">₹</span>
+            <span class="value">{{ product.saleRate || product.rate || 0 | number:'1.2-2' }}</span>
+          </div>
+          <div class="original-price" *ngIf="product.mrp && product.mrp > (product.saleRate || product.rate || 0)">
+            ₹{{ product.mrp | number:'1.2-2' }}
+          </div>
+        </div>
+
+        <div class="meta-row mt-3">
+          <div class="meta-item stock-status" [ngClass]="{'low-stock': (product.currentStock || 0) <= (product.minStock || 0)}">
+            <mat-icon class="s-18">inventory_2</mat-icon>
+            <span class="label">Stock: {{ product.currentStock || 0 }} {{ product.unit }}</span>
+          </div>
+          <div class="meta-item">
+            <mat-icon color="primary" class="s-18">straighten</mat-icon>
+            <span class="label">Min: {{ product.minStock || 0 }}</span>
+          </div>
+          <div class="meta-item">
+            <mat-icon color="accent" class="s-18">receipt</mat-icon>
+            <span class="label">GST: {{ product.defaultGst || 0 }}%</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-divider></mat-divider>
+      
+      <mat-card-actions class="card-footer-actions d-flex justify-content-between align-items-center px-3 py-2">
+        <div class="quick-status">
+            <mat-icon [class.text-success]="product.isActive" [class.text-muted]="!product.isActive" [matTooltip]="product.isActive ? 'Active' : 'Inactive'">
+              {{ product.isActive ? 'check_circle' : 'block' }}
+            </mat-icon>
+        </div>
+        <div class="btn-group">
+          <button mat-button color="primary" class="edit-btn" (click)="onEdit(product)">
+            <mat-icon>edit</mat-icon> EDIT
+          </button>
+          <button mat-icon-button color="accent" matTooltip="Product Details">
+            <mat-icon>more_vert</mat-icon>
+          </button>
+        </div>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <!-- 🛑 No Results Message -->
+  <div class="empty-state animate__animated animate__fadeIn" *ngIf="!loading && filteredProducts.length === 0">
+    <div class="empty-content">
+      <mat-icon class="huge-icon text-muted">category</mat-icon>
+      <h3>No matching products found</h3>
+      <p>We couldn't find anything matching your search query or filters.</p>
+      <button mat-stroked-button (click)="searchForm.reset({query: '', category: 'all', stockStatus: 'all'})">Clear All Filters</button>
+    </div>
+  </div>
+
+  <ng-template #loader>
+    <div class="loader-container">
+      <mat-spinner strokeWidth="3" diameter="50"></mat-spinner>
+      <p class="mt-3 text-muted">Syncing product inventory...</p>
+    </div>
+  </ng-template>
+</div>

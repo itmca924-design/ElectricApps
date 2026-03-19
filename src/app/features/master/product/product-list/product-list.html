@@ -28,6 +28,11 @@
         Sync All Stock
       </button>
 
+      <button mat-stroked-button color="primary" routerLink="/app/master/products" [disabled]="loading">
+        <mat-icon>dashboard</mat-icon>
+        Dashboard
+      </button>
+
       <button mat-raised-button class="main-add-btn" *ngIf="canAdd" routerLink="/app/master/products/add" [disabled]="loading">
         <mat-icon>add</mat-icon>
         New Product

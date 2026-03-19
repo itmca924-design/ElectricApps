@@ -56,6 +56,8 @@ export class ProductForm implements OnInit, OnDestroy {
   isSearchingSubcategories = false;
   isSearchingUnits = false;
 
+  previewImage: string | ArrayBuffer | null = null;
+
   ngOnInit() {
     this.createForm();
     this.setupAutocomplete();
@@ -222,8 +224,11 @@ export class ProductForm implements OnInit, OnDestroy {
                 damagedStock: res.damagedStock,
                 defaultWarehouseId: res.defaultWarehouseId,
                 defaultRackId: res.defaultRackId,
-                isExpiryRequired: res.isExpiryRequired || false
+                isExpiryRequired: res.isExpiryRequired || false,
+                imageUrl: res.imageUrl
               });
+
+              this.previewImage = res.imageUrl || null;
 
               if (res.defaultWarehouseId) {
                 this.onWarehouseChange(res.defaultWarehouseId, false);
@@ -379,6 +384,19 @@ export class ProductForm implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
+  onImageSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewImage = reader.result;
+        this.productsForm.get('imageUrl')?.setValue(reader.result);
+        this.cdr.detectChanges();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   private syncAutocomplete(catId: any, subId: any) {
     if (catId && this.categories.length > 0) {
       const cat = this.categories.find(c => c.id === catId);
@@ -413,7 +431,8 @@ export class ProductForm implements OnInit, OnDestroy {
       damagedStock: [0],
       defaultWarehouseId: [null, [Validators.required]],
       defaultRackId: [null, [Validators.required]],
-      isExpiryRequired: [false]
+      isExpiryRequired: [false],
+      imageUrl: [null]
     });
   }
 
@@ -583,7 +602,8 @@ export class ProductForm implements OnInit, OnDestroy {
       damagedStock: formValue.damagedStock ? Number(formValue.damagedStock) : 0,
       defaultWarehouseId: formValue.defaultWarehouseId,
       defaultRackId: formValue.defaultRackId,
-      isExpiryRequired: Boolean(formValue.isExpiryRequired)
+      isExpiryRequired: Boolean(formValue.isExpiryRequired),
+      imageUrl: formValue.imageUrl
     };
   }
 }
