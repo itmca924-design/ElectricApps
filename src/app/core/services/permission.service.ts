@@ -199,7 +199,14 @@ export class PermissionService {
         const perm = (menuItem as any).permissions as any;
         if (!perm.additionalActions) return false;
 
-        const actions = (perm.additionalActions as string).split(',').map(a => a.trim().toLowerCase());
-        return actions.includes(actionKey.toLowerCase());
+        // Normalize stored actions: "BULK ADD, sync_stock" -> ["bulk_add", "sync_stock"]
+        const actions = (perm.additionalActions as string)
+            .split(',')
+            .map(a => a.trim().toLowerCase().replace(/\s+/g, '_'));
+
+        // Normalize requested key: "BULK DISPATCH" -> "bulk_dispatch"
+        const normalizedKey = actionKey.trim().toLowerCase().replace(/\s+/g, '_');
+
+        return actions.includes(normalizedKey);
     }
 }

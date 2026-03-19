@@ -15,13 +15,16 @@ import { StatusDialogComponent } from '../../../../shared/components/status-dial
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
 import { PermissionService } from '../../../../core/services/permission.service';
+import { PermissionDirective } from '../../../../core/directives/permission.directive';
+
 
 @Component({
   selector: 'app-category-list',
   imports: [CommonModule,
     ReactiveFormsModule, MaterialModule, ServerDatagridComponent, RouterLink,
-    SummaryStatsComponent
+    SummaryStatsComponent, PermissionDirective
   ],
+
   templateUrl: './category-list.html',
   styleUrl: './category-list.scss',
 })

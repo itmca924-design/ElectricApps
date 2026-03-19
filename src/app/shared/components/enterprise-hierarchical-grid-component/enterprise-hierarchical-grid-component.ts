@@ -69,8 +69,15 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   @Input() canEdit: boolean = true;
   @Input() canDelete: boolean = true;
 
+  // Specific Action Permissions (Custom)
+  @Input() canBulkConfirm: boolean = true;
+  @Input() canBulkDelete: boolean = true;
+  @Input() canBulkApprove: boolean = true;
+  @Input() canBulkInward: boolean = true;
+
   // When true: shows simple Edit/Delete for all rows (used by Quick Sale/Quick Purchase)
   @Input() showSimpleActions: boolean = false;
+
 
 
   private notification = inject(NotificationService);

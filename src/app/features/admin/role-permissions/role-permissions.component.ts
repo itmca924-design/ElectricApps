@@ -20,6 +20,16 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { SummaryStat, SummaryStatsComponent } from '../../../shared/components/summary-stats-component/summary-stats-component';
 import { LoadingService } from '../../../core/services/loading.service';
 
+const SUGGESTED_ACTIONS: { [key: string]: string[] } = {
+  'Companies': ['BULK_ADD'],
+  'Units': ['BULK_UPLOAD', 'DOWNLOAD_TEMPLATE'],
+  'Products': ['BULK_REORDER', 'SYNC_STOCK'],
+  'Sale Order': ['BULK_DISPATCH', 'BULK_RECEIPT'],
+  'Purchase Order': ['BULK_APPROVE', 'BULK_INWARD'],
+  'Categories': ['BULK_DELETE'],
+  'Sub Categories': ['BULK_DELETE'],
+};
+
 @Component({
   selector: 'app-role-permissions',
   standalone: true,
@@ -368,4 +378,38 @@ export class RolePermissionsComponent implements OnInit {
       }
     });
   }
+
+  getSuggestions(nodeTitle: string): string[] {
+    return SUGGESTED_ACTIONS[nodeTitle] || [];
+  }
+
+  getActionsArray(nodeId: number): string[] {
+    const perm = this.getPermission(nodeId);
+    if (!perm.additionalActions) return [];
+    return perm.additionalActions.split(',').map(a => a.trim()).filter(a => a !== '');
+  }
+
+  removeAction(nodeId: number, action: string) {
+    const perm = this.getPermission(nodeId);
+    let actions = this.getActionsArray(nodeId);
+    actions = actions.filter(a => a !== action);
+    perm.additionalActions = actions.join(', ');
+    this.cdr.detectChanges();
+  }
+
+  onActionSelect(nodeId: number, action: string) {
+    const perm = this.getPermission(nodeId);
+    let actions = this.getActionsArray(nodeId);
+    if (!actions.includes(action)) {
+      actions.push(action);
+      perm.additionalActions = actions.join(', ');
+      this.cdr.detectChanges();
+    }
+  }
+
+  addSuggestion(nodeId: number, suggestion: string) {
+    this.onActionSelect(nodeId, suggestion);
+  }
 }
+
+

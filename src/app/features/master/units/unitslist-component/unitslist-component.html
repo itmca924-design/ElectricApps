@@ -4,12 +4,12 @@
       <mat-icon>add</mat-icon> ADD NEW UNIT
     </button>
 
-    <button mat-stroked-button color="primary" (click)="fileInput.click()" style="margin-left: 10px;">
+    <button *appPermission="'BULK_UPLOAD'" mat-stroked-button color="primary" (click)="fileInput.click()" style="margin-left: 10px;">
       <mat-icon>upload_file</mat-icon> BULK UPLOAD
     </button>
     <input #fileInput type="file" (change)="onFileSelected($event)" accept=".xlsx, .xls" style="display: none;">
 
-    <button mat-button color="accent" (click)="downloadTemplate()">
+    <button *appPermission="'DOWNLOAD_TEMPLATE'" mat-button color="accent" (click)="downloadTemplate()">
       <mat-icon>download</mat-icon> GET TEMPLATE
     </button>
   </div>

@@ -3,10 +3,12 @@
   <div class="header-actions">
     <h1 class="page-title m-0">All Sub Categories</h1>
     <div class="d-flex gap-2">
-      <button *ngIf="canDelete && selectedRows.length > 0" mat-raised-button color="warn" class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
-        <mat-icon>delete_sweep</mat-icon>
-        Delete Selected ({{selectedRows.length}})
-      </button>
+      <ng-container *appPermission="'BULK_DELETE'">
+        <button *ngIf="canDelete && selectedRows.length > 0" mat-raised-button color="warn" class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
+          <mat-icon>delete_sweep</mat-icon>
+          Delete Selected ({{selectedRows.length}})
+        </button>
+      </ng-container>
       <button mat-raised-button class="main-add-btn" *ngIf="canAdd" routerLink="/app/master/subcategories/add" [disabled]="loading">
         <mat-icon>add</mat-icon>
         New Sub Category

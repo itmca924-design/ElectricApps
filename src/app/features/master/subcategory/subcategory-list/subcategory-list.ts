@@ -16,10 +16,13 @@ import { StatusDialogComponent } from '../../../../shared/components/status-dial
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
 import { PermissionService } from '../../../../core/services/permission.service';
+import { PermissionDirective } from '../../../../core/directives/permission.directive';
+
 
 @Component({
   selector: 'app-subcategory-list',
-  imports: [CommonModule, MaterialModule, ReactiveFormsModule, RouterLink, ServerDatagridComponent, SummaryStatsComponent],
+  imports: [CommonModule, MaterialModule, ReactiveFormsModule, RouterLink, ServerDatagridComponent, SummaryStatsComponent, PermissionDirective],
+
   templateUrl: './subcategory-list.html',
   styleUrl: './subcategory-list.scss',
 })

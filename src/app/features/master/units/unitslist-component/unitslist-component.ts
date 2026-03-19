@@ -15,10 +15,13 @@ import { StatusDialogComponent } from '../../../../shared/components/status-dial
 import * as XLSX from 'xlsx';
 import { PermissionService } from '../../../../core/services/permission.service';
 import { inject } from '@angular/core';
+import { PermissionDirective } from '../../../../core/directives/permission.directive';
+
 
 @Component({
   selector: 'app-unitslist-component',
-  imports: [CommonModule, MaterialModule, ReactiveFormsModule, RouterLink, SummaryStatsComponent],
+  imports: [CommonModule, MaterialModule, ReactiveFormsModule, RouterLink, SummaryStatsComponent, PermissionDirective],
+
   templateUrl: './unitslist-component.html',
   styleUrl: './unitslist-component.scss',
 })

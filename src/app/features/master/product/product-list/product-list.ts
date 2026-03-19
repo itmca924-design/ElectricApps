@@ -14,11 +14,14 @@ import { StatusDialogComponent } from '../../../../shared/components/status-dial
 import { LoadingService } from '../../../../core/services/loading.service';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
 import { PermissionService } from '../../../../core/services/permission.service';
+import { PermissionDirective } from '../../../../core/directives/permission.directive';
+
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, MaterialModule, ServerDatagridComponent, SummaryStatsComponent],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, MaterialModule, ServerDatagridComponent, SummaryStatsComponent, PermissionDirective],
+
   providers: [DatePipe],
   templateUrl: './product-list.html',
   styleUrl: './product-list.scss',
@@ -310,8 +313,9 @@ export class ProductList implements OnInit {
         },
         error: (err: any) => {
           this.loading = false;
+          const errorMessage = err?.error?.message || err?.message || 'Sync failed. Please try again later.';
           this.dialog.open(StatusDialogComponent, {
-            data: { isSuccess: false, message: err?.error?.message || 'Sync failed. Please try again later.' }
+            data: { isSuccess: false, message: errorMessage }
           });
           this.cdr.detectChanges();
         }

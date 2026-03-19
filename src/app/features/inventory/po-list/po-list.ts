@@ -69,6 +69,9 @@ export class PoList implements OnInit {
   canAdd: boolean = true;
   canEdit: boolean = true;
   canDelete: boolean = true;
+  canBulkApprove: boolean = true;
+  canBulkInward: boolean = true;
+
 
   @ViewChild(EnterpriseHierarchicalGridComponent) grid!: EnterpriseHierarchicalGridComponent;
 
@@ -98,6 +101,9 @@ export class PoList implements OnInit {
     this.canAdd = this.permissionService.hasPermission('CanAdd');
     this.canEdit = this.permissionService.hasPermission('CanEdit');
     this.canDelete = this.permissionService.hasPermission('CanDelete');
+    this.canBulkApprove = this.permissionService.hasAction('BULK_APPROVE');
+    this.canBulkInward = this.permissionService.hasAction('BULK_INWARD');
+
 
     console.log('[PoList] Current User Role:', this.userRole);
     console.log('[PoList] Permissions -> canAdd:', this.canAdd, 'canEdit:', this.canEdit, 'canDelete:', this.canDelete);

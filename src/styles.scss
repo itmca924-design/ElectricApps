@@ -97,54 +97,27 @@ body {
    4. SCROLLBAR BEHAVIOR
 ===================================================== */
 
-/* Default behavior: Vertical hidden, Horizontal visible always */
+/* Default behavior: Hide all scrollbars but allow scrolling */
 * {
-  scrollbar-width: thin;          /* Firefox: "auto" or "thin" (cannot hide just one axis easily) - setting thin for consistency */
-  scrollbar-color: #bbb transparent; /* Firefox thumb/track color */
+  scrollbar-width: none;          /* Firefox: hide scrollbar */
+  -ms-overflow-style: none;      /* IE/Edge: hide scrollbar */
 }
 
-/* WebKit: Show vertical, hide horizontal */
+/* WebKit: Hide scrollbars */
 *::-webkit-scrollbar {
-  width: 8px;      /* Vertical visible independently */
+  width: 0px;      /* Vertical hidden */
   height: 0px;     /* Horizontal hidden */
-}
-
-/* Track (Background) */
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Thumb (The moving part) */
-*::-webkit-scrollbar-thumb {
-  background-color: #bbb;
-  border-radius: 4px;
-  border: 2px solid transparent; /* Creates padding effect */
-  background-clip: content-box;
-}
-
-/* Hover state for thumb */
-*::-webkit-scrollbar-thumb:hover {
-  background-color: #999;
-}
-
-/* Ensure horizontal bar is strictly hidden */
-*::-webkit-scrollbar-horizontal {
-  height: 0px;
   display: none;
 }
 
-/* Ensure vertical bar has dimension */
-*::-webkit-scrollbar-vertical {
-  width: 8px;
-}
-
-/* Specific fix for Material Drawer to hide vertical scrollbar but allow scrolling */
+/* Specific fix for Material Drawer - consistent with global hide */
 .mat-drawer-inner-container {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
   
   &::-webkit-scrollbar {
     width: 0px;
+    height: 0px;
     display: none;
   }
 }

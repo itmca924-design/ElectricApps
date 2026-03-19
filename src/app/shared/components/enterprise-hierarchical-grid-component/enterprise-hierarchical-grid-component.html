@@ -37,11 +37,11 @@
 
       <!-- Contextual Action Buttons (Show only when more than one record is selected) -->
       <div class="contextual-buttons-group" *ngIf="selection.selected.length > 1">
-        <button mat-raised-button color="primary" *ngIf="showBulkConfirm && allSelectedAreDraft && canAdd && (userRole === 'User' || userRole === 'Super Admin')" (click)="onBulkConfirmClick()" class="bulk-action-btn success-btn">
+        <button mat-raised-button color="primary" *ngIf="showBulkConfirm && allSelectedAreDraft && canAdd && canBulkConfirm && (userRole === 'User' || userRole === 'Super Admin')" (click)="onBulkConfirmClick()" class="bulk-action-btn success-btn">
           <mat-icon>check_circle</mat-icon> Bulk Confirm
         </button>
 
-        <button mat-raised-button color="warn" *ngIf="allSelectedAreDraft && canDelete && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onBulkDeleteClick()" class="bulk-action-btn">
+        <button mat-raised-button color="warn" *ngIf="allSelectedAreDraft && canDelete && canBulkDelete && (userRole !== 'Manager' && userRole !== 'Warehouse' || userRole === 'Super Admin')" (click)="onBulkDeleteClick()" class="bulk-action-btn">
           <mat-icon>delete_sweep</mat-icon> Bulk Delete
         </button>
 
@@ -49,15 +49,15 @@
           <mat-icon>done_all</mat-icon> Submit Approval
         </button>
 
-        <button mat-raised-button color="primary" *ngIf="showApprovalWorkflow && allSelectedAreSubmitted && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkDraftApprovedClick()" class="bulk-action-btn success-btn">
+        <button mat-raised-button color="primary" *ngIf="showApprovalWorkflow && allSelectedAreSubmitted && canBulkApprove && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkDraftApprovedClick()" class="bulk-action-btn success-btn">
           <mat-icon>verified</mat-icon> Massive Approve
         </button>
 
-        <button mat-raised-button color="warn" *ngIf="showApprovalWorkflow && allSelectedAreSubmitted && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkPORejectedClick()" class="bulk-action-btn">
+        <button mat-raised-button color="warn" *ngIf="showApprovalWorkflow && allSelectedAreSubmitted && canBulkApprove && (userRole === 'Manager' || userRole === 'Super Admin')" (click)="onBulkPORejectedClick()" class="bulk-action-btn">
           <mat-icon>cancel</mat-icon> Mass Reject
         </button>
 
-        <button mat-raised-button color="accent" *ngIf="anySelectedHasPendingInward" (click)="onBulkCreateGrnClick()" class="bulk-action-btn success-btn">
+        <button mat-raised-button color="accent" *ngIf="anySelectedHasPendingInward && canBulkInward" (click)="onBulkCreateGrnClick()" class="bulk-action-btn success-btn">
           <mat-icon>move_to_inbox</mat-icon> Bulk Inward ({{selection.selected.length}})
         </button>
       </div>

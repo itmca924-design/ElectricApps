@@ -83,7 +83,7 @@ export class ProductService {
      * 🔄 Trigger Stock Synchronization across all products
      */
     syncStock(): Observable<any> {
-        return this.api.post('stock/sync', {});
+        return this.api.post('stock/sync', null);
     }
 }
 

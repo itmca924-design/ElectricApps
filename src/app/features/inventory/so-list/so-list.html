@@ -36,22 +36,26 @@
     <h3 class="page-title">Sale Order Management</h3>
     <div class="d-flex gap-2">
       <!-- Bulk Outward Button -->
-      <button mat-raised-button color="primary" class="main-add-btn" 
-              (click)="bulkCreateGatePass()" 
-              [disabled]="isLoading"
-              *ngIf="canShowBulkDispatch">
-        <mat-icon>local_shipping</mat-icon>
-        Bulk Outward
-      </button>
+      <ng-container *appPermission="'BULK_DISPATCH'">
+        <button mat-raised-button color="primary" class="main-add-btn" 
+                (click)="bulkCreateGatePass()" 
+                [disabled]="isLoading"
+                *ngIf="canShowBulkDispatch">
+          <mat-icon>local_shipping</mat-icon>
+          Bulk Outward
+        </button>
+      </ng-container>
 
       <!-- Bulk Collect Payment Button -->
-      <button mat-raised-button color="primary" class="main-add-btn success-btn" 
-              (click)="bulkCollectPayment()" 
-              [disabled]="isLoading"
-              *ngIf="canShowBulkPayment">
-        <mat-icon>payments</mat-icon>
-        Bulk Collect Payment
-      </button>
+      <ng-container *appPermission="'BULK_RECEIPT'">
+        <button mat-raised-button color="primary" class="main-add-btn success-btn" 
+                (click)="bulkCollectPayment()" 
+                [disabled]="isLoading"
+                *ngIf="canShowBulkPayment">
+          <mat-icon>payments</mat-icon>
+          Bulk Collect Payment
+        </button>
+      </ng-container>
 
     </div>
   </div>

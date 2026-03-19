@@ -22,13 +22,16 @@ import { FinanceService } from '../../finance/service/finance.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PermissionService } from '../../../core/services/permission.service';
+import { PermissionDirective } from '../../../core/directives/permission.directive';
 import { EnterpriseHierarchicalGridComponent } from '../../../shared/components/enterprise-hierarchical-grid-component/enterprise-hierarchical-grid-component';
+
 
 @Component({
   selector: 'app-so-list',
   standalone: true,
   imports: [MaterialModule, CommonModule, 
-    EnterpriseHierarchicalGridComponent],
+    EnterpriseHierarchicalGridComponent, PermissionDirective],
+
   templateUrl: './so-list.html',
   styleUrl: './so-list.scss',
   providers: [DatePipe, CurrencyPipe]
@@ -43,6 +46,9 @@ export class SoList implements OnInit {
   // ...existing code...
   canEdit: boolean = true;
   canDelete: boolean = true;
+  canBulkDispatch: boolean = true;
+  canBulkReceipt: boolean = true;
+
 
   dataSource = new MatTableDataSource<any>([]);
   isAdmin: boolean = false;
@@ -286,7 +292,13 @@ export class SoList implements OnInit {
   ngOnInit() {
     this.initColumns();
     this.canAdd = this.permissionService.hasPermission('CanAdd');
+    this.canEdit = this.permissionService.hasPermission('CanEdit');
+    this.canDelete = this.permissionService.hasPermission('CanDelete');
+    this.canBulkDispatch = this.permissionService.hasAction('BULK_DISPATCH');
+    this.canBulkReceipt = this.permissionService.hasAction('BULK_RECEIPT');
+
     this.userRole = this.authService.getUserRole();
+
     this.checkUserRole();
 
     // Global loader ON - same as dashboard/po-list pattern

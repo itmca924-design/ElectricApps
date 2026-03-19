@@ -12,16 +12,18 @@
   <div class="header-actions">
     <h1 class="page-title m-0">All Products</h1>
     <div class="d-flex gap-2">
-      <button *ngIf="isLowStockFilterActive && selectedRows.length > 1" mat-raised-button class="reorder-action-btn" (click)="bulkReorder()">
-        <mat-icon>shopping_cart_checkout</mat-icon>
-        Bulk Reorder ({{selectedRows.length}})
-      </button>
+      <ng-container *appPermission="'BULK_REORDER'">
+        <button *ngIf="isLowStockFilterActive && selectedRows.length > 1" mat-raised-button class="reorder-action-btn" (click)="bulkReorder()">
+          <mat-icon>shopping_cart_checkout</mat-icon>
+          Bulk Reorder ({{selectedRows.length}})
+        </button>
+      </ng-container>
 
       <button *ngIf="canDelete && selectedRows.length > 0" mat-raised-button color="warn" class="delete-action-btn" (click)="confirmBulkDelete()" [disabled]="loading">
         <mat-icon>delete_sweep</mat-icon>
         Delete Selected ({{selectedRows.length}})
       </button>
-      <button mat-raised-button color="accent" class="sync-action-btn" (click)="syncAllStock()" [disabled]="loading">
+      <button *appPermission="'SYNC_STOCK'" mat-raised-button color="accent" class="sync-action-btn" (click)="syncAllStock()" [disabled]="loading">
         <mat-icon>sync</mat-icon>
         Sync All Stock
       </button>
