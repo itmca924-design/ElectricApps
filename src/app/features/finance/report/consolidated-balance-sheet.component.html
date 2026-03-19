@@ -35,7 +35,7 @@
     </div>
 
     <!-- Group Summary Stats -->
-    <app-summary-stats [stats]="groupStats" *ngIf="!isLoading"></app-summary-stats>
+    <app-summary-stats [stats]="groupStats"></app-summary-stats>
 
     <!-- Comparison Table -->
     <mat-card class="table-card mat-elevation-z4">
@@ -99,14 +99,11 @@
                 </table>
             </div>
 
-            <div class="table-loading" *ngIf="isLoading">
-                <mat-spinner diameter="40"></mat-spinner>
-                <span>Calculating group-wide financial aggregates...</span>
-            </div>
+
         </mat-card-content>
     </mat-card>
 
-    <div class="secondary-grids" *ngIf="!isLoading">
+    <div class="secondary-grids">
         <mat-card class="intercompany-card mat-elevation-z3">
             <mat-card-header>
                 <mat-card-title>Group Internal Outstandings</mat-card-title>

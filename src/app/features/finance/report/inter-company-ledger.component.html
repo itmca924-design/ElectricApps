@@ -50,7 +50,7 @@
         </div>
     </div>
 
-    <div class="balance-summary" *ngIf="selectedFromCompany && selectedToCompany && !isLoading">
+    <div class="balance-summary" *ngIf="selectedFromCompany && selectedToCompany">
         <div class="balance-info">
             <span class="label">Outstanding Balance</span>
             <h2 class="value" [class.negative]="totalBalance < 0">₹{{ totalBalance | number:'1.2-2' }}</h2>
@@ -107,15 +107,12 @@
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
             </table>
 
-            <div class="empty-state" *ngIf="!isLoading && transactions.length === 0">
+            <div class="empty-state" *ngIf="transactions.length === 0">
                 <mat-icon>find_in_page</mat-icon>
                 <p>Select companies and date range to view inter-company transaction history.</p>
             </div>
 
-            <div class="table-loading" *ngIf="isLoading">
-                <mat-spinner diameter="40"></mat-spinner>
-                <span>Loading ledger details...</span>
-            </div>
+
         </mat-card-content>
     </mat-card>
 </div>

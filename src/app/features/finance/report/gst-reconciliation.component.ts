@@ -98,46 +98,172 @@ export class GstReconciliationComponent implements OnInit {
                 const sales = results.sales?.items || results.sales?.data || [];
                 const purchases = results.purchases?.items || results.purchases?.data || [];
 
-                this.outputGst = sales.reduce((sum: number, s: any) => sum + (s.totalTax || s.taxAmount || s.TaxAmount || 0), 0);
-                this.inputGst = purchases.reduce((sum: number, p: any) => sum + (p.taxAmount || p.totalTax || p.TaxAmount || 0), 0);
-                
-                this.tdsAmount = purchases.reduce((sum: number, p: any) => sum + (p.tdsAmount || p.TdsAmount || 0), 0); 
-                this.tcsAmount = sales.reduce((sum: number, s: any) => sum + (s.tcsAmount || s.TcsAmount || 0), 0);
+                this.hasGstinErrors = false;
+                this.itcReversals = [];
+                this.totalReversalAmount = 0;
+
+                const calculateTotals = (items: any[]) => {
+                    let total = 0, cgst = 0, sgst = 0, igst = 0, tcs = 0, tds = 0;
+                    items.forEach(o => {
+                        const tax = (o.totalTax || o.taxAmount || o.TaxAmount || 0);
+                        total += tax;
+                        tcs += (o.tcsAmount || o.TcsAmount || 0);
+                        tds += (o.tdsAmount || o.TdsAmount || 0);
+                        
+                        const i_cgst = o.cgstAmount || o.CgstAmount;
+                        const i_sgst = o.sgstAmount || o.SgstAmount;
+                        const i_igst = o.igstAmount || o.IgstAmount;
+
+                        if (i_cgst !== undefined || i_sgst !== undefined || i_igst !== undefined) {
+                            cgst += (i_cgst || 0);
+                            sgst += (i_sgst || 0);
+                            igst += (i_igst || 0);
+                        } else {
+                            const type = (o.taxType || o.TaxType || '').toLowerCase();
+                            if (type === 'interstate') {
+                                igst += tax;
+                            } else {
+                                cgst += tax / 2;
+                                sgst += tax / 2;
+                            }
+                        }
+                    });
+                    return { total, cgst, sgst, igst, tcs, tds };
+                };
+
+                const salesTotals = calculateTotals(sales);
+                const purchaseTotals = calculateTotals(purchases);
+
+                this.outputGst = salesTotals.total;
+                this.inputGst = purchaseTotals.total;
+                this.tcsAmount = salesTotals.tcs;
+                this.tdsAmount = purchaseTotals.tds;
 
                 this.gstPayable = Math.max(0, (this.outputGst + this.tcsAmount) - (this.inputGst + this.tdsAmount));
                 this.netTaxCredit = Math.max(0, (this.inputGst + this.tdsAmount) - (this.outputGst + this.tcsAmount));
 
-                const o_igst = sales.reduce((sum: number, s: any) => sum + (s.igstAmount || s.IgstAmount || 0), 0);
-                const i_igst = purchases.reduce((sum: number, p: any) => sum + (p.igstAmount || p.IgstAmount || 0), 0);
-
                 this.gstDetails = [
                     { 
                         category: 'Output (Sales)', 
-                        cgst: o_igst > 0 ? 0 : this.outputGst / 2, 
-                        sgst: o_igst > 0 ? 0 : this.outputGst / 2, 
-                        igst: o_igst, 
+                        cgst: salesTotals.cgst, 
+                        sgst: salesTotals.sgst, 
+                        igst: salesTotals.igst, 
                         tds: 0, 
                         tcs: this.tcsAmount, 
                         total: this.outputGst + this.tcsAmount 
                     },
                     { 
                         category: 'Input (Purchases)', 
-                        cgst: i_igst > 0 ? 0 : this.inputGst / 2, 
-                        sgst: i_igst > 0 ? 0 : this.inputGst / 2, 
-                        igst: i_igst, 
+                        cgst: purchaseTotals.cgst, 
+                        sgst: purchaseTotals.sgst, 
+                        igst: purchaseTotals.igst, 
                         tds: this.tdsAmount, 
                         tcs: 0, 
                         total: this.inputGst + this.tdsAmount 
                     }
                 ];
 
-                // Clear mocked data arrays - these should be populated by real-time grouping from API or logic
-                this.partyBreakdown = [];
-                this.taxSlabs = [];
-                this.itcReversals = [];
+                // Group by Tax Slabs
+                const slabs: { [key: number]: any } = {};
+                const processItemsForSlabs = (orders: any[]) => {
+                    orders.forEach(order => {
+                        const items = order.items || order.Items || [];
+                        items.forEach((item: any) => {
+                            const rate = item.gstPercent || item.GstPercent || item.taxPercentage || 0;
+                            if (rate === 0 && (item.taxAmount || item.TaxAmount) === 0) return;
+                            
+                            if (!slabs[rate]) {
+                                slabs[rate] = { rate: rate, taxableAmount: 0, cgst: 0, sgst: 0, igst: 0, totalTax: 0 };
+                            }
+                            
+                            const itemTax = item.taxAmount || item.TaxAmount || 0;
+                            const itemTotal = item.total || item.Total || 0;
+                            slabs[rate].taxableAmount += (itemTotal - itemTax);
+                            
+                            const type = (order.taxType || order.TaxType || '').toLowerCase();
+                            if (type === 'interstate') {
+                                slabs[rate].igst += itemTax;
+                            } else {
+                                slabs[rate].cgst += itemTax / 2;
+                                slabs[rate].sgst += itemTax / 2;
+                            }
+                            slabs[rate].totalTax += itemTax;
+                        });
+                    });
+                };
 
-                this.hasGstinErrors = false;
-                this.totalReversalAmount = 0;
+                processItemsForSlabs(sales);
+                processItemsForSlabs(purchases);
+                this.taxSlabs = Object.values(slabs).sort((a: any, b: any) => a.rate - b.rate);
+
+                // Group by Party (B2B Reconciliation)
+                const parties: { [key: string]: any } = {};
+                sales.forEach((s: any) => {
+                    const name = s.customerName || s.CustomerName || 'Walk-in Customer';
+                    const gstin = s.customerGstin || 'URD';
+                    const isValid = this.isValidGstin(gstin);
+                    if (!isValid && gstin !== 'URD') this.hasGstinErrors = true;
+
+                    if (!parties[name]) {
+                        parties[name] = { 
+                            partyName: name, 
+                            gstin: gstin, 
+                            totalTax: 0, 
+                            tds: 0, 
+                            tcs: 0, 
+                            type: 'Customer',
+                            isValidGstin: isValid
+                        };
+                    }
+                    parties[name].totalTax += (s.totalTax || s.taxAmount || s.TaxAmount || 0);
+                    parties[name].tcs += (s.tcsAmount || s.TcsAmount || 0);
+                });
+
+                purchases.forEach((p: any) => {
+                    const name = p.supplierName || p.SupplierName || 'Unknown Supplier';
+                    const gstin = p.supplierGstin || 'URD';
+                    const isValid = this.isValidGstin(gstin);
+                    if (!isValid && gstin !== 'URD') this.hasGstinErrors = true;
+
+                    if (!parties[name]) {
+                        parties[name] = { 
+                            partyName: name, 
+                            gstin: gstin, 
+                            totalTax: 0, 
+                            tds: 0, 
+                            tcs: 0, 
+                            type: 'Supplier',
+                            isValidGstin: isValid
+                        };
+                    }
+                    const tax = (p.taxAmount || p.totalTax || p.TaxAmount || 0);
+                    parties[name].totalTax += tax;
+                    parties[name].tds += (p.tdsAmount || p.TdsAmount || 0);
+
+                    // ITC Reversal check (Rule 37 - 180 Days)
+                    const invDateStr = p.poDate || p.date || p.Date || p.createdDate;
+                    if (invDateStr) {
+                        const invoiceDate = new Date(invDateStr);
+                        const diffTime = Math.abs(new Date().getTime() - invoiceDate.getTime());
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        const isUnpaid = (p.status || p.Status || '').toLowerCase() === 'unpaid';
+
+                        if (diffDays > 180 && isUnpaid && tax > 0) {
+                            this.itcReversals.push({
+                                invoiceNo: p.poNumber || p.id || p.Id,
+                                invoiceDate: invoiceDate,
+                                partyName: name,
+                                aging: diffDays,
+                                taxAmount: tax,
+                                status: 'Unpaid',
+                                phone: p.supplierPhone || p.phone || ''
+                            });
+                            this.totalReversalAmount += tax;
+                        }
+                    }
+                });
+
+                this.partyBreakdown = Object.values(parties).sort((a: any, b: any) => b.totalTax - a.totalTax);
             }
         });
     }
@@ -167,8 +293,8 @@ export class GstReconciliationComponent implements OnInit {
                 ['Input GST (Purchases)', this.inputGst.toLocaleString('en-IN')],
                 ['TDS Paid', this.tdsAmount.toLocaleString('en-IN')],
                 ['ITC Reversal (180 Days)', { content: this.totalReversalAmount.toLocaleString('en-IN'), styles: { textColor: [229, 62, 62] } }],
-                [{ content: (this.outputGst >= this.inputGst ? 'NET TAX PAYABLE' : 'NET CREDIT'), styles: { fontStyle: 'bold', fillColor: [247, 250, 252] } }, 
-                 { content: this.gstPayable.toLocaleString('en-IN'), styles: { fontStyle: 'bold', fillColor: [247, 250, 252] } }]
+                [{ content: (this.gstPayable > 0 || this.netTaxCredit === 0 ? 'NET TAX PAYABLE' : 'NET CREDIT'), styles: { fontStyle: 'bold', fillColor: [247, 250, 252] } }, 
+                 { content: (this.gstPayable > 0 ? this.gstPayable : this.netTaxCredit).toLocaleString('en-IN'), styles: { fontStyle: 'bold', fillColor: [247, 250, 252] } }]
             ],
             theme: 'grid',
             headStyles: { fillColor: [45, 55, 72] },
@@ -205,7 +331,7 @@ export class GstReconciliationComponent implements OnInit {
 📑 *TDS Recv:* ₹${this.tdsAmount.toLocaleString('en-IN')}
 📑 *TCS Paid:* ₹${this.tcsAmount.toLocaleString('en-IN')}
 ----------------------------
-⚖️ *Tax Payable:* ₹${this.gstPayable.toLocaleString('en-IN')}
+⚖️ *${this.gstPayable > 0 || this.netTaxCredit === 0 ? 'Tax Payable' : 'Tax Credit'}:* ₹${(this.gstPayable > 0 ? this.gstPayable : this.netTaxCredit).toLocaleString('en-IN')}
 ⚠️ *Incl. ITC Reversal:* ₹${this.totalReversalAmount.toLocaleString('en-IN')}
 ----------------------------
 _${this.companyName} Financial Compliance_`;

@@ -19,7 +19,7 @@ import { BalanceSheetInputDialogComponent } from './balance-sheet-input-dialog.c
 @Component({
     selector: 'app-balance-sheet',
     standalone: true,
-    imports: [CommonModule, RouterModule, MaterialModule, BaseChartDirective, SummaryStatsComponent, BalanceSheetInputDialogComponent],
+    imports: [CommonModule, RouterModule, MaterialModule, BaseChartDirective, SummaryStatsComponent],
     templateUrl: './balance-sheet.component.html',
     styleUrl: './balance-sheet.component.scss'
 })
