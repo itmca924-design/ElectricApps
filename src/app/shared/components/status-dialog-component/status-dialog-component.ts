@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-status-dialog-component',
+  standalone: true,
   imports: [MaterialModule, FormsModule, CommonModule],
   templateUrl: './status-dialog-component.html',
   styleUrl: './status-dialog-component.scss',
