@@ -97,9 +97,26 @@
           <button mat-button color="primary" class="edit-btn" (click)="onEdit(product)">
             <mat-icon>edit</mat-icon> EDIT
           </button>
-          <button mat-icon-button color="accent" matTooltip="Product Details">
+          
+          <button mat-icon-button color="accent" [matMenuTriggerFor]="productMenu" matTooltip="Product Details">
             <mat-icon>more_vert</mat-icon>
           </button>
+          
+          <mat-menu #productMenu="matMenu" xPosition="before" class="product-context-menu">
+            <button mat-menu-item (click)="onView(product)">
+              <mat-icon color="primary">visibility</mat-icon>
+              <span>View General Info</span>
+            </button>
+            <button mat-menu-item (click)="onHistory(product)">
+              <mat-icon color="accent">history</mat-icon>
+              <span>Transaction History</span>
+            </button>
+            <mat-divider></mat-divider>
+            <button mat-menu-item (click)="onDelete(product)">
+              <mat-icon color="warn">delete_outline</mat-icon>
+              <span class="text-danger">Delete Product</span>
+            </button>
+          </mat-menu>
         </div>
       </mat-card-actions>
     </mat-card>

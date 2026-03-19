@@ -6,6 +6,8 @@ import { ProductService } from '../service/product.service';
 import { Product } from '../model/product.model';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 
 @Component({
   selector: 'app-product-dashboard',
@@ -19,6 +21,7 @@ export class ProductDashboard implements OnInit {
   private productService = inject(ProductService);
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   searchForm!: FormGroup;
   products: Product[] = [];
@@ -88,6 +91,24 @@ export class ProductDashboard implements OnInit {
 
   onEdit(product: Product) {
     this.router.navigate(['/app/master/products/edit', product.id]);
+  }
+
+  onView(product: Product) {
+    this.dialog.open(StatusDialogComponent, {
+      data: { isSuccess: true, message: `Product Info: ${product.brand || 'N/A'} - ${product.productName || product.name}` }
+    });
+  }
+
+  onHistory(product: Product) {
+    this.dialog.open(StatusDialogComponent, {
+      data: { isSuccess: true, message: `Transaction history for ${product.sku} is under development.` }
+    });
+  }
+
+  onDelete(product: Product) {
+    this.dialog.open(StatusDialogComponent, {
+      data: { isSuccess: false, message: `Action Restricted: You do not have permission to delete SKU ${product.sku}.` }
+    });
   }
 
   getProductImage(product: Product): string {
