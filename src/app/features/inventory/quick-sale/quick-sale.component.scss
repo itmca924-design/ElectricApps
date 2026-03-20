@@ -171,7 +171,7 @@
 .items-grid {
   border: 1px solid #ebf2ee;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
 
   .item-header {
     display: flex;
@@ -198,8 +198,8 @@
 
   /* Grid Columns — compact so no horizontal scrollbar needed */
   .col-product { flex: 2; min-width: 240px; }
-  .col-qty     { flex: 0.4; min-width: 65px;  margin-left: 8px; }
-  .col-unit    { flex: 0.6; min-width: 90px;  margin-left: 8px; }
+  .col-qty     { flex: 0.6; min-width: 100px;  margin-left: 8px; }
+  .col-unit    { flex: 0.6; min-width: 90px;  margin-left: 12px; }
   .col-rate    { flex: 0.6; min-width: 80px;  margin-left: 8px; }
   .col-disc    { flex: 0.4; min-width: 60px;  margin-left: 8px; }
   .col-gst     { flex: 0.5; min-width: 80px;  margin-left: 8px; }
