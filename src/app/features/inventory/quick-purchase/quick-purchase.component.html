@@ -100,8 +100,8 @@
 
         <div class="items-grid" formArrayName="items">
           <div class="item-header">
-            <div class="col-product">Product Description*</div>
-            <div class="col-qty">Quantity</div>
+            <div class="col-product">Description*</div>
+            <div class="col-qty">Qty/Pkt/kg</div>
             <div class="col-unit">Unit</div>
             <div class="col-rate">Rate (₹)</div>
             <div class="col-disc">Disc %</div>
@@ -130,7 +130,12 @@
             </div>
             <div class="col-unit">
               <mat-form-field appearance="outline" dense>
-                <input type="text" matInput formControlName="unit" readonly>
+                <input type="text" matInput formControlName="unit" [matAutocomplete]="autoUnit">
+                <mat-autocomplete #autoUnit="matAutocomplete">
+                  <mat-option *ngFor="let u of filteredUnits[i] | async" [value]="u.name">
+                    {{ u.name }}
+                  </mat-option>
+                </mat-autocomplete>
               </mat-form-field>
             </div>
             <div class="col-rate">

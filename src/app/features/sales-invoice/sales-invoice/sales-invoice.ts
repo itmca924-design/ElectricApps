@@ -16,6 +16,7 @@ import { SaleOrderService } from '../../inventory/service/saleorder.service';
 import { FinanceService } from '../../finance/service/finance.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { customerService } from '../../master/customer-component/customer.service';
+import { UnitService } from '../../master/units/services/units.service';
 import { Observable, map, startWith } from 'rxjs';
 import { FormControl } from '@angular/forms';
 
@@ -36,12 +37,15 @@ export class SalesInvoice implements OnInit {
   private financeService = inject(FinanceService);
   private authService = inject(AuthService);
   private customerService = inject(customerService);
+  private unitService = inject(UnitService);
 
   signatureImageUrl: string | null = null;
   isSaving = false;
   
   customers: any[] = [];
+  units: any[] = [];
   filteredCustomers!: Observable<any[]>;
+  filteredUnits: Observable<any[]>[] = [];
   customerSearchCtrl = new FormControl<any>('');
 
   invoiceForm = this.fb.group({
@@ -87,6 +91,7 @@ export class SalesInvoice implements OnInit {
   ngOnInit(): void {
     this.loadCompanyProfile();
     this.loadCustomers();
+    this.loadUnits();
     
     // Listen for Document Type changes
     this.invoiceForm.get('documentType')?.valueChanges.subscribe(val => {
@@ -136,6 +141,12 @@ export class SalesInvoice implements OnInit {
       customerPhone: customer.phone,
       billingAddress: customer.billingAddress,
       shippingAddress: customer.shippingAddress
+    });
+  }
+
+  loadUnits(): void {
+    this.unitService.getAll().subscribe(res => {
+      this.units = res as any[];
     });
   }
 
@@ -207,7 +218,26 @@ export class SalesInvoice implements OnInit {
   }
 
   addItem(): void {
+    const index = this.items.length;
     this.items.push(this.createItem());
+    this.setupUnitFilter(index);
+  }
+
+  private setupUnitFilter(index: number): void {
+    const unitCtrl = this.items.at(index).get('unit');
+    if (unitCtrl) {
+      this.filteredUnits[index] = unitCtrl.valueChanges.pipe(
+        startWith(''),
+        map(value => this._filterUnits(value || ''))
+      );
+    }
+  }
+
+  private _filterUnits(value: string): any[] {
+    const filterValue = value.toLowerCase();
+    return this.units.filter(u => 
+      (u.unitName || u.name || '').toLowerCase().includes(filterValue)
+    );
   }
 
   removeItem(i: number): void {
@@ -462,7 +492,6 @@ export class SalesInvoice implements OnInit {
       }
     });
   }
-
   private checkIfExpired(expDate: any): boolean {
     if (!expDate) return false;
     const exp = new Date(expDate);
@@ -470,5 +499,97 @@ export class SalesInvoice implements OnInit {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     return exp <= today;
+  }
+
+  exportEInvoiceJSON() {
+    const form = this.invoiceForm.getRawValue(); // Get raw values to include disabled fields
+    const items = (this.invoiceForm.get('items') as FormArray).getRawValue();
+
+    // Standard GST E-Invoice Format (Simplified for Portal Upload)
+    const eInvoiceData = {
+      Version: "1.1",
+      TranDtls: {
+        TaxSch: "GST",
+        SupTyp: "B2B", // Business to Business
+        RegRev: "N",
+        EcmGstin: null,
+        IgstOnIntra: "N"
+      },
+      DocDtls: {
+        Typ: "INV", // Invoice
+        No: form.invoiceNo,
+        Dt: this.formatDateE(form.invoiceDate)
+      },
+      SellerDtls: {
+        Gstin: form.companyGSTIN,
+        LglNm: form.companyName,
+        Addr1: form.companyAddress?.slice(0, 100),
+        Loc: "Local",
+        Pin: 400001,
+        Stcd: form.companyGSTIN?.slice(0, 2)
+      },
+      BuyerDtls: {
+        Gstin: "URP", // Default to Unregistered if not set
+        LglNm: form.customerName,
+        Pos: form.companyGSTIN?.slice(0, 2),
+        Addr1: form.billingAddress?.slice(0, 100),
+        Loc: "Local",
+        Pin: 400001,
+        Stcd: form.companyGSTIN?.slice(0, 2)
+      },
+      ItemList: items.map((item: any, index: number) => ({
+        SlNo: (index + 1).toString(),
+        PrdDesc: item.description,
+        IsServc: "N",
+        HsnCd: item.sacHsn || "8536", // Default electrical HSN
+        Qty: item.qty,
+        FreeQty: 0,
+        Unit: "PCS",
+        UnitPrc: item.unitPrice,
+        TotAmt: item.qty * item.unitPrice,
+        Discount: item.discount,
+        PreTaxVal: 0,
+        AssAmt: item.taxableValue,
+        GstRt: item.taxRate,
+        IgstAmt: item.taxAmount,
+        CgstAmt: 0,
+        SgstAmt: 0,
+        CesRt: 0,
+        CesAmt: 0,
+        CesNonAdvlAmt: 0,
+        StateCesRt: 0,
+        StateCesAmt: 0,
+        OthChrg: 0,
+        TotItemVal: item.amount
+      })),
+      ValDtls: {
+        AssVal: form.subTotal,
+        CgstVal: 0,
+        SgstVal: 0,
+        IgstVal: form.totalTax,
+        CesVal: 0,
+        StCesVal: 0,
+        Discount: 0,
+        OthChrg: 0,
+        RndOffAmt: 0,
+        TotInvVal: form.total
+      }
+    };
+
+    const blob = new Blob([JSON.stringify(eInvoiceData, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `E-Invoice_${form.invoiceNo}.json`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    
+    this.notification.showStatus(true, 'E-Invoice JSON exported successfully. You can now upload this to the GST portal.');
+  }
+
+  private formatDateE(date: any): string {
+    if (!date) return '';
+    const d = new Date(date);
+    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
   }
 }

@@ -105,6 +105,29 @@
 
         <div class="grid-2">
           <mat-form-field appearance="outline">
+            <mat-label>Unit</mat-label>
+            <input matInput type="text" formControlName="unit" placeholder="PSC/KG/PKT" [matAutocomplete]="autoUni">
+            <mat-autocomplete #autoUni="matAutocomplete">
+              <mat-option *ngFor="let u of filteredUnits[i] | async" [value]="u.unitName || u.name">
+                {{ u.unitName || u.name }}
+              </mat-option>
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Tax Rate (%)</mat-label>
+            <mat-select formControlName="taxRate" (selectionChange)="update(i)" [disabled]="invoiceForm.get('documentType')?.value === 'Bill of Supply'">
+              <mat-option [value]="0">0% (Nil/Exempted)</mat-option>
+              <mat-option [value]="5">5%</mat-option>
+              <mat-option [value]="12">12%</mat-option>
+              <mat-option [value]="18">18%</mat-option>
+              <mat-option [value]="28">28%</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="grid-2">
+          <mat-form-field appearance="outline">
             <mat-label>Price (Incl. Tax)</mat-label>
             <input matInput type="number" formControlName="unitPrice" (input)="update(i)">
           </mat-form-field>
@@ -113,17 +136,6 @@
             <input matInput type="number" formControlName="discount" (input)="update(i)">
           </mat-form-field>
         </div>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Tax Rate (%)</mat-label>
-          <mat-select formControlName="taxRate" (selectionChange)="update(i)" [disabled]="invoiceForm.get('documentType')?.value === 'Bill of Supply'">
-            <mat-option [value]="0">0% (Nil/Exempted)</mat-option>
-            <mat-option [value]="5">5%</mat-option>
-            <mat-option [value]="12">12%</mat-option>
-            <mat-option [value]="18">18%</mat-option>
-            <mat-option [value]="28">28%</mat-option>
-          </mat-select>
-        </mat-form-field>
       </div>
     </div>
 
@@ -139,6 +151,12 @@
       <mat-icon *ngIf="!isSaving">print</mat-icon>
       <mat-spinner diameter="20" *ngIf="isSaving" color="accent" style="display: inline-block; margin-right: 8px;"></mat-spinner>
       {{ isSaving ? 'Saving & Deducting Stock...' : 'Save & Print Invoice' }}
+    </button>
+
+    <button mat-stroked-button color="accent" class="full-width" style="height: 50px; margin-top: 12px; border-width: 2px;" 
+      (click)="exportEInvoiceJSON()" [disabled]="isSaving">
+      <mat-icon>file_download</mat-icon>
+      Export JSON (E-Invoice)
     </button>
   </div>
 
@@ -211,6 +229,7 @@
           <th style="width: 50px;">#</th>
           <th>Description</th>
           <th>Qty</th>
+          <th>Unit</th>
           <th>Gross Amount ₹</th>
           <th>Discount ₹</th>
           <th>Taxable Value ₹</th>
@@ -227,6 +246,7 @@
             <span class="tax-desc" *ngIf="invoiceForm.get('documentType')?.value === 'Tax Invoice'">IGST: {{ item.get('taxRate')?.value }}%</span>
           </td>
           <td>{{ item.get('qty')?.value }}</td>
+          <td>{{ item.get('unit')?.value }}</td>
           <td>{{ (item.get('qty')?.value * item.get('unitPrice')?.value) | number:'1.2-2' }}</td>
           <td>{{ item.get('discount')?.value | number:'1.2-2' }}</td>
           <td>{{ item.get('taxableValue')?.value | number:'1.2-2' }}</td>
