@@ -8,7 +8,7 @@
       <button mat-raised-button color="primary" routerLink="add">
         <mat-icon>add_circle</mat-icon> New Product
       </button>
-      <button mat-stroked-button color="accent" routerLink="/app/master/products/list">
+      <button mat-raised-button color="accent" routerLink="/app/master/products/list">
         <mat-icon>table_chart</mat-icon> List View
       </button>
     </div>
@@ -51,13 +51,14 @@
       </div>
 
       <div class="card-image-wrapper">
+        <div class="view-overlay">
+          <mat-icon>visibility</mat-icon>
+        </div>
         <img [src]="getProductImage(product)" alt="{{ product.productName }}" (error)="product.imageUrl = undefined">
       </div>
 
       <mat-card-content class="product-info-grid">
-        <div class="header-info">
-          <h3 class="product-name" [matTooltip]="product.productName">{{ product.productName || product.name }}</h3>
-        </div>
+        <h3 class="product-name" [matTooltip]="product.productName">{{ product.productName || product.name }}</h3>
         
         <div class="pricing-container">
           <div class="price-chip">
@@ -69,18 +70,18 @@
           </div>
         </div>
 
-        <div class="meta-row mt-3">
+        <div class="meta-row mt-2">
           <div class="meta-item stock-status" [ngClass]="{'low-stock': (product.currentStock || 0) <= (product.minStock || 0)}">
-            <mat-icon class="s-18">inventory_2</mat-icon>
-            <span class="label">Stock: {{ product.currentStock || 0 }} {{ product.unit }}</span>
+            <mat-icon>inventory_2</mat-icon>
+            <span class="label">{{ product.currentStock || 0 }} {{ product.unit }}</span>
           </div>
-          <div class="meta-item">
-            <mat-icon color="primary" class="s-18">straighten</mat-icon>
+          <div class="meta-item" matTooltip="Minimum Stock Level">
+            <mat-icon color="primary">notifications_active</mat-icon>
             <span class="label">Min: {{ product.minStock || 0 }}</span>
           </div>
-          <div class="meta-item">
-            <mat-icon color="accent" class="s-18">receipt</mat-icon>
-            <span class="label">GST: {{ product.defaultGst || 0 }}%</span>
+          <div class="meta-item" matTooltip="Applied Tax Rate">
+            <mat-icon color="accent">percent</mat-icon>
+            <span class="label">GST {{ product.defaultGst || 0 }}%</span>
           </div>
         </div>
       </mat-card-content>
