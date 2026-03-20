@@ -21,13 +21,64 @@ import { SummaryStat, SummaryStatsComponent } from '../../../shared/components/s
 import { LoadingService } from '../../../core/services/loading.service';
 
 const SUGGESTED_ACTIONS: { [key: string]: string[] } = {
+  // --- Master Modules ---
+  'Company': ['BULK_ADD', 'VIEW_PROFILE', 'EDIT_COMPANY_LOG'],
   'Companies': ['BULK_ADD'],
+  'Suppliers': ['BULK_IMPORT_SUPPLIERS', 'LEDGER_BULK_EXPORT', 'PRICE_LIST_SYNC'],
+  'Supplier List': ['BULK_IMPORT', 'PRICE_LIST_UPDATE', 'RATING_VIEW'],
+  'Supplier Ledger': ['DOWNLOAD_LEDGER_PDF', 'BILL_WISE_RECONCILE'],
+  'Customers': ['BULK_ADDRESS_UPDATE', 'CREDIT_LIMIT_BULK_EDIT', 'CUSTOMER_LIST_CSV'],
+  'Customer List': ['BULK_ADDRESS_UPDATE', 'CREDIT_LIMIT_EDIT', 'EXPORT_CSV'],
+  'Customer Ledger': ['DOWNLOAD_STATEMENT_PDF', 'SEND_WATSAPP_STATEMENT'],
+  'Warehouses': ['TRANSFER_STOCK', 'STOCK_AUDIT', 'BIN_ALLOCATION'],
+  'Racks': ['PRINT_BARCODE', 'MOVE_TO_WHS'],
+  'Unit': ['BULK_UPLOAD', 'DOWNLOAD_TEMPLATE'], // Sync with singular name
   'Units': ['BULK_UPLOAD', 'DOWNLOAD_TEMPLATE'],
-  'Products': ['BULK_REORDER', 'SYNC_STOCK'],
+  'Products': ['BULK_REORDER', 'SYNC_STOCK', 'PRINT_LABELS_6x4', 'PRINT_LABELS_4x2'],
+  'Categories': ['BULK_DELETE', 'MERGE_CATEGORIES'],
+  'Subcategories': ['BULK_DELETE', 'MOVE_SUB_CATEGORY'], // Sync with no-space name
+  'Sub Categories': ['BULK_DELETE', 'MOVE_SUB_CATEGORY'],
+  'Price Lists': ['BULK_PRICE_UPDATE', 'EXPORT_PRICE_CATALOG', 'REVISE_ALL_PRICES'],
+
+  // --- Expenses Modules ---
+  'Expenses': ['APPROVE_EXPENSES', 'EXPORT_EXPENSE_PDF'],
+  'Expense Analysis': ['VIEW_CHARTS', 'EXPORT_PERIOD_WISE', 'BUDGET_ALERTS'],
+  'Expense List': ['BULK_APPROVE_EXPENSES', 'ATTACH_RECEIPTS_SCAN', 'PRINT_VOUCHER'],
+  'Expense Categories': ['MERGE_EXPENSE_HEADS', 'MASTER_IMPORT_EXPENSE_CATEGORIES'],
+  'Expense Entry': ['ATTACH_RECEIPTS_SCAN', 'PRINT_VOUCHER_EXP', 'QUICK_PAYMENT_MODE'],
+  'Category Setup': ['MERGE_EXPENSE_HEADS', 'MASTER_IMPORT'],
+  'Add Expense': ['QUICK_ENTRY_MODE'],
+
+  // --- Finance & Accounts ---
+  'Finance': ['TAX_EXEMPT_BULK', 'TALLY_EXPORT', 'BANK_IMPORT_SYNC'],
+  'Payment Entry': ['BULK_PAYMENT', 'AUTO_ALLOCATE_CREDIT', 'PRINT_PAYMENT_VOUCHER'],
+  'Receipt Entry': ['BULK_RECEIPT_SYNC', 'ADVANCE_ADJUSTMENT_ALLOW', 'PRINT_RECEIPT_SHORT'],
+  'Pending Dues': ['REMAINDER_WHATSAPP_BULK', 'BULK_SETTLEMENT', 'AGEING_REPORT_ACCESS'],
+  'Outstanding Tracker': ['SEND_DUE_REMINDER', 'BULK_WRITE_OFF_ALLOW', 'CREDIT_LIMIT_OVERRIDE'],
+  'Day Book': ['DATE_RANGE_EXPORT', 'CASH_DENOMINATION_ENTRY', 'TALLY_SYNC_BOOK'],
+  'Balance Sheet': ['VIEW_YEARLY_COMPARISON', 'AUTO_PROVISIONING_ADJUST'],
+  'GST Reconciliation': ['FETCH_GSTR2B', 'FETCH_GSTR1_DATA', 'REPORT_MISMATCHES'],
+  'Inter-Company Ledger': ['AUTO_CONTRA_ENTRY', 'RECONCILE_BALANCES'],
+  
+  // --- Inventory Modules (Full) ---
+  'GRN List': ['BULK_GRN_DOWNLOAD', 'PRINT_GRN_TAGS_BULK', 'MATERIAL_VERIFICATION'],
+  'Current Stock': ['SYNC_ALL_STOCKS', 'STOCK_AUDIT_MODE', 'EXPORT_VALUATION_REPORT'],
+  'Purchase Return': ['BULK_CANCEL_PR', 'SEND_PR_NOTIFICATION', 'SUPPLIER_DEBIT_NOTE'],
+  'Sale Return': ['BULK_REFUND_SR', 'RESTOCK_RETURNED_ITEMS', 'CUSTOMER_CREDIT_NOTE'],
+  'Gate Pass': ['BULK_GATEPASS_PRINT', 'PRINT_SECURITY_COPY', 'TRACK_VEHICLE_LOG'],
+
+  // --- Quick Inventory Modules ---
+  'Quick Purchase': ['BULK_APPROVE', 'BULK_INWARD', 'AUTO_DISCOUNT_APPLY'],
+  'Quick Sale': ['BULK_DISPATCH', 'PRINT_SUMMARY', 'INVOICE_BULK_DOWNLOAD'],
+  'Quick GRN': ['PRINT_GRN_TAGS', 'MATERIAL_VERIFICATION'],
+  'Quick Stock': ['STOCK_VALUATION', 'SYNC_ALL_STOCKS', 'CATEGORY_WISE_SYNC'],
+  'Quick PO Return': ['BULK_CANCEL', 'SUPPLIER_REJECTION_ONLY'],
+  'Quick SO Return': ['BULK_REFUND', 'CUSTOMER_EXCHANGE_ONLY'],
+  'Quick Disposed': ['SCRAP_VALUE_UPDATE', 'APPROVAL_WORKFLOW'],
+
+  // --- Standard Inventory ---
   'Sale Order': ['BULK_DISPATCH', 'BULK_RECEIPT'],
   'Purchase Order': ['BULK_APPROVE', 'BULK_INWARD'],
-  'Categories': ['BULK_DELETE'],
-  'Sub Categories': ['BULK_DELETE'],
 };
 
 @Component({

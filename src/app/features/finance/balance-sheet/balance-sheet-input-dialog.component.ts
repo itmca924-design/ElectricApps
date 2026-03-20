@@ -25,11 +25,19 @@ import { MatButtonModule } from '@angular/material/button';
       <form [formGroup]="inputForm" (ngSubmit)="onSave()">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ data.label }}</mat-label>
-          <input matInput type="number" formControlName="amount" autofocus>
+          <input matInput type="number" formControlName="amount" autofocus 
+                 [placeholder]="'Max available: ' + (data.max || 0)">
           <span matPrefix class="me-1">₹&nbsp;</span>
+          
+          <mat-hint *ngIf="data.max !== undefined">
+            Available Physical Cash: <strong>₹{{ data.max | number:'1.2-2' }}</strong>
+          </mat-hint>
+
           <mat-error *ngIf="inputForm.get('amount')?.hasError('required')">Amount is required</mat-error>
           <mat-error *ngIf="inputForm.get('amount')?.hasError('min')">Amount cannot be negative</mat-error>
-          <mat-error *ngIf="inputForm.get('amount')?.hasError('max')">Amount exceeds max limit (Max: ₹{{data.max}})</mat-error>
+          <mat-error *ngIf="inputForm.get('amount')?.hasError('max')">
+            Limit exceeded. You only have ₹{{ data.max }} in cash to move.
+          </mat-error>
         </mat-form-field>
       </form>
     </mat-dialog-content>
