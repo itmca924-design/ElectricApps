@@ -110,6 +110,8 @@ export class BalanceSheetComponent implements OnInit {
             stock: this.inventoryService.getCurrentStock('', '', 0, 1000, ''),
             capitalReceipts: this.financeService.getReceiptsReport({
                 searchTerm: this.CAPITAL_TAG,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
                 pageNumber: 1,
                 pageSize: 1000,
                 sortBy: 'Date',
