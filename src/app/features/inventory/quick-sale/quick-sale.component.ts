@@ -261,7 +261,7 @@ export class QuickSaleComponent implements OnInit {
             unit: [{ value: product.unit || 'PCS', disabled: true }],
             rate: [product.rate || product.Rate || product.saleRate || product.salePrice || product.price || product.mrp || 0, [Validators.required, Validators.min(0)]],
             discountPercent: [product.discountPercent || product.discount || 0],
-            gstPercent: [product.gstPercent || 18],
+            gstPercent: [product.gstPercent ?? product.defaultGst ?? 18],
             total: [{ value: 0, disabled: true }],
             isExpiryRequired: [product.isExpiryRequired || false],
             manufacturingDate: [formatDt(product.manufacturingDate)],

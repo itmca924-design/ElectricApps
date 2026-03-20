@@ -294,7 +294,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [product.unit || 'PCS'],
       rate: [product.rate || product.saleRate || 0, [Validators.required, Validators.min(0.01)]],
       discountPercent: [product.discount || product.discountPercent || 0],
-      gstPercent: [product.defaultGst || product.gstPercent || 0],
+      gstPercent: [product.defaultGst ?? product.gstPercent ?? 18],
       taxAmount: [0],
       total: [{ value: 0, disabled: true }],
       availableStock: [product.currentStock || product.availableStock || 0],

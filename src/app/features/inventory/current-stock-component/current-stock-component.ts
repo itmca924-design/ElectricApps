@@ -332,7 +332,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
       sku: item.sku,
       unit: item.unit,
       rate: item.lastRate || 0,
-      gstPercent: item.gstPercent || 0,
+      gstPercent: item.gstPercent ?? item.defaultGst ?? 18,
       currentStock: item.availableStock || item.currentStock || 0,
       isExpiryRequired: item.isExpiryRequired || false,
       suggestedQty: item.minStockLevel ? Math.max(item.minStockLevel * 2, 10) : 10

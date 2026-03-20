@@ -229,7 +229,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [product.unit || 'PCS', Validators.required],
       price: [product.basePurchasePrice || 0, [Validators.required, Validators.min(1)]],
       discountPercent: [0],
-      gstPercent: [this.selectedSupplierIsUnregistered ? 0 : (product.defaultGst || product.gstPercent || 0)],
+      gstPercent: [this.selectedSupplierIsUnregistered ? 0 : (product.defaultGst ?? product.gstPercent ?? 18)],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
       currentStock: [product.currentStock || 0],
@@ -237,7 +237,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       mfgDate: [null, product.isExpiryRequired ? Validators.required : null],
       expDate: [null, product.isExpiryRequired ? Validators.required : null],
       isExpiryRequired: [product.isExpiryRequired ?? false],
-      originalGst: [product.defaultGst || product.gstPercent || 0],
+      originalGst: [product.defaultGst ?? product.gstPercent ?? 18],
       id: [0]
     });
 
@@ -273,7 +273,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       unit: [{ value: data.unit || 'PCS', disabled: false }],
       price: [data.rate || 0, [Validators.required, Validators.min(1)]],
       discountPercent: [0],
-      gstPercent: [this.selectedSupplierIsUnregistered ? 0 : (data.gstPercent ?? 18)],
+      gstPercent: [this.selectedSupplierIsUnregistered ? 0 : (data.gstPercent ?? data.defaultGst ?? 18)],
       taxAmount: [{ value: 0, disabled: true }],
       total: [{ value: 0, disabled: true }],
       currentStock: [data.currentStock || 0],
@@ -281,7 +281,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       mfgDate: [null, data.isExpiryRequired ? Validators.required : null],
       expDate: [null, data.isExpiryRequired ? Validators.required : null],
       isExpiryRequired: [data.isExpiryRequired ?? false],
-      originalGst: [data.gstPercent ?? 18],
+      originalGst: [data.gstPercent ?? data.defaultGst ?? 18],
       id: [0]
     });
 
@@ -464,8 +464,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
       productSearch: product,
       unit: product.unit || 'PCS',
       price: product.basePurchasePrice || 0,
-      gstPercent: isTaxOff ? 0 : (product.defaultGst || product.gstPercent || 0), // Master GST
-      originalGst: product.defaultGst || product.gstPercent || 0,
+      gstPercent: isTaxOff ? 0 : (product.defaultGst ?? product.gstPercent ?? 18), // Master GST
+      originalGst: product.defaultGst ?? product.gstPercent ?? 18,
       discountPercent: 0,
       qty: 1,
       currentStock: product.currentStock || 0,
