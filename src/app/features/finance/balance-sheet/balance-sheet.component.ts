@@ -15,6 +15,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { MatDialog } from '@angular/material/dialog';
 import { BalanceSheetInputDialogComponent } from './balance-sheet-input-dialog.component';
+import { customerService } from '../../master/customer-component/customer.service';
 
 @Component({
     selector: 'app-balance-sheet',
@@ -24,11 +25,15 @@ import { BalanceSheetInputDialogComponent } from './balance-sheet-input-dialog.c
     styleUrl: './balance-sheet.component.scss'
 })
 export class BalanceSheetComponent implements OnInit {
+    private readonly CAPITAL_TAG = '[PROPRIETOR_CAPITAL]';
+    private readonly OWNER_CUSTOMER_NAME = 'Proprietor (Self / Capital Account)';
+    
     private cdr = inject(ChangeDetectorRef);
     private loadingService = inject(LoadingService);
     private financeService = inject(FinanceService);
     private inventoryService = inject(InventoryService);
     private companyService = inject(CompanyService);
+    private customerService = inject(customerService);
     private dialog = inject(MatDialog);
 
     isDashboardLoading: boolean = true;
@@ -47,7 +52,8 @@ export class BalanceSheetComponent implements OnInit {
     // Equity/Profit
     netProfit: number = 0;
     capital: number = 0; // Dynamic capital (Initial investment)
-    companyName: string = 'ElectricApps';
+    companyName: string = '';
+    companyProfile: any = null; // Stored profile for dynamic use
 
     // Chart Data
     public assetsChartData: ChartConfiguration['data'] = {
@@ -77,10 +83,14 @@ export class BalanceSheetComponent implements OnInit {
     };
 
     ngOnInit() {
+        // We still check localStorage for quick display, but loadBalanceSheet will override with DB data
         this.capital = Number(localStorage.getItem('company_initial_capital')) || 0;
         this.bankBalance = Number(localStorage.getItem('company_bank_balance')) || 0;
         this.loadBalanceSheet();
-        this.companyService.getCompanyProfile().subscribe((p: any) => this.companyName = p?.name || 'ElectricApps');
+        this.companyService.getCompanyProfile().subscribe((p: any) => {
+            this.companyProfile = p;
+            this.companyName = p?.name || '';
+        });
     }
 
     loadBalanceSheet() {
@@ -97,14 +107,29 @@ export class BalanceSheetComponent implements OnInit {
             pl: this.financeService.getProfitAndLossReport(filters),
             receivables: this.financeService.getTotalReceivables(),
             payables: this.financeService.getTotalPayables(),
-            stock: this.inventoryService.getCurrentStock('', '', 0, 1000, '') // We'll calculate valuation from this for now
+            stock: this.inventoryService.getCurrentStock('', '', 0, 1000, ''),
+            capitalReceipts: this.financeService.getReceiptsReport({
+                searchTerm: this.CAPITAL_TAG,
+                pageNumber: 1,
+                pageSize: 1000,
+                sortBy: 'Date',
+                sortOrder: 'desc'
+            })
         }).subscribe({
             next: (results) => {
-                // 1. Map P&L / Net Profit
+                // 1. Calculate Capital Injection from DB (Professional Way)
+                const cItems = results.capitalReceipts?.items?.items || results.capitalReceipts?.items || [];
+                const totalCapitalInDB = cItems.reduce((sum: number, r: any) => sum + (r.amount || r.Amount || 0), 0);
+                this.capital = Number(totalCapitalInDB);
+                localStorage.setItem('company_initial_capital', this.capital.toString());
+
+                // 2. Map P&L / Net Profit (Important: Exclude Capital from Income)
                 if (results.pl) {
-                    const income = results.pl.totalIncome || results.pl.TotalReceipts || 0;
+                    const totalIncome = results.pl.totalIncome || results.pl.TotalReceipts || 0;
                     const expenses = results.pl.totalExpenses || results.pl.TotalPayments || 0;
-                    this.netProfit = income - expenses;
+                    
+                    // Subtract Capital from Total Income because Capital is not profit
+                    this.netProfit = (totalIncome - totalCapitalInDB) - expenses;
                 }
 
                 // 2. Map Assets
@@ -204,9 +229,90 @@ export class BalanceSheetComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe(result => {
             if (result !== undefined) {
-                this.capital = Number(result);
-                localStorage.setItem('company_initial_capital', this.capital.toString());
-                this.loadBalanceSheet();
+                const newAmount = Number(result);
+                // Instead of just setting it locally, we record a DIFF receipt in DB
+                const diff = newAmount - this.capital;
+                
+                if (diff !== 0) {
+                    this.recordCapitalTransaction(diff);
+                } else {
+                    this.loadBalanceSheet(); // Refresh if no change
+                }
+            }
+        });
+    }
+
+    private recordCapitalTransaction(amount: number) {
+        this.isDashboardLoading = true;
+        this.loadingService.setLoading(true);
+
+        // Find or Use a fixed Owner Customer ID or just search by name
+        // For simplicity, we'll try to find the "Proprietor Capital" customer first
+        const searchReq = { 
+            Search: this.OWNER_CUSTOMER_NAME, 
+            PageNumber: 1, 
+            PageSize: 1 
+        };
+        
+        this.customerService.getPaged(searchReq).subscribe({
+            next: (res: any) => {
+                const customers = res.data || res.items || [];
+                let ownerId = 0;
+                
+                // CRITICAL: Ensure we found the SPECIFIC owner customer, not just any random customer
+                const specificOwner = customers.find((c: any) => 
+                    (c.customerName || c.name || '').toLowerCase() === this.OWNER_CUSTOMER_NAME.toLowerCase()
+                );
+
+                if (specificOwner) {
+                    this.executeCapitalReceipt(specificOwner.id, amount);
+                } else {
+                    // Fix: Match the backend CreateCustomerDto fields!
+                    const addr = this.companyProfile?.address;
+                    const fullAddress = `${addr?.addressLine1 || ''} ${addr?.addressLine2 || ''}, ${addr?.city || ''}, ${addr?.state || ''} - ${addr?.pinCode || ''}`;
+                    
+                    const newOwner = {
+                        customerName: this.OWNER_CUSTOMER_NAME,
+                        customerType: 'Retail',
+                        phone: this.companyProfile?.primaryPhone || '0000000000',
+                        email: this.companyProfile?.primaryEmail || 'owner@system.com',
+                        billingAddress: fullAddress.trim() || 'Internal Account',
+                        shippingAddress: fullAddress.trim() || 'Internal Account',
+                        customerStatus: 'Active',
+                        creditLimit: 0,
+                        createdBy: localStorage.getItem('email') || 'Admin'
+                    };
+                    this.customerService.addCustomer(newOwner).subscribe((id: any) => {
+                        this.executeCapitalReceipt(id, amount);
+                    });
+                }
+            },
+            error: () => this.isDashboardLoading = false
+        });
+    }
+
+    private executeCapitalReceipt(customerId: number, amount: number) {
+        const payload = {
+            id: 0,
+            customerId: customerId,
+            amount: amount,
+            totalAmount: amount,
+            discountAmount: 0,
+            netAmount: amount,
+            paymentMode: 'Cash',
+            referenceNumber: 'CAPITAL-' + new Date().getTime().toString().slice(-4),
+            paymentDate: new Date().toISOString(),
+            remarks: this.CAPITAL_TAG + ' Proprietor Capital Adjustment',
+            createdBy: localStorage.getItem('email') || 'Admin'
+        };
+
+        this.financeService.recordCustomerReceipt(payload).subscribe({
+            next: () => {
+                this.loadBalanceSheet(); // Re-fetch entire sheet from DB
+            },
+            error: () => {
+                this.isDashboardLoading = false;
+                this.loadingService.setLoading(false);
             }
         });
     }
