@@ -9,6 +9,15 @@ import { InventoryService } from '../../inventory/service/inventory.service';
 import { NotificationService } from '../../shared/notification.service';
 import { ProductSelectionDialogComponent } from '../../../shared/components/product-selection-dialog/product-selection-dialog';
 import { BatchSelectionDialogComponent } from '../../../shared/components/batch-selection-dialog/batch-selection-dialog';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
+import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
+import { QuickPaymentDialogComponent } from '../../../shared/components/quick-payment-dialog/quick-payment-dialog';
+import { SaleOrderService } from '../../inventory/service/saleorder.service';
+import { FinanceService } from '../../finance/service/finance.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { customerService } from '../../master/customer-component/customer.service';
+import { Observable, map, startWith } from 'rxjs';
+import { FormControl } from '@angular/forms';
 
 @Component({
   selector: 'app-sales-invoice',
@@ -23,8 +32,17 @@ export class SalesInvoice implements OnInit {
   private dialog = inject(MatDialog);
   private inventoryService = inject(InventoryService);
   private notification = inject(NotificationService);
-  
+  private soService = inject(SaleOrderService);
+  private financeService = inject(FinanceService);
+  private authService = inject(AuthService);
+  private customerService = inject(customerService);
+
   signatureImageUrl: string | null = null;
+  isSaving = false;
+  
+  customers: any[] = [];
+  filteredCustomers!: Observable<any[]>;
+  customerSearchCtrl = new FormControl<any>('');
 
   invoiceForm = this.fb.group({
     documentType: ['Tax Invoice'], // 'Tax Invoice' or 'Bill of Supply'
@@ -42,6 +60,7 @@ export class SalesInvoice implements OnInit {
     
     customerName: ['', Validators.required],
     customerPhone: ['', Validators.required],
+    customerId: [0], // Cash Customer by default
     billingAddress: [''],
     shippingAddress: [''],
     customerPAN: [''],
@@ -67,6 +86,57 @@ export class SalesInvoice implements OnInit {
 
   ngOnInit(): void {
     this.loadCompanyProfile();
+    this.loadCustomers();
+    
+    // Listen for Document Type changes
+    this.invoiceForm.get('documentType')?.valueChanges.subscribe(val => {
+      this.items.controls.forEach(control => {
+        const taxCtrl = control.get('taxRate');
+        if (val === 'Bill of Supply') {
+          taxCtrl?.setValue(0);
+          taxCtrl?.disable();
+        } else {
+          taxCtrl?.enable();
+        }
+        this.update(this.items.controls.indexOf(control));
+      });
+    });
+  }
+
+  loadCustomers(): void {
+    this.customerService.getAllCustomers().subscribe((res: any) => {
+      this.customers = res;
+      this.filteredCustomers = this.customerSearchCtrl.valueChanges.pipe(
+        startWith(''),
+        map(value => {
+          const name = typeof value === 'string' ? value : value?.customerName;
+          return name ? this._filterCustomers(name) : this.customers.slice();
+        })
+      );
+    });
+  }
+
+  private _filterCustomers(name: string): any[] {
+    const filterValue = name.toLowerCase();
+    return this.customers.filter(c => 
+      (c.customerName || '').toLowerCase().includes(filterValue) || 
+      (c.phone || '').includes(filterValue)
+    );
+  }
+
+  displayCustomerFn(customer: any): string {
+    return customer && customer.customerName ? customer.customerName : '';
+  }
+
+  onCustomerSelected(event: any): void {
+    const customer = event.option.value;
+    this.invoiceForm.patchValue({
+      customerId: customer.id,
+      customerName: customer.customerName,
+      customerPhone: customer.phone,
+      billingAddress: customer.billingAddress,
+      shippingAddress: customer.shippingAddress
+    });
   }
 
   loadCompanyProfile(): void {
@@ -114,13 +184,25 @@ export class SalesInvoice implements OnInit {
     return this.fb.group({
       description: ['', Validators.required],
       sacHsn: [''],
-      qty: [1, Validators.required],
+      qty: [1, [Validators.required, Validators.min(0.01)]],
+      availableStock: [0], // Tracks available stock for this batch
       unitPrice: [0, Validators.required], // Inclusive of Tax
       discount: [0],
-      taxRate: [18], // Percentage
+      taxRate: [{ 
+        value: this.invoiceForm?.get('documentType')?.value === 'Bill of Supply' ? 0 : 18, 
+        disabled: this.invoiceForm?.get('documentType')?.value === 'Bill of Supply' 
+      }], // Percentage
       taxableValue: [{ value: 0, disabled: true }],
       taxAmount: [{ value: 0, disabled: true }],
-      amount: [{ value: 0, disabled: true }] // Gross amount
+      amount: [{ value: 0, disabled: true }], // Gross amount
+      
+      // Hidden Backend Fields
+      productId: [null, Validators.required],
+      warehouseId: [null],
+      rackId: [null],
+      mfgDate: [null],
+      expDate: [null],
+      unit: ['PCS']
     });
   }
 
@@ -234,23 +316,149 @@ export class SalesInvoice implements OnInit {
         batchDialogRef.afterClosed().subscribe((selectedBatch: any) => {
           if (selectedBatch) {
             row.patchValue({
+              productId: productId,
+              warehouseId: selectedBatch.warehouseId,
+              rackId: selectedBatch.rackId,
+              mfgDate: selectedBatch.manufacturingDate,
+              expDate: selectedBatch.expiryDate,
+              unit: product.unit || productItem.unit || 'PCS',
               description: `${productName} (Batch: ${selectedBatch.grnNumber || 'N/A'})`,
               sacHsn: product.hsnCode || productItem.hsnCode || product.sacHsn || '',
               unitPrice: product.saleRate || product.rate || product.salePrice || product.price || product.mrp || 0,
-              taxRate: product.gstPercent || product.defaultGst || 18
+              taxRate: this.invoiceForm.get('documentType')?.value === 'Bill of Supply' ? 0 : (product.gstPercent || product.defaultGst || 18),
+              availableStock: selectedBatch.availableStock || 0
             });
+            
+            // Add max validation to qty based on available stock
+            const qtyControl = this.items.at(index).get('qty');
+            qtyControl?.setValidators([Validators.required, Validators.min(0.01), Validators.max(selectedBatch.availableStock || 0)]);
+            qtyControl?.updateValueAndValidity();
+
             this.update(index);
           }
         });
       } else {
         // No batches, just fill basic info
         row.patchValue({
+          productId: productId,
+          unit: product.unit || productItem.unit || 'PCS',
           description: productName,
           sacHsn: product.hsnCode || product.sacHsn || '',
           unitPrice: product.saleRate || product.rate || product.salePrice || product.price || product.mrp || 0,
-          taxRate: product.gstPercent || product.defaultGst || 18
+          taxRate: this.invoiceForm.get('documentType')?.value === 'Bill of Supply' ? 0 : (product.gstPercent || product.defaultGst || 18),
+          availableStock: product.availableStock || product.currentStock || 0
         });
+
+        // Add max validation to qty based on available stock
+        const qtyControl = this.items.at(index).get('qty');
+        const maxStock = product.availableStock || product.currentStock || 0;
+        qtyControl?.setValidators([Validators.required, Validators.min(0.01), Validators.max(maxStock)]);
+        qtyControl?.updateValueAndValidity();
+
         this.update(index);
+      }
+    });
+  }
+
+  saveAndPrint(): void {
+    if (this.invoiceForm.invalid) {
+      this.notification.showStatus(false, 'Please fill all required fields before printing.');
+      this.invoiceForm.markAllAsTouched();
+      return;
+    }
+
+    // 1. Confirmation Dialog
+    const confirmRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Confirm Tax Invoice',
+        message: 'Are you sure you want to generate this Tax Invoice? This will deduct stock from the respective batches.',
+        confirmText: 'Yes, Save & Deduct',
+        confirmColor: 'primary'
+      }
+    });
+
+    confirmRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.executeSave();
+      }
+    });
+  }
+
+  private executeSave(): void {
+    this.isSaving = true;
+    const formVal = this.invoiceForm.getRawValue();
+    
+    const payload = {
+      customerId: formVal.customerId || 0,
+      soDate: formVal.invoiceDate,
+      expectedDeliveryDate: formVal.invoiceDate,
+      remarks: `Tax Invoice generated from Designer. Invoice No: ${formVal.invoiceNo}`,
+      subTotal: formVal.subTotal,
+      totalTax: formVal.totalTax,
+      grandTotal: formVal.total,
+      taxType: 'local',
+      status: 'Confirmed',
+      createdBy: this.authService.getUserName(),
+      isQuick: true,
+      items: formVal.items.map((item: any) => ({
+        productId: item.productId,
+        productName: item.description,
+        qty: item.qty,
+        unit: item.unit || 'PCS',
+        rate: item.unitPrice,
+        discountPercent: 0,
+        gstPercent: item.taxRate,
+        taxAmount: item.taxAmount,
+        total: item.amount,
+        warehouseId: item.warehouseId,
+        rackId: item.rackId,
+        manufacturingDate: item.mfgDate,
+        expiryDate: item.expDate
+      }))
+    };
+
+    this.soService.saveSaleOrder(payload).subscribe({
+      next: (res: any) => {
+        this.isSaving = false;
+        const generatedNo = res.soNumber || res.SONumber;
+        if (generatedNo) {
+          this.invoiceForm.get('invoiceNo')?.setValue(generatedNo);
+        }
+        
+        // 2. Success Dialog
+        const statusRef = this.dialog.open(StatusDialogComponent, {
+          width: '380px',
+          data: {
+            title: 'Success',
+            message: 'Invoice saved and stock deducted successfully!',
+            isSuccess: true,
+            confirmText: 'OK'
+          }
+        });
+
+        // 3. Optional Payment Dialog after Success Dialog close
+        statusRef.afterClosed().subscribe(() => {
+          const paymentRef = this.dialog.open(QuickPaymentDialogComponent, {
+            width: '450px',
+            disableClose: true,
+            data: {
+              amount: formVal.total,
+              customerId: formVal.customerId || 0,
+              customerName: formVal.customerName,
+              invoiceNo: generatedNo
+            }
+          });
+
+          paymentRef.afterClosed().subscribe((isPaid) => {
+            // Trigger print preview regardless of paid or not (as per business flow)
+            setTimeout(() => window.print(), 300);
+          });
+        });
+      },
+      error: (err) => {
+        this.isSaving = false;
+        this.notification.showStatus(false, 'Failed to save invoice. ' + (err.error?.message || err.message));
       }
     });
   }
