@@ -4,6 +4,11 @@ import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { CompanyService } from '../../company/services/company.service';
 import { environment } from '../../../enviornments/environment';
+import { MatDialog } from '@angular/material/dialog';
+import { InventoryService } from '../../inventory/service/inventory.service';
+import { NotificationService } from '../../shared/notification.service';
+import { ProductSelectionDialogComponent } from '../../../shared/components/product-selection-dialog/product-selection-dialog';
+import { BatchSelectionDialogComponent } from '../../../shared/components/batch-selection-dialog/batch-selection-dialog';
 
 @Component({
   selector: 'app-sales-invoice',
@@ -15,6 +20,9 @@ import { environment } from '../../../enviornments/environment';
 export class SalesInvoice implements OnInit {
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
+  private dialog = inject(MatDialog);
+  private inventoryService = inject(InventoryService);
+  private notification = inject(NotificationService);
   
   signatureImageUrl: string | null = null;
 
@@ -164,5 +172,95 @@ export class SalesInvoice implements OnInit {
     this.invoiceForm.get('subTotal')?.setValue(Number(subTotal.toFixed(2)));
     this.invoiceForm.get('totalTax')?.setValue(Number(totalTax.toFixed(2)));
     this.invoiceForm.get('total')?.setValue(Number(total.toFixed(2)));
+  }
+
+  openProductPopup(i: number): void {
+    const dialogRef = this.dialog.open(ProductSelectionDialogComponent, {
+      width: '1100px',
+      maxWidth: '96vw',
+      data: { allowOutOfStock: false }
+    });
+
+    dialogRef.afterClosed().subscribe((selectedProducts: any[]) => {
+      // If single selection returned
+      const product = Array.isArray(selectedProducts) ? selectedProducts[0] : selectedProducts;
+      if (product) {
+        this.selectProductItem(i, product);
+      }
+    });
+  }
+
+  private selectProductItem(index: number, product: any): void {
+    const row = this.items.at(index);
+    const productName = product.productName || product.name || '';
+    const productId = product.id || product.productId;
+
+    this.inventoryService.getCurrentStock('', '', 0, 100, productName).subscribe((res: any) => {
+      const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
+      const productItem = itemsArray.find((x: any) => {
+        const xId = String(x.productId || x.ProductId || x.id || x.Id).toLowerCase();
+        const targetId = String(productId).toLowerCase();
+        return xId === targetId || (x.productName === productName && productName.length > 0);
+      });
+
+      if (!productItem || productItem.availableStock <= 0) {
+        this.notification.showStatus(false, `Attention: Product "${productName}" is OUT OF STOCK and cannot be added to the invoice.`);
+        return;
+      }
+
+      // Handle Batch Selection
+      const allBatches = (productItem.history || []).map((h: any) => ({
+        grnNumber: h.grnNumber || 'N/A',
+        manufacturingDate: h.manufacturingDate,
+        expiryDate: h.expiryDate,
+        availableStock: h.availableQty ?? h.AvailableQty ?? 0,
+        warehouseName: h.warehouseName, warehouseId: productItem.warehouseId,
+        rackName: h.rackName, rackId: productItem.rackId,
+        isExpired: this.checkIfExpired(h.expiryDate)
+      }));
+
+      const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired);
+
+      if (selectableBatches.length > 0) {
+        const batchDialogRef = this.dialog.open(BatchSelectionDialogComponent, {
+          width: '620px',
+          data: {
+            productName: productName,
+            batches: selectableBatches,
+            validCount: selectableBatches.filter((b: any) => !b.isExpired && b.availableStock > 0).length
+          }
+        });
+
+        batchDialogRef.afterClosed().subscribe((selectedBatch: any) => {
+          if (selectedBatch) {
+            row.patchValue({
+              description: `${productName} (Batch: ${selectedBatch.grnNumber || 'N/A'})`,
+              sacHsn: product.hsnCode || productItem.hsnCode || product.sacHsn || '',
+              unitPrice: product.saleRate || product.rate || product.salePrice || product.price || product.mrp || 0,
+              taxRate: product.gstPercent || product.defaultGst || 18
+            });
+            this.update(index);
+          }
+        });
+      } else {
+        // No batches, just fill basic info
+        row.patchValue({
+          description: productName,
+          sacHsn: product.hsnCode || product.sacHsn || '',
+          unitPrice: product.saleRate || product.rate || product.salePrice || product.price || product.mrp || 0,
+          taxRate: product.gstPercent || product.defaultGst || 18
+        });
+        this.update(index);
+      }
+    });
+  }
+
+  private checkIfExpired(expDate: any): boolean {
+    if (!expDate) return false;
+    const exp = new Date(expDate);
+    exp.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return exp <= today;
   }
 }

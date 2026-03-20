@@ -212,7 +212,11 @@ export class QuickPurchaseComponent implements OnInit {
     openProductDialog() {
         const dialogRef = this.dialog.open(ProductSelectionDialogComponent, {
             width: '1100px',
-            maxWidth: '96vw'
+            maxWidth: '96vw',
+            data: { 
+                allowOutOfStock: true,
+                existingIds: this.items.controls.map(c => c.get('productId')?.value) 
+            }
         });
 
         dialogRef.afterClosed().subscribe((selectedProducts: any[]) => {

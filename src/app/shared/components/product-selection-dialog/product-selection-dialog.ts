@@ -96,7 +96,8 @@ import { LoadingService } from '../../../core/services/loading.service';
             <td mat-cell *matCellDef="let row" class="checkbox-col">
               <mat-checkbox (click)="$event.stopPropagation()"
                             (change)="$event ? toggleRow(row) : null"
-                            [checked]="isRowSelected(row)">
+                            [checked]="isRowSelected(row)"
+                            [disabled]="!allowOutOfStock && row.currentStock <= 0">
               </mat-checkbox>
             </td>
           </ng-container>
@@ -624,6 +625,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'location', 'stock', 'expiry', 'status'];
   dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
+  allowOutOfStock: boolean = false;
 
   // Form Controls
   categoryCtrl = new FormControl();
@@ -652,6 +654,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.existingIds = this.data?.existingIds || [];
+    this.allowOutOfStock = this.data?.allowOutOfStock ?? false;
     this.loadCategories();
     this.loadProducts();
 
@@ -864,6 +867,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
 
   toggleRow(row: any) {
     if (this.isAlreadyInList(row.id)) return;
+    if (!this.allowOutOfStock && row.currentStock <= 0) return;
     const found = this.selection.selected.find(item => item.id === row.id);
     if (found) {
       this.selection.deselect(found);
@@ -874,7 +878,11 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
   }
 
   isAllSelected() {
-    const activeRows = this.dataSource.data.filter(row => !this.isAlreadyInList(row.id));
+    const activeRows = this.dataSource.data.filter(row => {
+      const isNotDuplicate = !this.isAlreadyInList(row.id);
+      const isSelectable = this.allowOutOfStock || row.currentStock > 0;
+      return isNotDuplicate && isSelectable;
+    });
     if (activeRows.length === 0) return false;
     return activeRows.every(row => this.isRowSelected(row));
   }
@@ -888,7 +896,9 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
       this.dataSource.data.forEach(row => this.selection.deselect(row));
     } else {
       this.dataSource.data.forEach(row => {
-        if (!this.isAlreadyInList(row.id)) {
+        const isNotDuplicate = !this.isAlreadyInList(row.id);
+        const isSelectable = this.allowOutOfStock || row.currentStock > 0;
+        if (isNotDuplicate && isSelectable) {
           this.selection.select(row);
         }
       });
