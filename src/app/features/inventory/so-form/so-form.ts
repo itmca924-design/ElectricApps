@@ -494,9 +494,14 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
   openBulkAddDialog() {
     const dialogRef = this.dialog.open(ProductSelectionDialogComponent, {
-      width: '1000px',
-      height: '600px',
-      disableClose: true
+      width: '1250px',
+      height: '620px',
+      maxWidth: '96vw',
+      disableClose: true,
+      data: {
+        allowOutOfStock: false,
+        existingIds: this.items.controls.map(c => c.get('productId')?.value)
+      }
     });
 
     dialogRef.afterClosed().subscribe((selectedProducts: any[]) => {

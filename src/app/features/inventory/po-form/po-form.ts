@@ -197,9 +197,13 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
 
   openBulkAddDialog() {
     const dialogRef = this.dialog.open(ProductSelectionDialogComponent, {
-      width: '1100px',
+      width: '1250px',
       maxWidth: '96vw',
-      disableClose: false
+      disableClose: false,
+      data: { 
+        allowOutOfStock: true,
+        existingIds: this.items.controls.map(c => c.get('productId')?.value)
+      }
     });
 
     dialogRef.afterClosed().subscribe((selectedProducts: any[]) => {
@@ -426,13 +430,15 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
     this.items.controls.forEach((control, index) => {
       const prodId = control.get('productId')?.value;
       if (prodId && priceListId) {
+        const isTaxOff = !this.poForm.get('isTaxApplicable')?.value;
         this.inventoryService.getProductRate(prodId, priceListId).subscribe({
           next: (res: any) => {
             if (res) {
               control.patchValue({
                 price: res.recommendedRate || res.rate,
                 // GST constant from Master, Discount from PriceList
-                discountPercent: res.discount || res.discountPercent || 0
+                discountPercent: res.discount || res.discountPercent || 0,
+                gstPercent: isTaxOff ? 0 : (res.GstPercent || res.gstPercent || control.get('gstPercent')?.value || 18)
               });
             }
             this.updateTotal(index);
@@ -491,7 +497,8 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
           if (res) {
             row.patchValue({
               price: res.recommendedRate || res.rate,
-              discountPercent: res.discount || res.discountPercent || 0 // PriceList Discount
+              discountPercent: res.discount || res.discountPercent || 0, // PriceList Discount
+              gstPercent: isTaxOff ? 0 : (res.GstPercent || res.gstPercent || row.get('gstPercent')?.value || 18)
             });
           }
           this.updateTotal(index);

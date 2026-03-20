@@ -136,6 +136,13 @@ import { LoadingService } from '../../../core/services/loading.service';
             </td>
           </ng-container>
 
+          <ng-container matColumnDef="gst">
+            <th mat-header-cell *matHeaderCellDef class="gst-header"> GST % </th>
+            <td mat-cell *matCellDef="let row" class="gst-cell"> 
+               <span class="gst-badge">{{row.defaultGst ?? row.gstPercent ?? 18}}%</span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="stock">
             <th mat-header-cell *matHeaderCellDef> Stock </th>
             <td mat-cell *matCellDef="let row"> 
@@ -365,10 +372,22 @@ import { LoadingService } from '../../../core/services/loading.service';
     .category-badge {
       background: #f1f5f9;
       color: #475569;
-      padding: 2px 8px;
-      border-radius: 4px;
+      padding: 4px 10px;
+      border-radius: 6px;
       font-size: 0.75rem;
-      font-weight: 500;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .gst-badge {
+      background: #fdf2f8;
+      color: #db2777;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      border: 1px solid #fce7f3;
     }
 
     .location-info {
@@ -564,12 +583,10 @@ import { LoadingService } from '../../../core/services/loading.service';
           padding: 6px !important;
           font-size: 12px !important;
         }
-        .sku-header, .sku-cell,
-        .cat-header, .cat-cell,
-        .location-header, .location-cell,
-        .unit-header, .unit-cell {
-          display: none !important;
-        }
+        .sku-header, .sku-cell { width: 100px; min-width: 100px; }
+        .unit-header, .unit-cell { width: 80px; min-width: 80px; text-align: center; }
+        .gst-header, .gst-cell { width: 80px; min-width: 80px; text-align: center; }
+        .cat-header, .cat-cell { width: 120px; min-width: 120px; }
       }
 
       .dialog-footer {
@@ -622,7 +639,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
 
   existingIds: any[] = [];
-  displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'location', 'stock', 'expiry', 'status'];
+  displayedColumns: string[] = ['select', 'sku', 'name', 'unit', 'category', 'location', 'gst', 'stock', 'expiry', 'status'];
   dataSource = new MatTableDataSource<any>([]);
   selection = new SelectionModel<any>(true, []);
   allowOutOfStock: boolean = false;
@@ -940,8 +957,12 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (res) => {
         if (res.items && res.items.length > 0) {
-          // Identify items not in existing list
-          const eligibleItems = res.items.filter((item: any) => !this.isAlreadyInList(item.id));
+          // Identify items not in existing list and respect out-of-stock constraint
+          const eligibleItems = res.items.filter((item: any) => {
+            const isNotDuplicate = !this.isAlreadyInList(item.id);
+            const isSelectable = this.allowOutOfStock || item.currentStock > 0;
+            return isNotDuplicate && isSelectable;
+          });
 
           // Sync with visible references to ensure checkmarks show up on current page
           const visibleIdMap = new Map(this.dataSource.data.map(i => [i.id, i]));

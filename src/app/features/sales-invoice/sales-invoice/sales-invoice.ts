@@ -176,7 +176,7 @@ export class SalesInvoice implements OnInit {
 
   openProductPopup(i: number): void {
     const dialogRef = this.dialog.open(ProductSelectionDialogComponent, {
-      width: '1100px',
+      width: '1250px',
       maxWidth: '96vw',
       data: { allowOutOfStock: false }
     });

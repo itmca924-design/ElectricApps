@@ -211,7 +211,7 @@ export class QuickPurchaseComponent implements OnInit {
 
     openProductDialog() {
         const dialogRef = this.dialog.open(ProductSelectionDialogComponent, {
-            width: '1100px',
+            width: '1250px',
             maxWidth: '96vw',
             data: { 
                 allowOutOfStock: true,
