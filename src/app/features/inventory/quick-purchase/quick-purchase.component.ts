@@ -16,6 +16,8 @@ import { UnitService } from '../../master/units/services/units.service';
 import { LocationService } from '../../master/locations/services/locations.service';
 import { DateHelper } from '../../../shared/models/date-helper';
 import { POService } from '../service/po.service';
+import { trigger, transition, style, animate } from '@angular/animations';
+
 
 
 @Component({
@@ -23,7 +25,18 @@ import { POService } from '../service/po.service';
     standalone: true,
     imports: [CommonModule, MaterialModule, ReactiveFormsModule, FormsModule],
     templateUrl: './quick-purchase.component.html',
-    styleUrls: ['./quick-purchase.component.scss']
+    styleUrls: ['./quick-purchase.component.scss'],
+    animations: [
+        trigger('fadeInOut', [
+            transition(':enter', [
+                style({ opacity: 0, transform: 'scale(0.5)' }),
+                animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
+            ]),
+            transition(':leave', [
+                animate('200ms ease-in', style({ opacity: 0, transform: 'scale(0.5)' }))
+            ])
+        ])
+    ]
 })
 export class QuickPurchaseComponent implements OnInit {
     private fb = inject(FormBuilder);
@@ -55,6 +68,29 @@ export class QuickPurchaseComponent implements OnInit {
     poId: any = null;
     currentStatus = '';
     selectedSupplierIsUnregistered = false;
+    isAtTop = true;
+    private scrollContainer: HTMLElement | null = null;
+    private scrollListener: any;
+    private cdr = inject(ChangeDetectorRef);
+    today = new Date();
+
+    onScroll() {
+        if (this.scrollContainer) {
+            const { scrollTop } = this.scrollContainer;
+            this.isAtTop = scrollTop < 50;
+            this.cdr.detectChanges();
+        }
+    }
+
+    toggleScroll() {
+        if (this.scrollContainer) {
+            if (this.isAtTop) {
+                this.scrollContainer.scrollTo({ top: this.scrollContainer.scrollHeight, behavior: 'smooth' });
+            } else {
+                this.scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+    }
 
     constructor() {
         this.initForm();
@@ -267,8 +303,8 @@ export class QuickPurchaseComponent implements OnInit {
             try { return new Date(dt).toISOString().substring(0, 10); } catch { return null; }
         };
 
-        const mfgDate = formatDate(product.manufacturingDate);
-        const expDate = formatDate(product.expiryDate);
+        const mfgDate = null;
+        const expDate = null;
 
         const itemForm = this.fb.group({
             productId: [productId, Validators.required],
@@ -690,5 +726,19 @@ export class QuickPurchaseComponent implements OnInit {
         return invalid;
     }
 
-    private cdr = inject(ChangeDetectorRef);
+    ngAfterViewInit() {
+        setTimeout(() => {
+            this.scrollContainer = document.querySelector('.content');
+            if (this.scrollContainer) {
+                this.scrollListener = this.onScroll.bind(this);
+                this.scrollContainer.addEventListener('scroll', this.scrollListener);
+            }
+        }, 500);
+    }
+
+    ngOnDestroy() {
+        if (this.scrollContainer && this.scrollListener) {
+            this.scrollContainer.removeEventListener('scroll', this.scrollListener);
+        }
+    }
 }

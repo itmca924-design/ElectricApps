@@ -67,7 +67,7 @@
         <div class="col-3">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Expected Delivery**</mat-label>
-            <input matInput [matDatepicker]="deliveryPicker" formControlName="expectedDeliveryDate">
+            <input matInput [matDatepicker]="deliveryPicker" formControlName="expectedDeliveryDate" [min]="today">
             <mat-datepicker-toggle matIconSuffix [for]="deliveryPicker"></mat-datepicker-toggle>
             <mat-datepicker #deliveryPicker></mat-datepicker>
           </mat-form-field>
@@ -155,7 +155,7 @@
             </div>
             <div class="col-mfg">
               <mat-form-field appearance="outline" dense *ngIf="item.get('isExpiryRequired')?.value; else noMfg">
-                <input matInput [matDatepicker]="mfgPicker" formControlName="manufacturingDate" placeholder="Mfg Date">
+                <input matInput [matDatepicker]="mfgPicker" formControlName="manufacturingDate" placeholder="Mfg Date" [max]="today">
                 <mat-datepicker-toggle matIconSuffix [for]="mfgPicker" matTooltip="MFG DATE"></mat-datepicker-toggle>
                 <mat-datepicker #mfgPicker></mat-datepicker>
                 <mat-error *ngIf="item.get('manufacturingDate')?.hasError('required')">Required</mat-error>
@@ -164,7 +164,7 @@
             </div>
             <div class="col-exp">
               <mat-form-field appearance="outline" dense *ngIf="item.get('isExpiryRequired')?.value; else noExp">
-                <input matInput [matDatepicker]="expPicker" formControlName="expiryDate" placeholder="Exp Date">
+                <input matInput [matDatepicker]="expPicker" formControlName="expiryDate" placeholder="Exp Date" [min]="today">
                 <mat-datepicker-toggle matIconSuffix [for]="expPicker" matTooltip="EXP DATE"></mat-datepicker-toggle>
                 <mat-datepicker #expPicker></mat-datepicker>
                 <mat-error *ngIf="item.get('expiryDate')?.hasError('required')">Required</mat-error>
@@ -230,4 +230,12 @@
       </div>
     </form>
   </div>
+
+  <!-- Floating Scroll Button to toggle between Header and Totals -->
+  <button mat-fab color="primary" class="scroll-top-btn" 
+    *ngIf="items.length > 3" 
+    (click)="toggleScroll()"
+    [@fadeInOut]>
+    <mat-icon>{{ isAtTop ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</mat-icon>
+  </button>
 </div>

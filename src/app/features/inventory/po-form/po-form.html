@@ -69,7 +69,7 @@
       <div class="field-item">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>PO Date*</mat-label>
-          <input matInput [matDatepicker]="picker" formControlName="poDate" [min]="minDate">
+          <input matInput [matDatepicker]="picker" formControlName="poDate" [min]="today">
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
         </mat-form-field>
@@ -193,7 +193,7 @@
         <ng-container *ngIf="row.get('isExpiryRequired')?.value; else mfgNA">
           <mat-form-field appearance="outline" subscriptSizing="dynamic" class="date-field">
             <mat-label>Mfg Date *</mat-label>
-            <input matInput [matDatepicker]="mfgPicker" formControlName="mfgDate" placeholder="dd/mm/yyyy" required>
+            <input matInput [matDatepicker]="mfgPicker" formControlName="mfgDate" placeholder="dd/mm/yyyy" required [max]="today">
             <mat-datepicker-toggle matIconSuffix [for]="mfgPicker"></mat-datepicker-toggle>
             <mat-datepicker #mfgPicker></mat-datepicker>
             <mat-error *ngIf="row.get('mfgDate')?.hasError('required')">Required</mat-error>
@@ -250,52 +250,71 @@
         </div>
 
         <div class="summary-box">
-          <div class="totals-container">
-            <div class="total-row">
-              <span style="color: #64748b; font-weight: 500;">Total Items Qty:</span>
-              <span style="font-weight: 600;">{{ totalQty }}</span>
+          <div class="premium-summary-card">
+            <div class="summary-header">
+              <mat-icon>calculate</mat-icon>
+              <span>PO Summary</span>
             </div>
-            <div class="total-row">
-              <span>Sub-Total:</span>
-              <span>₹{{ grandTotal - totalTaxAmount | number:'1.2-2' }}</span>
-            </div>
-            <div class="total-row">
-              <span class="tax-label">
-                Total Tax:
-                <small class="tax-tag" *ngIf="poForm.get('isTaxApplicable')?.value">
-                  ({{ poForm.get('taxType')?.value === 'local' ? 'CGST+SGST' : 'IGST' }})
-                </small>
-              </span>
-              <span>₹{{ totalTaxAmount | number:'1.2-2' }}</span>
-            </div>
+            
+            <div class="summary-content">
+              <div class="summary-row">
+                <span class="label">Total Items Qty</span>
+                <span class="value">{{ totalQty }}</span>
+              </div>
 
-            <div class="total-row extra-tax">
-              <span class="label">TDS (%):</span>
-              <div class="tax-input-group">
-                <input type="number" formControlName="tdsPercent" class="footer-tax-input" placeholder="0">
-                <span class="tax-val text-info">-₹{{ tdsAmount | number:'1.2-2' }}</span>
+              <div class="summary-row">
+                <span class="label">Sub-Total</span>
+                <span class="value">₹{{ grandTotal - totalTaxAmount | number:'1.2-2' }}</span>
+              </div>
+
+              <div class="summary-row tax-highlight">
+                <span class="label">
+                  Total Tax
+                  <span class="tax-badge text-uppercase" *ngIf="poForm.get('isTaxApplicable')?.value">
+                    {{ poForm.get('taxType')?.value === 'local' ? 'CGST+SGST' : 'IGST' }}
+                  </span>
+                </span>
+                <span class="value tax-plus">+ ₹{{ totalTaxAmount | number:'1.2-2' }}</span>
+              </div>
+
+              <div class="summary-divider"></div>
+
+              <div class="adjustment-section">
+                <div class="summary-row adjustment">
+                  <span class="label">TDS (%)</span>
+                  <div class="input-value-group">
+                    <input type="number" formControlName="tdsPercent" class="footer-tax-input" placeholder="0">
+                    <span class="adj-val minus">- ₹{{ tdsAmount | number:'1.2-2' }}</span>
+                  </div>
+                </div>
+
+                <div class="summary-row adjustment">
+                  <span class="label">TCS (%)</span>
+                  <div class="input-value-group">
+                    <input type="number" formControlName="tcsPercent" class="footer-tax-input" placeholder="0">
+                    <span class="adj-val plus">+ ₹{{ tcsAmount | number:'1.2-2' }}</span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="total-row extra-tax">
-              <span class="label">TCS (%):</span>
-              <div class="tax-input-group">
-                <input type="number" formControlName="tcsPercent" class="footer-tax-input" placeholder="0">
-                <span class="tax-val text-warning">+₹{{ tcsAmount | number:'1.2-2' }}</span>
+            <div class="grand-total-container">
+              <div class="grand-total-inner">
+                <span class="total-label">Final Amount</span>
+                <div class="total-amount-wrapper">
+                  <span class="currency">₹</span>
+                  <span class="amount">{{ finalGrandTotal | number:'1.2-2' }}</span>
+                </div>
               </div>
             </div>
 
-            <hr>
-            <div class="total-row grand-total">
-              <strong>GRAND TOTAL:</strong>
-              <strong>₹{{ finalGrandTotal | number:'1.2-2' }}</strong>
+            <!-- Save Action Button inside the card for emphasis -->
+            <div class="card-action-bar">
+              <button mat-raised-button color="primary" class="save-btn-premium w-100" (click)="saveDraft()" [disabled]="poForm.invalid || isLoading">
+                <mat-icon>{{ isEditMode ? 'cloud_upload' : 'save' }}</mat-icon> 
+                {{ isEditMode ? 'Update Draft (PO)' : 'Save Draft (PO)' }}
+              </button>
             </div>
-          </div>
-
-          <div class="save-btn-container">
-            <button mat-raised-button color="primary" class="save-btn" (click)="saveDraft()" [disabled]="poForm.invalid || isLoading">
-              <mat-icon>save</mat-icon> {{ isEditMode ? 'Update Draft (PO)' : 'Save Draft (PO)' }}
-            </button>
           </div>
         </div>
       </div>

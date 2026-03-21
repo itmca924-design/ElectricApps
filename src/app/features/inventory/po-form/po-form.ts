@@ -40,6 +40,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 })
 export class PoForm implements OnInit, OnDestroy, AfterViewInit {
   isAtTop = true;
+  today = new Date();
   private scrollContainer: HTMLElement | null = null;
   private scrollListener: any;
 
@@ -648,14 +649,20 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
     this.unitService.getAll().pipe(takeUntil(this.destroy$)).subscribe(data => this.allUnits = data || []);
   }
 
-  getMinExpDate(mfgDateValue: any): Date | null {
-    if (!mfgDateValue) return null;
-    const d = new Date(mfgDateValue);
-    if (!isNaN(d.getTime())) {
-      d.setDate(d.getDate() + 1); // Exact next day
-      return d;
-    }
-    return null;
+  getMinExpDate(mfgDateValue: any): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (!mfgDateValue) return today;
+    
+    const mfgDate = new Date(mfgDateValue);
+    mfgDate.setHours(0, 0, 0, 0);
+    
+    // Minimum expiry is either today or Day after MFG
+    const nextDay = new Date(mfgDate);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    return nextDay > today ? nextDay : today;
   }
 
   ngOnDestroy() {

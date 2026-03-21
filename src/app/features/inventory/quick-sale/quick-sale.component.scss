@@ -518,3 +518,55 @@
     }
   }
 }
+/* ================= SCROLL TO TOP/BOTTOM BUTTON (PREMIUM) ================= */
+.scroll-top-btn {
+  position: fixed !important;
+  bottom: 25px; /* Moved to extreme corner */
+  right: 25px; /* Moved to extreme corner */
+  z-index: 9999;
+  width: 50px !important; /* Slightly smaller for better fit */
+  height: 50px !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  
+  // Premium Accent Gradient
+  background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+  color: white !important;
+  
+  // Perfect Flexible Centering
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  // High-end Material Shadow + Accent Glow
+  box-shadow: 0 8px 16px -4px rgba(168, 85, 247, 0.4), 
+              0 4px 6px -2px rgba(168, 85, 247, 0.1),
+              0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+  
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer;
+
+  mat-icon {
+    font-size: 32px !important; // Slightly larger for better icon weight
+    width: 32px !important;
+    height: 32px !important;
+    line-height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  &:hover {
+    transform: translateY(-8px) scale(1.15) !important;
+    box-shadow: 0 15px 25px -5px rgba(168, 85, 247, 0.5), 
+                0 10px 10px -5px rgba(168, 85, 247, 0.2) !important;
+    filter: brightness(1.1);
+  }
+
+  &:active {
+    transform: translateY(-2px) scale(0.95) !important;
+  }
+}

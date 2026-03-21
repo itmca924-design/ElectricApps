@@ -5,9 +5,6 @@
         <button mat-button class="back-btn" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon> Back
         </button>
-        <button mat-raised-button color="primary" class="save-btn" (click)="Save()" [disabled]="soForm.invalid || hasZeroStockItems">
-          <mat-icon>save</mat-icon> Save Sale Order
-        </button>
       </div>  
 
       <form [formGroup]="soForm">
@@ -210,52 +207,78 @@
           </div>
         </div>
 
-        <div class="row mt-4 align-items-end">
-          <!-- Left: Remarks -->
-          <div class="col-md-8 col-12 mb-3 mb-md-0">
-            <div class="remarks-container">
+        <div class="po-footer mt-4 p-3 bg-light rounded" *ngIf="items.length">
+          <div class="footer-layout">
+            <div class="remarks-box">
               <mat-form-field appearance="outline" class="w-100" subscriptSizing="dynamic">
                 <mat-label>Remarks / Payment Terms</mat-label>
-                <textarea matInput formControlName="remarks" rows="2" placeholder="Enter terms or special instructions..."></textarea>
+                <textarea matInput formControlName="remarks" rows="3" placeholder="Enter terms or special instructions..."></textarea>
               </mat-form-field>
             </div>
-          </div>
 
-          <!-- Right: Totals -->
-          <div class="col-md-4 col-12" *ngIf="items.length">
-            <div class="po-footer p-3 bg-white rounded shadow-sm border" style="margin-top: 0; margin-bottom: 25px;">
-              <div class="summary-area text-end">
-                <div class="summary-line mb-1 d-flex justify-content-between">
-                  <span class="text-muted">Sub-Total:</span>
-                  <span class="fw-bold">₹ {{ subTotal | number:'1.2-2' }}</span>
+            <div class="summary-box">
+              <div class="premium-summary-card">
+                <div class="summary-header">
+                  <mat-icon>calculate</mat-icon>
+                  <span>Sale Summary</span>
                 </div>
-                <div class="summary-line mb-2 d-flex justify-content-between align-items-center">
-                  <span class="text-muted">
-                    Total Tax:
-                    <small class="tax-type-tag text-uppercase">({{ soForm.get('taxType')?.value === 'local' ? 'CGST+SGST' : 'IGST' }})</small>
-                  </span>
-                  <span class="text-danger fw-bold">+ ₹ {{ totalTax | number:'1.2-2' }}</span>
-                </div>
+                
+                <div class="summary-content">
+                  <div class="summary-row">
+                    <span class="label">Total Items Qty</span>
+                    <span class="value">{{ totalQty }}</span>
+                  </div>
 
-                <div class="summary-line mb-2 d-flex justify-content-between align-items-center">
-                    <span class="text-muted">TDS (%):</span>
-                    <div class="extra-tax-input-wrap">
+                  <div class="summary-row">
+                    <span class="label">Sub-Total</span>
+                    <span class="value">₹ {{ subTotal | number:'1.2-2' }}</span>
+                  </div>
+
+                  <div class="summary-row tax-highlight">
+                    <span class="label">
+                      Total Tax
+                      <span class="tax-badge text-uppercase">{{ soForm.get('taxType')?.value === 'local' ? 'CGST+SGST' : 'IGST' }}</span>
+                    </span>
+                    <span class="value tax-plus">+ ₹ {{ totalTax | number:'1.2-2' }}</span>
+                  </div>
+
+                  <div class="summary-divider"></div>
+
+                  <div class="adjustment-section">
+                    <div class="summary-row adjustment">
+                      <span class="label">TDS (%)</span>
+                      <div class="input-value-group">
                         <input type="number" formControlName="tdsPercent" class="footer-tax-input" placeholder="0">
-                        <span class="text-primary fw-bold small ms-2">-₹{{ tdsAmount | number:'1.2-2' }}</span>
+                        <span class="adj-val minus">- ₹{{ tdsAmount | number:'1.2-2' }}</span>
+                      </div>
                     </div>
-                </div>
 
-                <div class="summary-line mb-3 d-flex justify-content-between align-items-center">
-                    <span class="text-muted">TCS (%):</span>
-                    <div class="extra-tax-input-wrap">
+                    <div class="summary-row adjustment">
+                      <span class="label">TCS (%)</span>
+                      <div class="input-value-group">
                         <input type="number" formControlName="tcsPercent" class="footer-tax-input" placeholder="0">
-                        <span class="text-warning fw-bold small ms-2">+₹{{ tcsAmount | number:'1.2-2' }}</span>
+                        <span class="adj-val plus">+ ₹{{ tcsAmount | number:'1.2-2' }}</span>
+                      </div>
                     </div>
+                  </div>
                 </div>
 
-                <div class="po-grand-total mt-2 border-top pt-2 d-flex justify-content-between align-items-center">
-                   <span class="text-primary fw-bold h5 m-0">GRAND TOTAL:</span>
-                   <span class="text-primary fw-bold h3 m-0">₹ {{ finalGrandTotal | number:'1.2-2' }}</span>
+                <div class="grand-total-container">
+                  <div class="grand-total-inner">
+                    <span class="total-label">Final Amount</span>
+                    <div class="total-amount-wrapper">
+                      <span class="currency">₹</span>
+                      <span class="amount">{{ finalGrandTotal | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Save Action Button inside the card for emphasis -->
+                <div class="card-action-bar">
+                  <button mat-raised-button color="primary" class="save-btn-premium w-100" (click)="Save()" [disabled]="soForm.invalid || hasZeroStockItems">
+                    <mat-icon>{{ isEdit ? 'cloud_upload' : 'save' }}</mat-icon> 
+                    {{ isEdit ? 'Update Sale Order' : 'Save Sale Order' }}
+                  </button>
                 </div>
               </div>
             </div>

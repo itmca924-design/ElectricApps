@@ -221,4 +221,12 @@
       </div>
     </form>
   </div>
+
+  <!-- Floating Scroll Button to toggle between Header and Totals -->
+  <button mat-fab color="primary" class="scroll-top-btn" 
+    *ngIf="items.length > 3" 
+    (click)="toggleScroll()"
+    [@fadeInOut]>
+    <mat-icon>{{ isAtTop ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</mat-icon>
+  </button>
 </div>

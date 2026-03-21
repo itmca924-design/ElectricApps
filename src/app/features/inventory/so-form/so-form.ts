@@ -444,11 +444,6 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
     this.cdr.detectChanges();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   initForm() {
     this.soForm = this.fb.group({
       customerId: [null, [Validators.required]],
@@ -523,6 +518,10 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
   get items(): FormArray {
     return this.soForm.get('items') as FormArray;
+  }
+
+  get totalQty(): number {
+    return this.items.controls.reduce((sum, item) => sum + (Number(item.get('qty')?.value) || 0), 0);
   }
 
   addRow(): void {
@@ -984,6 +983,14 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
         }
       });
     }, 800);
+  }
+
+  ngOnDestroy() {
+    if (this.scrollContainer && this.scrollListener) {
+      this.scrollContainer.removeEventListener('scroll', this.scrollListener);
+    }
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   goBack() {
