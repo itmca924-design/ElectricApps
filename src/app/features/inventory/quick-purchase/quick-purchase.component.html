@@ -9,7 +9,16 @@
     </div>
 
     <div class="actions">
-      <button mat-stroked-button (click)="router.navigate(['/app/quick-inventory/purchase/list'])">
+      <!-- Active Scanner Status -->
+      <div class="barcode-status" [class.scanning]="isScanning">
+        <mat-icon>{{ isScanning ? 'settings_overscan' : 'barcode_reader' }}</mat-icon>
+        <div class="text-container">
+          <span class="status-label">{{ isScanning ? 'Scanning...' : 'Scanner Active' }}</span>
+          <span class="last-scanned" *ngIf="lastScannedCode">{{ lastScannedCode }}</span>
+        </div>
+      </div>
+
+      <button mat-button class="back-btn" (click)="router.navigate(['/app/quick-inventory/purchase/list'])">
         <mat-icon>arrow_back</mat-icon> Cancel
       </button>
       <button mat-flat-button color="primary" class="save-btn" (click)="save()" [disabled]="isSaving">
@@ -231,11 +240,12 @@
     </form>
   </div>
 
-  <!-- Floating Scroll Button to toggle between Header and Totals -->
-  <button mat-fab color="primary" class="scroll-top-btn" 
-    *ngIf="items.length > 3" 
-    (click)="toggleScroll()"
-    [@fadeInOut]>
-    <mat-icon>{{ isAtTop ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</mat-icon>
-  </button>
+  <!-- Enhanced Scroll Action Button -->
+<button (click)="toggleScroll()" 
+        class="scroll-top-btn" 
+        mat-fab 
+        *ngIf="items.length > 0"
+        [@fadeInOut]>
+  <mat-icon>{{ isAtTop ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+</button>
 </div>

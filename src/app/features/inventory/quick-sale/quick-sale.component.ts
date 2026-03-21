@@ -1,11 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { InventoryService } from '../service/inventory.service';
+import { ProductService } from '../../master/product/service/product.service';
 import { NotificationService } from '../../shared/notification.service';
-import { Router } from '@angular/router';
-import { Observable, debounceTime, distinctUntilChanged, map, startWith } from 'rxjs';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Observable, debounceTime, distinctUntilChanged, map, startWith, Subject, takeUntil, finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ProductSelectionDialogComponent } from '../../../shared/components/product-selection-dialog/product-selection-dialog';
@@ -13,17 +14,13 @@ import { BatchSelectionDialogComponent } from '../../../shared/components/batch-
 import { PermissionService } from '../../../core/services/permission.service';
 import { UnitService } from '../../master/units/services/units.service';
 import { LocationService } from '../../master/locations/services/locations.service';
-import { ActivatedRoute } from '@angular/router';
 import { SaleOrderService } from '../service/saleorder.service';
 import { CustomerComponent } from '../../master/customer-component/customer-component';
 import { customerService } from '../../master/customer-component/customer.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
-import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 import { SoSuccessDialogComponent } from '../so-success-dialog/so-success-dialog.component';
-import { FinanceService } from '../../finance/service/finance.service';
+import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { ChangeDetectorRef, AfterViewInit, OnDestroy } from '@angular/core';
-
 
 @Component({
     selector: 'app-quick-sale',
@@ -43,9 +40,10 @@ import { ChangeDetectorRef, AfterViewInit, OnDestroy } from '@angular/core';
         ])
     ]
 })
-export class QuickSaleComponent implements OnInit {
+export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
     private fb = inject(FormBuilder);
     public inventoryService = inject(InventoryService);
+    private productService = inject(ProductService);
     private notification = inject(NotificationService);
     public router = inject(Router);
     private authService = inject(AuthService);
@@ -56,11 +54,12 @@ export class QuickSaleComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private soService = inject(SaleOrderService);
     private customerService = inject(customerService);
-    private financeService = inject(FinanceService);
+    private barcodeHelper = inject(BarcodeReaderHelper);
+    private cdr = inject(ChangeDetectorRef);
+    private destroy$ = new Subject<void>();
 
     saleOrderId: number | null = null;
     isEdit = false;
-
     saleForm!: FormGroup;
     isSaving = false;
     isLoadingCustomers = false;
@@ -71,7 +70,9 @@ export class QuickSaleComponent implements OnInit {
     warehouses: any[] = [];
     racksByItem: any[][] = [];
     filteredUnits: Observable<any[]>[] = [];
-    private cdr = inject(ChangeDetectorRef);
+    isScanning = false;
+    lastScannedCode = '';
+    today = new Date();
     isAtTop = true;
     private scrollContainer: HTMLElement | null = null;
     private scrollListener: any;
@@ -98,10 +99,35 @@ export class QuickSaleComponent implements OnInit {
         this.initForm();
     }
 
+    openAddCustomerDialog() {
+        const dialogRef = this.dialog.open(CustomerComponent, { width: '600px', disableClose: true });
+        dialogRef.afterClosed().subscribe(result => { if (result) this.loadCustomers(); });
+    }
+
+    isItemExpired(index: number): boolean {
+        const expDate = this.items.at(index).get('expiryDate')?.value;
+        if (!expDate) return false;
+        const exp = new Date(expDate);
+        exp.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return exp <= today;
+    }
+
+    isItemNearExpiry(index: number): boolean {
+        const expDate = this.items.at(index).get('expiryDate')?.value;
+        if (!expDate) return false;
+        const exp = new Date(expDate);
+        const today = new Date();
+        const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 3600 * 24));
+        return diffDays > 0 && diffDays <= 90;
+    }
+
     ngOnInit() {
         this.loadCustomers();
         this.loadUnits();
         this.loadWarehouses();
+        this.initBarcodeListener();
 
         this.route.paramMap.subscribe(params => {
             const id = params.get('id');
@@ -127,43 +153,34 @@ export class QuickSaleComponent implements OnInit {
                 const sanitizedName = (res.customerName || '').replace(/^"|"$/g, '');
                 this.customerSearchCtrl.setValue({ id: res.customerId, customerName: sanitizedName });
 
-                // Clear existing items
                 while (this.items.length) {
                     this.items.removeAt(0);
                 }
 
-                // Add items
                 if (res.items && res.items.length > 0) {
                     res.items.forEach((item: any, idx: number) => {
                         this.addProductToForm(item);
-                        // Fetch stock for existing items
                         this.inventoryService.getProductById(item.productId || item.id).subscribe((stockResult: any) => {
                            const currentItem = this.items.at(idx);
-                           // Handle both ApiResponse wrapper and direct DTO, and naming cases
                            const stockInWarehouse = stockResult?.data?.currentStock ?? 
-                                         stockResult?.currentStock ?? 
-                                         stockResult?.data?.CurrentStock ?? 
-                                         stockResult?.CurrentStock ?? 0;
+                                          stockResult?.currentStock ?? 
+                                          stockResult?.data?.CurrentStock ?? 
+                                          stockResult?.CurrentStock ?? 0;
                            
                            if (currentItem) {
-                               // 🧠 APPROACH: Effective Stock = Stock in Warehouse + Original Qty in this SO
-                               // This allows the user to see that their 2 items are available for adjustment.
                                const originalQty = item.qty || 0;
                                currentItem.get('availableStock')?.setValue(stockInWarehouse + originalQty);
-                               // Trigger calculation again just in case
                                this.calculateItemTotal(idx);
                            }
                         });
 
-                        // Populate racks if warehouseId exists
                         const whId = item.warehouseId || item.defaultWarehouseId;
                         if (whId) {
                             this.locationService.getRacksByWarehouse(whId).subscribe({
                                 next: (racks: any[]) => {
                                     this.racksByItem[idx] = racks || [];
                                 },
-                                error: (err) => {
-                                    console.warn('Failed to load racks for warehouse:', whId, err);
+                                error: () => {
                                     this.racksByItem[idx] = [];
                                 }
                             });
@@ -171,7 +188,7 @@ export class QuickSaleComponent implements OnInit {
                     });
                 }
             },
-            error: (err) => this.notification.showStatus(false, 'Failed to load sale order.')
+            error: () => this.notification.showStatus(false, 'Failed to load sale order.')
         });
     }
 
@@ -188,8 +205,7 @@ export class QuickSaleComponent implements OnInit {
                 next: (res: any) => {
                     this.racksByItem[index] = res || [];
                 },
-                error: (err) => {
-                    console.warn('Failed to load racks for warehouse:', warehouseId, err);
+                error: () => {
                     this.racksByItem[index] = [];
                 }
             });
@@ -206,7 +222,7 @@ export class QuickSaleComponent implements OnInit {
 
     private initForm() {
         this.saleForm = this.fb.group({
-            customerId: [0], // Default 0 for Cash Customer
+            customerId: [0],
             customerName: ['Cash Customer', Validators.required],
             remarks: [''],
             date: [new Date()],
@@ -217,9 +233,6 @@ export class QuickSaleComponent implements OnInit {
             tdsPercent: [0],
             tcsPercent: [0]
         });
-
-        this.addItem();
-        this.items.removeAt(0); // Start empty
     }
 
     openProductDialog() {
@@ -239,19 +252,16 @@ export class QuickSaleComponent implements OnInit {
                             rackName: product.defaultRackName || product.rackName || 'NA'
                         };
                         this.addProductToForm(mappedProduct);
-                        // Auto-populate rack list for this item's default warehouse
                         const idx = this.items.length - 1;
                         if (mappedProduct.defaultWarehouseId) {
                             this.locationService.getRacksByWarehouse(mappedProduct.defaultWarehouseId).subscribe({
                                 next: (racks: any[]) => {
                                     this.racksByItem[idx] = racks || [];
-                                    // Auto-select the default rack if available
                                     if (mappedProduct.defaultRackId) {
                                         this.items.at(idx).get('rackId')?.setValue(mappedProduct.defaultRackId, { emitEvent: false });
                                     }
                                 },
-                                error: (err) => {
-                                    console.warn('Failed to load racks for warehouse:', mappedProduct.defaultWarehouseId, err);
+                                error: () => {
                                     this.racksByItem[idx] = [];
                                 }
                             });
@@ -262,9 +272,7 @@ export class QuickSaleComponent implements OnInit {
         });
     }
 
-    addProductToForm(product: any) {
-        // If product.productId exists, it's an existing sale item from database.
-        // If not, it's a new product selection from search/master list (where product.id is the master Guid).
+    addProductToForm(product: any, bypassBatchDialog = false) {
         const isExistingItem = !!product.productId;
         const lineItemId = isExistingItem ? (product.id || 0) : 0;
         const productId = isExistingItem ? product.productId : product.id;
@@ -275,20 +283,20 @@ export class QuickSaleComponent implements OnInit {
             try { return new Date(dt).toISOString().substring(0, 10); } catch { return null; }
         };
 
-        // ✅ Date-only expiry check (same logic as isExpired() in current-stock-component)
         const isExpiredBatch = (expDate: any): boolean => {
             if (!expDate) return false;
             const exp = new Date(expDate);
             exp.setHours(0, 0, 0, 0);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            return exp <= today; // today ka din bhi expired hai
+            return exp <= today;
         };
 
         const itemForm = this.fb.group({
             id: [lineItemId],
             productId: [productId, Validators.required],
             productName: [product.productName || product.name, Validators.required],
+            sku: [product.sku || ''],
             availableStock: [product.currentStock || 0],
             rackName: [product.rackName || 'NA'],
             warehouseId: [product.warehouseId || product.defaultWarehouseId || null],
@@ -313,13 +321,9 @@ export class QuickSaleComponent implements OnInit {
 
         if (!isExistingItem) {
              const productName = product.productName || product.name || '';
-             // 🧐 Using Name for search as Stock controller might not index SKU for search, 
-             // but matching by ID is case-insensitive for GUID consistency.
              this.inventoryService.getCurrentStock('', '', 0, 100, productName).subscribe((res: any) => {
                  const currentItem = this.items.at(index);
                  const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
- 
-                 // Match by ID (Case Insensitive for GUIDs) or Product Name as fallback
                  const productItem = itemsArray.find((x: any) => {
                      const xId = String(x.productId || x.ProductId || x.id || x.Id).toLowerCase();
                      const targetId = String(productId).toLowerCase();
@@ -332,7 +336,6 @@ export class QuickSaleComponent implements OnInit {
                      return;
                  }
 
-                 // Update available stock
                 if (currentItem) {
                     currentItem.get('availableStock')?.setValue(productItem.availableStock || 0);
                 }
@@ -349,7 +352,6 @@ export class QuickSaleComponent implements OnInit {
                      };
                  });
 
-                 // Fallback: agar history nahi hai toh stock item ka use karo
                  if (allBatches.length === 0) {
                      allBatches.push({
                          grnNumber: 'N/A',
@@ -367,11 +369,12 @@ export class QuickSaleComponent implements OnInit {
                  const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired || b.manufacturingDate);
                  const validBatches = allBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
 
-                 if (validBatches.length === 1 && allBatches.filter((b: any) => b.availableStock > 0).length === 1) {
-                     // Single valid batch
+                 if (bypassBatchDialog && validBatches.length > 0) {
+                     // Auto-select first valid batch for scanning
+                     this.applyBatchToForm(validBatches[0], currentItem, formatDt, index);
+                 } else if (validBatches.length === 1 && allBatches.filter((b: any) => b.availableStock > 0).length === 1) {
                      this.applyBatchToForm(validBatches[0], currentItem, formatDt, index);
                  } else if (validBatches.length > 0 || selectableBatches.length > 0) {
-                     // ✅ Show dialog with FIFO filtered batches
                      const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
                          width: '620px',
                          disableClose: false,
@@ -394,10 +397,9 @@ export class QuickSaleComponent implements OnInit {
                      this.notification.showStatus(false, 'No stock available for this product.');
                      this.items.removeAt(index);
                  }
-            });
+             });
         }
     }
-
 
     private applyBatchToForm(batch: any, formGroup: any, formatDt: Function, index: number) {
         const mfgDate = batch.manufacturingDate || batch.ManufacturingDate;
@@ -408,14 +410,10 @@ export class QuickSaleComponent implements OnInit {
         const rackName = batch.rackName || batch.RackName;
         const stock = batch.availableStock || batch.AvailableStock || 0;
 
-        // Update form controls with batch data
         if (warehouseName) {
-            // Try to find the warehouse ID from our warehouses list if not provided
             if (!whId && this.warehouses.length > 0) {
                 const foundWh = this.warehouses.find(w => w.name === warehouseName);
-                if (foundWh) {
-                    formGroup.get('warehouseId')?.setValue(foundWh.id);
-                }
+                if (foundWh) formGroup.get('warehouseId')?.setValue(foundWh.id);
             } else if (whId) {
                 formGroup.get('warehouseId')?.setValue(whId);
             }
@@ -423,26 +421,15 @@ export class QuickSaleComponent implements OnInit {
 
         if (rackName) {
             formGroup.get('rackName')?.setValue(rackName);
-            // If we have the rack ID, set that too
-            if (rkId) {
-                formGroup.get('rackId')?.setValue(rkId);
-            }
+            if (rkId) formGroup.get('rackId')?.setValue(rkId);
         }
 
-        // Set mfg and exp dates
-        if (mfgDate) {
-            formGroup.get('manufacturingDate')?.setValue(formatDt(mfgDate));
-        }
-        if (expDate) {
-            formGroup.get('expiryDate')?.setValue(formatDt(expDate));
-        }
+        if (mfgDate) formGroup.get('manufacturingDate')?.setValue(formatDt(mfgDate));
+        if (expDate) formGroup.get('expiryDate')?.setValue(formatDt(expDate));
 
-        // Update available stock
         formGroup.get('availableStock')?.setValue(stock);
 
-        // Reload racks if warehouse was set
-        const whIdValue = formGroup.get('warehouseId')?.value;
-        if (whIdValue) {
+        if (formGroup.get('warehouseId')?.value) {
             this.onWarehouseChange(index);
         }
     }
@@ -451,16 +438,12 @@ export class QuickSaleComponent implements OnInit {
         return this.saleForm.get('items') as FormArray;
     }
 
-    openAddCustomerDialog() {
-        const dialogRef = this.dialog.open(CustomerComponent, { width: '600px', disableClose: true });
-        dialogRef.afterClosed().subscribe(result => { if (result) this.loadCustomers(); });
-    }
-
     addItem() {
         const itemForm = this.fb.group({
             id: [0],
             productId: [null, Validators.required],
             productName: ['', Validators.required],
+            sku: [''],
             availableStock: [0],
             rackName: ['NA'],
             warehouseId: [null],
@@ -474,7 +457,7 @@ export class QuickSaleComponent implements OnInit {
             isExpiryRequired: [false],
             manufacturingDate: [null],
             expiryDate: [null],
-            originalQty: [0] // 🧠 Store original qty for edit mode stock adjustments
+            originalQty: [0]
         });
 
         const index = this.items.length;
@@ -495,9 +478,7 @@ export class QuickSaleComponent implements OnInit {
 
     private _filterUnits(value: string): any[] {
         const filterValue = value.toLowerCase();
-        return this.units.filter(unit =>
-            (unit.unitName || unit.name || '').toLowerCase().includes(filterValue)
-        );
+        return this.units.filter(unit => (unit.unitName || unit.name || '').toLowerCase().includes(filterValue));
     }
 
     removeItem(index: number) {
@@ -516,7 +497,6 @@ export class QuickSaleComponent implements OnInit {
         const item = this.items.at(index);
         const staticName = item.get('rackName')?.value;
         if (staticName && staticName !== 'NA') return staticName;
-
         if (!rackId) return 'No Rack';
         const racks = this.racksByItem[index] || [];
         const rack = racks.find((r: any) => r.id === rackId);
@@ -536,17 +516,9 @@ export class QuickSaleComponent implements OnInit {
         const rate = item.get('rate')?.value || 0;
         const disc = item.get('discountPercent')?.value || 0;
         const gst = item.get('gstPercent')?.value || 0;
-        const avail = item.get('availableStock')?.value || 0;
-
-        // Optional: Warn if qty > availableStock
-        if (qty > avail) {
-            // Just visual feedback for now, backend will also validate
-        }
-
         const netRate = rate * (1 - disc / 100);
         const tax = netRate * (gst / 100);
         const total = qty * (netRate + tax);
-
         item.get('total')?.patchValue(total.toFixed(2), { emitEvent: false });
     }
 
@@ -555,8 +527,7 @@ export class QuickSaleComponent implements OnInit {
             const qty = parseFloat(ctrl.get('qty')?.value) || 0;
             const rate = parseFloat(ctrl.get('rate')?.value) || 0;
             const disc = parseFloat(ctrl.get('discountPercent')?.value) || 0;
-            const netRate = rate * (1 - disc / 100);
-            return sum + (qty * netRate);
+            return sum + (qty * rate * (1 - disc / 100));
         }, 0);
     }
 
@@ -567,50 +538,32 @@ export class QuickSaleComponent implements OnInit {
             const disc = parseFloat(ctrl.get('discountPercent')?.value) || 0;
             const gst = parseFloat(ctrl.get('gstPercent')?.value) || 0;
             const netRate = rate * (1 - disc / 100);
-            const tax = netRate * (gst / 100);
-            return sum + (qty * tax);
+            return sum + (qty * netRate * (gst / 100));
         }, 0);
     }
 
     get grandTotal(): number {
-        return this.items.controls.reduce((sum, ctrl) => {
-            const val = parseFloat(ctrl.get('total')?.value) || 0;
-            return sum + val;
-        }, 0);
+        return this.items.controls.reduce((sum, ctrl) => sum + (parseFloat(ctrl.get('total')?.value) || 0), 0);
     }
 
-    get tdsAmount(): number {
-        return (this.subTotal * (this.saleForm.get('tdsPercent')?.value || 0)) / 100;
-    }
-
-    get tcsAmount(): number {
-        return (this.subTotal * (this.saleForm.get('tcsPercent')?.value || 0)) / 100;
-    }
-
-    get finalGrandTotal(): number {
-        return this.grandTotal - this.tdsAmount + this.tcsAmount;
-    }
+    get tdsAmount(): number { return (this.subTotal * (this.saleForm.get('tdsPercent')?.value || 0)) / 100; }
+    get tcsAmount(): number { return (this.subTotal * (this.saleForm.get('tcsPercent')?.value || 0)) / 100; }
+    get finalGrandTotal(): number { return this.grandTotal - this.tdsAmount + this.tcsAmount; }
 
     loadCustomers() {
         this.isLoadingCustomers = true;
         this.customerService.getAllCustomers().subscribe({
             next: (res: any) => {
-                // Sanitize names and filter out Internal/Proprietor accounts
                 const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
                 const BANK_ACCOUNT_NAME = 'Company Bank Account (Internal)';
-                
                 let loadedCustomers = (res || [])
                     .map((c: any) => ({
                         ...c,
                         customerName: (c.customerName || c.name || '').replace(/^"|"$/g, ''),
                         name: (c.name || c.customerName || '').replace(/^"|"$/g, '')
                     }))
-                    .filter((c: any) => 
-                        c.customerName !== PROPRIETOR_NAME && 
-                        c.customerName !== BANK_ACCOUNT_NAME
-                    );
+                    .filter((c: any) => c.customerName !== PROPRIETOR_NAME && c.customerName !== BANK_ACCOUNT_NAME);
 
-                // Sort array to keep Walk-in customer at the top
                 loadedCustomers.sort((a: any, b: any) => {
                     const aIsWalkIn = this.isWalkIn(a);
                     const bIsWalkIn = this.isWalkIn(b);
@@ -620,30 +573,25 @@ export class QuickSaleComponent implements OnInit {
                 });
 
                 this.customers = loadedCustomers;
-                
                 if (!this.isEdit) {
                     const walkIn = this.customers.find(c => this.isWalkIn(c));
                     if (walkIn) {
                         this.customerSearchCtrl.setValue({ id: walkIn.id, customerName: walkIn.customerName });
                         this.saleForm.patchValue({ customerId: walkIn.id, customerName: walkIn.customerName });
-                    } else if (this.customers.length > 0) {
-                        this.customerSearchCtrl.setValue({ id: this.customers[0].id, customerName: this.customers[0].customerName });
-                        this.saleForm.patchValue({ customerId: this.customers[0].id, customerName: this.customers[0].customerName });
                     }
                 }
 
-            this.filteredCustomers = this.customerSearchCtrl.valueChanges.pipe(
-                startWith(''),
-                map(value => {
-                    const name = typeof value === 'string' ? value : (value?.customerName || value?.name || '');
-                    return name ? this._filterCustomers(name) : this.customers;
-                })
-            );
-            this.isLoadingCustomers = false;
-        },
-        error: () => {
-            this.isLoadingCustomers = false;
-        }});
+                this.filteredCustomers = this.customerSearchCtrl.valueChanges.pipe(
+                    startWith(''),
+                    map(value => {
+                        const name = typeof value === 'string' ? value : (value?.customerName || value?.name || '');
+                        return name ? this._filterCustomers(name) : this.customers;
+                    })
+                );
+                this.isLoadingCustomers = false;
+            },
+            error: () => this.isLoadingCustomers = false
+        });
     }
 
     isWalkIn(customer: any): boolean {
@@ -652,10 +600,7 @@ export class QuickSaleComponent implements OnInit {
         return name.includes('walk-in') || name.includes('walk in') || name.includes('cash');
     }
 
-    displayCustomer(customer: any): string {
-        if (!customer) return '';
-        return customer.customerName || customer.name || '';
-    }
+    displayCustomer(customer: any): string { return customer ? (customer.customerName || customer.name || '') : ''; }
 
     private _filterCustomers(name: string): any[] {
         const filterValue = name.toLowerCase();
@@ -664,12 +609,7 @@ export class QuickSaleComponent implements OnInit {
 
     onCustomerAutoSelect(event: any) {
         const cust = event.option.value;
-        if (cust) {
-            this.saleForm.patchValue({ 
-                customerId: cust.id, 
-                customerName: cust.customerName || cust.name 
-            });
-        }
+        if (cust) this.saleForm.patchValue({ customerId: cust.id, customerName: cust.customerName || cust.name });
     }
 
     clearCustomer() {
@@ -682,29 +622,14 @@ export class QuickSaleComponent implements OnInit {
             this.notification.showStatus(false, 'You do not have permission to perform this action.');
             return;
         }
-
         if (this.saleForm.invalid) {
             this.notification.showStatus(false, 'Please correct the highlighted errors.');
             return;
         }
 
-        // Secondary validation for stock (Only for Confirmed status)
-        if (this.saleForm.get('status')?.value === 'Confirmed') {
-            const stockErrors = this.items.controls.filter(c => c.get('qty')?.value > (c.get('availableStock')?.value || 0));
-            if (stockErrors.length > 0) {
-                this.notification.showStatus(false, 'One or more items have insufficient stock!');
-                return;
-            }
-        }
-
         const dialogRef = this.dialog.open(ConfirmDialogComponent, {
             width: '400px',
-            data: {
-                title: 'Confirm Save',
-                message: 'Are you sure you want to save this Sale Order?',
-                confirmText: 'Save',
-                confirmColor: 'primary'
-            }
+            data: { title: 'Confirm Save', message: 'Are you sure you want to save this Sale Order?' }
         });
 
         dialogRef.afterClosed().subscribe(result => {
@@ -755,10 +680,6 @@ export class QuickSaleComponent implements OnInit {
                         this.isSaving = false;
                         const orderNo = res.soNumber || res.SONumber || 'N/A';
                         const soId = res.id || res.Id;
-
-                        const selectedCust = this.customers.find((c: any) => String(c.id) == String(formRaw.customerId));
-                        const customerName = selectedCust?.customerName || selectedCust?.name || 'Customer';
-
                         const dialogRef = this.dialog.open(SoSuccessDialogComponent, {
                             width: '500px',
                             disableClose: true,
@@ -766,23 +687,13 @@ export class QuickSaleComponent implements OnInit {
                                 soNumber: orderNo,
                                 grandTotal: Number(this.grandTotal) || 0,
                                 customerId: formRaw.customerId,
-                                customerName: customerName,
+                                customerName: formRaw.customerName,
                                 status: formRaw.status
                             }
                         });
 
                         dialogRef.afterClosed().subscribe(action => {
-                            if (action === 'make-payment') {
-                                this.performDirectPayment({
-                                    soId: soId,
-                                    soNumber: orderNo,
-                                    grandTotal: Number(this.grandTotal) || 0,
-                                    customerId: formRaw.customerId,
-                                    customerName: customerName
-                                });
-                            } else {
-                                this.router.navigate(['/app/quick-inventory/sale/list']);
-                            }
+                            this.router.navigate(['/app/quick-inventory/sale/list']);
                         });
                     },
                     error: (err) => {
@@ -794,74 +705,6 @@ export class QuickSaleComponent implements OnInit {
         });
     }
 
-    performDirectPayment(data: any) {
-        console.log('🚀 Initiating Direct Receipt with data:', data);
-
-        const receiptPayload = {
-            id: 0,
-            customerId: Number(data.customerId),
-            amount: Number(data.grandTotal),
-            totalAmount: Number(data.grandTotal),
-            discountAmount: 0,
-            netAmount: Number(data.grandTotal),
-            paymentMode: 'Cash',
-            referenceNumber: `${data.soNumber}-${new Date().getTime().toString().slice(-4)}`,
-            paymentDate: new Date().toISOString(),
-            remarks: `Direct Receipt for Quick SO: ${data.soNumber}`,
-            createdBy: localStorage.getItem('email') || 'Admin'
-        };
-
-        this.financeService.recordCustomerReceipt(receiptPayload).subscribe({
-            next: () => {
-                this.dialog.open(StatusDialogComponent, {
-                    width: '350px',
-                    data: {
-                        isSuccess: true,
-                        title: 'Payment Successful',
-                        message: `Receipt of ₹${data.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })} recorded.`,
-                        status: 'success'
-                    }
-                });
-                // In Quick Sale, there is no Gate Pass/Dispatch, simply return to the List.
-                this.router.navigate(['/app/quick-inventory/sale/list']);
-            },
-            error: (err) => {
-                console.error('❌ Direct receipt failed:', err);
-                const serverMsg = err.error?.message || err.message || 'Unknown server error';
-
-                this.dialog.open(StatusDialogComponent, {
-                    width: '400px',
-                    data: {
-                        isSuccess: false,
-                        title: 'Payment Failed',
-                        message: `Sale Order saved but payment failed.\n\nReason: ${serverMsg}`,
-                        status: 'error'
-                    }
-                });
-                this.router.navigate(['/app/quick-inventory/sale/list']);
-            }
-        });
-    }
-
-    // Date helpers for EXP date chip coloring in items table
-    isItemExpired(date: any): boolean {
-        if (!date) return false;
-        const exp = new Date(date);
-        exp.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return exp <= today;
-    }
-
-    isItemNearExpiry(date: any): boolean {
-        if (!date) return false;
-        const exp = new Date(date);
-        exp.setHours(0, 0, 0, 0);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const diffDays = Math.ceil((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-        return diffDays > 0 && diffDays <= 15;
-    }
     ngAfterViewInit() {
         setTimeout(() => {
             this.scrollContainer = document.querySelector('.content');
@@ -876,5 +719,46 @@ export class QuickSaleComponent implements OnInit {
         if (this.scrollContainer && this.scrollListener) {
             this.scrollContainer.removeEventListener('scroll', this.scrollListener);
         }
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private initBarcodeListener() {
+        this.barcodeHelper.onScan().pipe(takeUntil(this.destroy$)).subscribe(code => {
+            this.isScanning = true;
+            this.lastScannedCode = code;
+            this.handleBarcodeScan(code);
+            setTimeout(() => {
+                this.isScanning = false;
+                this.cdr.detectChanges();
+            }, 1500);
+        });
+    }
+
+    private handleBarcodeScan(sku: string) {
+        const existingIndex = this.items.controls.findIndex(ctrl => ctrl.get('sku')?.value === sku);
+        if (existingIndex > -1) {
+            const qtyCtrl = this.items.at(existingIndex).get('qty');
+            const avail = this.items.at(existingIndex).get('availableStock')?.value || 0;
+            if (Number(qtyCtrl?.value) + 1 > avail) {
+                this.notification.showStatus(false, 'Cannot add more. Insufficient stock!');
+                return;
+            }
+            qtyCtrl?.setValue(Number(qtyCtrl.value) + 1);
+            this.calculateItemTotal(existingIndex);
+            this.notification.showStatus(true, `Quantity updated for SKU: ${sku}`);
+            return;
+        }
+
+        this.isSaving = true; // Visual feedback
+        this.productService.searchProducts(sku).pipe(finalize(() => this.isSaving = false)).subscribe(products => {
+            const match = products.find((p: any) => p.sku === sku);
+            if (match) {
+                this.addProductToForm(match, true); // bypassBatchDialog = true for scanner
+                this.notification.showStatus(true, `Product added: ${match.productName}`);
+            } else {
+                this.notification.showStatus(false, `Product with SKU ${sku} not found.`);
+            }
+        });
     }
 }

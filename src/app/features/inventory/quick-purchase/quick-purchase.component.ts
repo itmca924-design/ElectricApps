@@ -1,11 +1,12 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { InventoryService } from '../service/inventory.service';
+import { ProductService } from '../../master/product/service/product.service';
 import { NotificationService } from '../../shared/notification.service';
 import { Router, ActivatedRoute } from '@angular/router';
-import { Observable, debounceTime, distinctUntilChanged, switchMap, of, catchError, map, startWith } from 'rxjs';
+import { Observable, debounceTime, distinctUntilChanged, switchMap, of, catchError, map, startWith, Subject, takeUntil, finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ProductSelectionDialogComponent } from '../../../shared/components/product-selection-dialog/product-selection-dialog';
@@ -16,9 +17,8 @@ import { UnitService } from '../../master/units/services/units.service';
 import { LocationService } from '../../master/locations/services/locations.service';
 import { DateHelper } from '../../../shared/models/date-helper';
 import { POService } from '../service/po.service';
+import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
 import { trigger, transition, style, animate } from '@angular/animations';
-
-
 
 @Component({
     selector: 'app-quick-purchase',
@@ -38,7 +38,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
         ])
     ]
 })
-export class QuickPurchaseComponent implements OnInit {
+export class QuickPurchaseComponent implements OnInit, OnDestroy, AfterViewInit {
     private fb = inject(FormBuilder);
     public inventoryService = inject(InventoryService);
     private notification = inject(NotificationService);
@@ -49,8 +49,12 @@ export class QuickPurchaseComponent implements OnInit {
     private supplierService = inject(SupplierService);
     private unitService = inject(UnitService);
     private locationService = inject(LocationService);
+    private productService = inject(ProductService);
     private poService = inject(POService);
     private route = inject(ActivatedRoute);
+    private barcodeHelper = inject(BarcodeReaderHelper);
+    private cdr = inject(ChangeDetectorRef);
+    private destroy$ = new Subject<void>();
 
     purchaseForm!: FormGroup;
     suppliers: any[] = [];
@@ -60,6 +64,8 @@ export class QuickPurchaseComponent implements OnInit {
     priceLists: any[] = [];
     filteredUnits: Observable<any[]>[] = [];
     filteredSuppliers: any[] = [];
+    isScanning = false;
+    lastScannedCode = '';
     isLoading = false;
     isSaving = false;
     isLoadingPriceLists = false;
@@ -71,7 +77,6 @@ export class QuickPurchaseComponent implements OnInit {
     isAtTop = true;
     private scrollContainer: HTMLElement | null = null;
     private scrollListener: any;
-    private cdr = inject(ChangeDetectorRef);
     today = new Date();
 
     onScroll() {
@@ -101,6 +106,7 @@ export class QuickPurchaseComponent implements OnInit {
         this.loadUnits();
         this.loadWarehouses();
         this.bindDropdownPriceList();
+        this.initBarcodeListener();
 
         const id = this.route.snapshot.paramMap.get('id');
         if (id && id !== '0') {
@@ -109,16 +115,12 @@ export class QuickPurchaseComponent implements OnInit {
             this.loadPODetails(id);
         } else {
             this.loadNextPoNumber();
-            // Handle refill data from Quick Current Stock using history.state
-            // Wait longer to ensure all async operations are complete
             setTimeout(() => {
                 const state = window.history.state;
                 if (state?.refillData) {
-                    console.log('🔄 Adding refillData:', state.refillData);
                     this.addProductToForm(state.refillData);
                     this.cdr.detectChanges();
                 } else if (state?.refillItems) {
-                    console.log('🔄 Adding refillItems:', state.refillItems);
                     state.refillItems.forEach((item: any) => this.addProductToForm(item));
                     this.cdr.detectChanges();
                 }
@@ -156,7 +158,7 @@ export class QuickPurchaseComponent implements OnInit {
             priceListId: [null, Validators.required],
             remarks: [''],
             date: [new Date()],
-            expectedDeliveryDate: [new Date(), Validators.required],
+            expectedDeliveryDate: [this.today, Validators.required],
             poNumber: [{ value: '', disabled: true }],
             items: this.fb.array([], Validators.required),
             isTaxApplicable: [true],
@@ -165,7 +167,6 @@ export class QuickPurchaseComponent implements OnInit {
             tcsPercent: [0]
         });
 
-        // Listen to manual checkbox change
         this.purchaseForm.get('isTaxApplicable')?.valueChanges.subscribe(val => {
             this.selectedSupplierIsUnregistered = !val;
             this.items.controls.forEach((ctrl, idx) => {
@@ -178,9 +179,6 @@ export class QuickPurchaseComponent implements OnInit {
                 this.calculateItemTotal(idx);
             });
         });
-
-        // Add initial item
-        // this.addItem();
     }
 
     loadPODetails(id: any) {
@@ -217,6 +215,7 @@ export class QuickPurchaseComponent implements OnInit {
         const row = this.fb.group({
             productId: [item.productId, Validators.required],
             productName: [item.productName, Validators.required],
+            sku: [item.sku || ''],
             availableStock: [item.currentStock || 0],
             rackName: [item.rackName || 'NA'],
             warehouseId: [item.warehouseId || null],
@@ -265,12 +264,10 @@ export class QuickPurchaseComponent implements OnInit {
                             rackName: product.defaultRackName || product.rackName || 'NA'
                         };
                         this.addProductToForm(mappedProduct);
-                        // Auto-populate rack list for this item's default warehouse
                         const idx = this.items.length - 1;
                         if (mappedProduct.defaultWarehouseId) {
                             this.locationService.getRacksByWarehouse(mappedProduct.defaultWarehouseId).subscribe((racks: any[]) => {
                                 this.racksByItem[idx] = racks;
-                                // Auto-select the default rack if available
                                 if (mappedProduct.defaultRackId) {
                                     this.items.at(idx).get('rackId')?.setValue(mappedProduct.defaultRackId, { emitEvent: false });
                                 }
@@ -283,32 +280,11 @@ export class QuickPurchaseComponent implements OnInit {
     }
 
     addProductToForm(product: any) {
-        // Handle both product.id and product.productId for refill data compatibility
         const productId = product.id || product.productId;
-        
-        console.log('➕ addProductToForm called with:', { 
-            productId, 
-            productName: product.productName, 
-            qty: product.suggestedQty, 
-            availableStock: product.currentStock || product.availableStock,
-            mfgDate: product.manufacturingDate,
-            expDate: product.expiryDate,
-            isExpiryRequired: product.isExpiryRequired
-        });
-        
-        // Format dates if they exist
-        const formatDate = (dt: any) => {
-            if (!dt || dt === 'NA') return null;
-            if (typeof dt === 'string' && dt.length >= 10) return dt.substring(0, 10);
-            try { return new Date(dt).toISOString().substring(0, 10); } catch { return null; }
-        };
-
-        const mfgDate = null;
-        const expDate = null;
-
         const itemForm = this.fb.group({
             productId: [productId, Validators.required],
             productName: [product.productName || product.name, Validators.required],
+            sku: [product.sku || ''],
             availableStock: [product.currentStock || product.availableStock || 0],
             rackName: [product.rackName || 'NA'],
             warehouseId: [product.defaultWarehouseId || null],
@@ -321,23 +297,18 @@ export class QuickPurchaseComponent implements OnInit {
             originalGst: [product.gstPercent ?? product.defaultGst ?? 18],
             taxAmount: [0],
             total: [{ value: 0, disabled: true }],
-            manufacturingDate: [mfgDate, product.isExpiryRequired ? Validators.required : []],
-            expiryDate: [expDate, product.isExpiryRequired ? Validators.required : []],
+            manufacturingDate: [null, product.isExpiryRequired ? Validators.required : []],
+            expiryDate: [null, product.isExpiryRequired ? Validators.required : []],
             isExpiryRequired: [product.isExpiryRequired || false]
         }, { validators: [this.dateRangeValidator] });
 
-        console.log('✅ Form created with isExpiryRequired:', product.isExpiryRequired, 'mfgDate:', mfgDate, 'expDate:', expDate);
-
         const index = this.items.length;
         this.items.push(itemForm);
-        console.log('✅ Product added to form. Current items count:', this.items.length);
-        
-        this.setupItemCalculations(index);
         this.calculateItemTotal(index);
+        this.setupItemCalculations(index);
         this.setupUnitFilter(index);
         this.cdr.detectChanges();
 
-        // If we have productId, try to fetch full product details and update price list rate
         if (productId) {
             const priceListId = this.purchaseForm.get('priceListId')?.value;
             if (priceListId) {
@@ -365,6 +336,7 @@ export class QuickPurchaseComponent implements OnInit {
         const itemForm = this.fb.group({
             productId: [null, Validators.required],
             productName: ['', Validators.required],
+            sku: [''],
             availableStock: [0],
             rackName: ['NA'],
             warehouseId: [null],
@@ -390,36 +362,15 @@ export class QuickPurchaseComponent implements OnInit {
     dateRangeValidator(group: any): any {
         const isRequired = group.get('isExpiryRequired')?.value;
         if (!isRequired) return null;
-
-        const mfgCtrl = group.get('manufacturingDate');
-        const expCtrl = group.get('expiryDate');
-        const mfg = mfgCtrl?.value;
-        const exp = expCtrl?.value;
-
+        const mfg = group.get('manufacturingDate')?.value;
+        const exp = group.get('expiryDate')?.value;
         if (mfg && exp) {
             const mfgDate = new Date(mfg);
             const expDate = new Date(exp);
-            
-            // Check if dates are valid
             if (isNaN(mfgDate.getTime()) || isNaN(expDate.getTime())) return null;
-
-            // Reset hours to compare only dates
             mfgDate.setHours(0, 0, 0, 0);
             expDate.setHours(0, 0, 0, 0);
-            
-            if (expDate < mfgDate) {
-                if (!expCtrl.hasError('dateRangeInvalid')) {
-                    expCtrl.setErrors({ ...expCtrl.errors, dateRangeInvalid: true });
-                }
-                return { dateRangeInvalid: true };
-            } else {
-                // Clear the error if now valid, but keep other errors like 'required'
-                if (expCtrl.hasError('dateRangeInvalid')) {
-                    const errors = { ...expCtrl.errors };
-                    delete errors['dateRangeInvalid'];
-                    expCtrl.setErrors(Object.keys(errors).length ? errors : null);
-                }
-            }
+            if (expDate < mfgDate) return { dateRangeInvalid: true };
         }
         return null;
     }
@@ -436,9 +387,7 @@ export class QuickPurchaseComponent implements OnInit {
 
     private _filterUnits(value: string): any[] {
         const filterValue = value.toLowerCase();
-        return this.units.filter(unit =>
-            (unit.unitName || unit.name || '').toLowerCase().includes(filterValue)
-        );
+        return this.units.filter(unit => (unit.unitName || unit.name || '').toLowerCase().includes(filterValue));
     }
 
     removeItem(index: number) {
@@ -457,7 +406,6 @@ export class QuickPurchaseComponent implements OnInit {
         const item = this.items.at(index);
         const staticName = item.get('rackName')?.value;
         if (staticName && staticName !== 'NA') return staticName;
-
         if (!rackId) return 'No Rack';
         const racks = this.racksByItem[index] || [];
         const rack = racks.find((r: any) => r.id === rackId);
@@ -477,49 +425,39 @@ export class QuickPurchaseComponent implements OnInit {
         const rate = item.get('rate')?.value || 0;
         const disc = item.get('discountPercent')?.value || 0;
         const gst = item.get('gstPercent')?.value || 0;
-
         const netRate = rate * (1 - disc / 100);
         const isTaxApplicable = this.purchaseForm.get('isTaxApplicable')?.value ?? true;
         const tax = isTaxApplicable ? (netRate * (gst / 100)) : 0;
         const total = qty * (netRate + tax);
-
         item.get('total')?.patchValue(total.toFixed(2), { emitEvent: false });
         item.get('taxAmount')?.patchValue((qty * tax).toFixed(2), { emitEvent: false });
     }
 
     get grandTotal(): number {
-        return this.items.controls.reduce((sum, ctrl) => {
-            const val = parseFloat(ctrl.get('total')?.value) || 0;
-            return sum + val;
-        }, 0);
+        return this.items.controls.reduce((sum, ctrl) => sum + (parseFloat(ctrl.get('total')?.value) || 0), 0);
     }
 
-    // Total items quantity across all rows
     get totalQty(): number {
-        return this.items.controls.reduce((sum, ctrl) => {
-            return sum + (Number(ctrl.get('qty')?.value) || 0);
-        }, 0);
+        return this.items.controls.reduce((sum, ctrl) => sum + (Number(ctrl.get('qty')?.value) || 0), 0);
     }
 
-    // Sub Total = before GST (qty * rate after discount)
     get subTotal(): number {
         return this.items.controls.reduce((sum, ctrl) => {
-            const qty  = Number(ctrl.get('qty')?.value)  || 0;
+            const qty = Number(ctrl.get('qty')?.value) || 0;
             const rate = Number(ctrl.get('rate')?.value) || 0;
             const disc = Number(ctrl.get('discountPercent')?.value) || 0;
-            return sum + qty * rate * (1 - disc / 100);
+            return sum + (qty * rate * (1 - disc / 100));
         }, 0);
     }
 
-    // Total Tax = GST amount only
     get totalTax(): number {
         return this.items.controls.reduce((sum, ctrl) => {
-            const qty  = Number(ctrl.get('qty')?.value)  || 0;
+            const qty = Number(ctrl.get('qty')?.value) || 0;
             const rate = Number(ctrl.get('rate')?.value) || 0;
             const disc = Number(ctrl.get('discountPercent')?.value) || 0;
-            const gst  = Number(ctrl.get('gstPercent')?.value) || 0;
+            const gst = Number(ctrl.get('gstPercent')?.value) || 0;
             const netRate = rate * (1 - disc / 100);
-            return sum + qty * netRate * (gst / 100);
+            return sum + (qty * netRate * (gst / 100));
         }, 0);
     }
 
@@ -556,12 +494,8 @@ export class QuickPurchaseComponent implements OnInit {
         if (!supplierId) return;
         this.supplierService.getSupplierById(supplierId).subscribe((res: any) => {
             const pListId = res.defaultpricelistId || res.defaultPriceListId || res.priceListId;
-
             this.selectedSupplierIsUnregistered = !res.gstIn || res.gstIn === '' || res.gstIn.toUpperCase() === 'PENDING';
-            
-            // Update checkbox based on GST status (triggers recalculation via valueChanges)
             this.purchaseForm.get('isTaxApplicable')?.setValue(!this.selectedSupplierIsUnregistered, { emitEvent: true });
-
             if (pListId) {
                 this.purchaseForm.get('priceListId')?.setValue(pListId);
                 this.isPriceListAutoSelected = true;
@@ -613,10 +547,8 @@ export class QuickPurchaseComponent implements OnInit {
             width: '600px',
             disableClose: true
         });
-
         dialogRef.afterClosed().subscribe(res => {
             if (res) {
-                // If res is the new supplier object or true, reload and select
                 const newId = (typeof res === 'object') ? res.id : undefined;
                 this.loadSuppliers(newId);
                 this.notification.showStatus(true, 'New supplier added successfully!');
@@ -637,14 +569,11 @@ export class QuickPurchaseComponent implements OnInit {
             this.notification.showStatus(false, 'You do not have permission to perform this action.');
             return;
         }
-
         if (this.purchaseForm.invalid) {
-            console.error('❌ Form Invalid Fields:', this.getInvalidControls());
             this.purchaseForm.markAllAsTouched();
             this.notification.showStatus(false, 'Please fill all required fields correctly.');
             return;
         }
-
         this.isSaving = true;
         const formValue = this.purchaseForm.getRawValue();
         const payload = {
@@ -687,12 +616,10 @@ export class QuickPurchaseComponent implements OnInit {
                 expiryDate: i.expiryDate ? DateHelper.toLocalISOString(i.expiryDate) : null
             }))
         };
-
         const request$ = this.isEditMode ? this.poService.update(this.poId, payload) : this.inventoryService.savePoDraft(payload);
-
         request$.subscribe({
             next: (res) => {
-                this.notification.showStatus(true, `Quick Purchase Draft ${this.isEditMode ? 'Updated' : 'Saved'}! PO: ${formValue.poNumber}`);
+                this.notification.showStatus(true, `Quick Purchase Draft ${this.isEditMode ? 'Updated' : 'Saved'}!`);
                 this.router.navigate(['/app/quick-inventory/purchase/list']);
             },
             error: (err) => {
@@ -700,30 +627,6 @@ export class QuickPurchaseComponent implements OnInit {
                 this.isSaving = false;
             }
         });
-    }
-
-    private getInvalidControls() {
-        const invalid = [];
-        const controls = this.purchaseForm.controls;
-        for (const name in controls) {
-            if (controls[name].invalid) {
-                invalid.push(name);
-            }
-        }
-        
-        const itemArray = this.items;
-        itemArray.controls.forEach((group: any, index: number) => {
-            for (const name in group.controls) {
-                if (group.controls[name].invalid) {
-                    invalid.push(`Item ${index + 1}: ${name}`);
-                }
-            }
-            if (group.errors) {
-                invalid.push(`Item ${index + 1} Group: ${JSON.stringify(group.errors)}`);
-            }
-        });
-        
-        return invalid;
     }
 
     ngAfterViewInit() {
@@ -740,5 +643,40 @@ export class QuickPurchaseComponent implements OnInit {
         if (this.scrollContainer && this.scrollListener) {
             this.scrollContainer.removeEventListener('scroll', this.scrollListener);
         }
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private initBarcodeListener() {
+        this.barcodeHelper.onScan().pipe(takeUntil(this.destroy$)).subscribe(code => {
+            this.isScanning = true;
+            this.lastScannedCode = code;
+            this.handleBarcodeScan(code);
+            setTimeout(() => {
+                this.isScanning = false;
+                this.cdr.detectChanges();
+            }, 1500);
+        });
+    }
+
+    private handleBarcodeScan(sku: string) {
+        const existingIndex = this.items.controls.findIndex(ctrl => ctrl.get('sku')?.value === sku);
+        if (existingIndex > -1) {
+            const qtyCtrl = this.items.at(existingIndex).get('qty');
+            qtyCtrl?.setValue(Number(qtyCtrl.value) + 1);
+            this.calculateItemTotal(existingIndex);
+            this.notification.showStatus(true, `Quantity updated for SKU: ${sku}`);
+            return;
+        }
+        this.isLoading = true;
+        this.productService.searchProducts(sku).pipe(finalize(() => this.isLoading = false)).subscribe(products => {
+            const match = products.find((p: any) => p.sku === sku);
+            if (match) {
+                this.addProductToForm(match);
+                this.notification.showStatus(true, `Product added: ${match.productName}`);
+            } else {
+                this.notification.showStatus(false, `Product with SKU ${sku} not found.`);
+            }
+        });
     }
 }

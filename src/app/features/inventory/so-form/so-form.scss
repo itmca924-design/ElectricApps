@@ -641,22 +641,19 @@ mat-card.so-card {
 .barcode-status {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  background: #f8fafc;
-  color: #475569;
+  gap: 12px;
   padding: 6px 16px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid #e2e8f0;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 100px;
   transition: all 0.3s ease;
   min-width: 140px;
 
   mat-icon {
+    color: #10b981;
     font-size: 20px;
     width: 20px;
     height: 20px;
-    color: #6366f1;
   }
 
   .text-container {
@@ -666,22 +663,31 @@ mat-card.so-card {
   }
 
   .status-label {
-    letter-spacing: 0.3px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #64748b;
   }
 
   .last-scanned {
-    font-size: 10px;
-    color: #8b5cf6;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
   }
 
   &.scanning {
-    background: #eef2ff;
-    border-color: #6366f1;
-    color: #4338ca;
-    
+    background: #f0fdf4;
+    border-color: #10b981;
+    transform: scale(1.02);
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+
     mat-icon {
-      animation: rotate 1s linear infinite;
+      animation: pulse-scanner-sale 1.5s infinite;
+    }
+
+    .status-label {
+      color: #10b981;
     }
   }
 
@@ -691,10 +697,12 @@ mat-card.so-card {
   }
 }
 
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+@keyframes pulse-scanner-sale {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
 }
+
 
 /* ================= SCROLL TO TOP/BOTTOM BUTTON (PREMIUM) ================= */
 .scroll-top-btn {

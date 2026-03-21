@@ -118,10 +118,10 @@
 
         <!-- Improved Barcode Indicator -->
         <div class="barcode-status ms-auto" [class.scanning]="isScanning">
-          <mat-icon>{{ isScanning ? 'sync' : 'scanner' }}</mat-icon>
+          <mat-icon>{{ isScanning ? 'settings_overscan' : 'barcode_reader' }}</mat-icon>
           <div class="text-container">
-            <span class="status-label">Scanner Active</span>
-            <small class="last-scanned" *ngIf="lastScannedCode">Last: {{ lastScannedCode }}</small>
+            <span class="status-label">{{ isScanning ? 'Scanning...' : 'Scanner Active' }}</span>
+            <span class="last-scanned" *ngIf="lastScannedCode">{{ lastScannedCode }}</span>
           </div>
         </div>
       </div>

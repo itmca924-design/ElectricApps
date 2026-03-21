@@ -6,6 +6,14 @@
       <p class="subtitle">Direct sale entry with automatic stock deduction</p>
     </div>
     <div class="actions">
+      <!-- Active Scanner Status -->
+      <div class="barcode-status" [class.scanning]="isScanning">
+        <mat-icon>{{ isScanning ? 'settings_overscan' : 'barcode_reader' }}</mat-icon>
+        <div class="text-container">
+          <span class="status-label">{{ isScanning ? 'Scanning...' : 'Scanner Active' }}</span>
+          <span class="last-scanned" *ngIf="lastScannedCode">{{ lastScannedCode }}</span>
+        </div>
+      </div>
       <button mat-flat-button color="primary" class="save-btn" (click)="save()" [disabled]="saleForm.invalid || isSaving">
         <mat-icon *ngIf="!isSaving">check_circle</mat-icon>
         <mat-spinner diameter="20" *ngIf="isSaving"></mat-spinner>
@@ -56,7 +64,7 @@
         <div class="col-date">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Sale Date</mat-label>
-            <input matInput [matDatepicker]="picker" formControlName="date">
+            <input matInput [matDatepicker]="picker" formControlName="date" [min]="today">
             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
           </mat-form-field>
@@ -64,7 +72,7 @@
         <div class="col-date">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Exp. Delivery Date</mat-label>
-            <input matInput [matDatepicker]="expPicker" formControlName="expectedDeliveryDate">
+            <input matInput [matDatepicker]="expPicker" formControlName="expectedDeliveryDate" [min]="today">
             <mat-datepicker-toggle matIconSuffix [for]="expPicker"></mat-datepicker-toggle>
             <mat-datepicker #expPicker></mat-datepicker>
           </mat-form-field>
@@ -151,24 +159,19 @@
                 </mat-select>
               </mat-form-field>
             </div>
-            <!-- MFG Date: compact display dd-MM-yy -->
+            <!-- MFG Date -->
             <div class="col-mfg">
-              <span class="date-chip"
-                    [class.na-chip]="!item.get('manufacturingDate')?.value">
-                {{ item.get('manufacturingDate')?.value
-                    ? (item.get('manufacturingDate')?.value | date:'dd-MM-yy')
-                    : 'N/A' }}
+              <span class="date-chip" [class.na-chip]="!item.get('manufacturingDate')?.value">
+                {{ item.get('manufacturingDate')?.value ? (item.get('manufacturingDate')?.value | date:'dd-MM-yy') : 'N/A' }}
               </span>
             </div>
-            <!-- EXP Date: compact display dd-MM-yy with expiry color -->
+            <!-- EXP Date -->
             <div class="col-exp">
               <span class="date-chip"
                     [class.na-chip]="!item.get('expiryDate')?.value"
-                    [class.expired-chip]="isItemExpired(item.get('expiryDate')?.value)"
-                    [class.near-expiry-chip]="!isItemExpired(item.get('expiryDate')?.value) && isItemNearExpiry(item.get('expiryDate')?.value)">
-                {{ item.get('expiryDate')?.value
-                    ? (item.get('expiryDate')?.value | date:'dd-MM-yy')
-                    : 'N/A' }}
+                    [class.expired-chip]="isItemExpired(i)"
+                    [class.near-expiry-chip]="!isItemExpired(i) && isItemNearExpiry(i)">
+                {{ item.get('expiryDate')?.value ? (item.get('expiryDate')?.value | date:'dd-MM-yy') : 'N/A' }}
               </span>
             </div>
             <div class="col-total">
@@ -222,11 +225,12 @@
     </form>
   </div>
 
-  <!-- Floating Scroll Button to toggle between Header and Totals -->
-  <button mat-fab color="primary" class="scroll-top-btn" 
-    *ngIf="items.length > 3" 
-    (click)="toggleScroll()"
-    [@fadeInOut]>
-    <mat-icon>{{ isAtTop ? 'keyboard_arrow_down' : 'keyboard_arrow_up' }}</mat-icon>
+  <!-- Enhanced Scroll Action Button -->
+  <button (click)="toggleScroll()" 
+          class="scroll-top-btn" 
+          mat-fab 
+          *ngIf="items.length > 0"
+          [@fadeInOut]>
+    <mat-icon>{{ isAtTop ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
   </button>
 </div>
