@@ -548,6 +548,9 @@ mat-card.so-card {
   .card-action-bar {
     padding: 15px 20px 20px;
     background: #ffffff;
+    display: flex;
+    justify-content: flex-end;
+    border-radius: 0 0 12px 12px;
 
     .save-btn-premium {
       height: 50px !important;

@@ -19,6 +19,7 @@ import { DateHelper } from '../../../shared/models/date-helper';
 import { POService } from '../service/po.service';
 import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { ProductForm } from '../../master/product/product-form/product-form';
 
 @Component({
     selector: 'app-quick-purchase',
@@ -675,7 +676,19 @@ export class QuickPurchaseComponent implements OnInit, OnDestroy, AfterViewInit 
                 this.addProductToForm(match);
                 this.notification.showStatus(true, `Product added: ${match.productName}`);
             } else {
-                this.notification.showStatus(false, `Product with SKU ${sku} not found.`);
+                // Product not found - Open Quick Add Product Dialog
+                const dialogRef = this.dialog.open(ProductForm, {
+                    width: '850px',
+                    disableClose: true,
+                    data: { sku: sku }
+                });
+
+                dialogRef.afterClosed().subscribe(newProduct => {
+                    if (newProduct) {
+                        this.addProductToForm(newProduct);
+                        this.notification.showStatus(true, `New product created and added: ${newProduct.productName}`);
+                    }
+                });
             }
         });
     }

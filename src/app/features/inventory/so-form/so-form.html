@@ -5,6 +5,13 @@
         <button mat-button class="back-btn" (click)="goBack()">
           <mat-icon>arrow_back</mat-icon> Back
         </button>
+
+        <button mat-raised-button color="primary" class="save-btn" 
+                (click)="Save()" 
+                [disabled]="soForm.invalid || hasZeroStockItems">
+            <mat-icon>{{ isEdit ? 'cloud_upload' : 'save' }}</mat-icon> 
+            {{ isEdit ? 'Update Sale Order' : 'Save Sale Order' }}
+        </button>
       </div>  
 
       <form [formGroup]="soForm">
@@ -274,8 +281,8 @@
                 </div>
 
                 <!-- Save Action Button inside the card for emphasis -->
-                <div class="card-action-bar">
-                  <button mat-raised-button color="primary" class="save-btn-premium w-100" (click)="Save()" [disabled]="soForm.invalid || hasZeroStockItems">
+                <div class="actions" style="justify-content: flex-end !important; margin-top: 15px; margin-bottom: 0 !important;">
+                  <button mat-raised-button color="primary" class="save-btn" (click)="Save()" [disabled]="soForm.invalid || hasZeroStockItems">
                     <mat-icon>{{ isEdit ? 'cloud_upload' : 'save' }}</mat-icon> 
                     {{ isEdit ? 'Update Sale Order' : 'Save Sale Order' }}
                   </button>

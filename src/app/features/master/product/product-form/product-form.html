@@ -1,6 +1,7 @@
-<mat-card class="product-card shadow-sm">
-  <div class="product-header">
-    <h2 class="m-0 text-primary fw-bold" style="font-size: 1.2rem;">{{ isEditMode ? 'Edit' : 'Add' }} Product</h2>
+<div [class.dialog-wrapper]="isDialog">
+  <mat-card class="product-card shadow-sm" [class.is-modal]="isDialog">
+    <div class="product-header" [class.modal-header]="isDialog">
+      <h2 class="m-0 text-primary fw-bold" style="font-size: 1.2rem;">{{ isDialog ? 'Quick Add' : (isEditMode ? 'Edit' : 'Add') }} Product</h2>
     
     <div class="actions">
       <!-- File Info -->
@@ -9,12 +10,12 @@
       </span>
 
       <!-- Download Template -->
-      <button mat-stroked-button color="primary" (click)="downloadTemplate()" *ngIf="!isEditMode">
+      <button mat-stroked-button color="primary" (click)="downloadTemplate()" *ngIf="!isEditMode && !isDialog">
         <mat-icon>download</mat-icon> Template
       </button>
 
       <!-- Upload Excel Trigger -->
-      <button mat-stroked-button color="primary" (click)="fileInput.click()" *ngIf="!selectedFileName && !isEditMode">
+      <button mat-stroked-button color="primary" (click)="fileInput.click()" *ngIf="!selectedFileName && !isEditMode && !isDialog">
         <mat-icon>cloud_upload</mat-icon> Upload Excel
       </button>
 
@@ -257,3 +258,4 @@
     </form>
   </mat-card-content>
 </mat-card>
+</div>

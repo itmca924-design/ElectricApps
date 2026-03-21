@@ -9,7 +9,7 @@ import { UnitService } from '../../units/services/units.service';
 import { FormFooter } from '../../../shared/form-footer/form-footer';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 import { Product } from '../model/product.model';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Observable, Subject, of } from 'rxjs';
 import { map, startWith, takeUntil, finalize } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
@@ -35,11 +35,14 @@ export class ProductForm implements OnInit, OnDestroy {
   private unitService = inject(UnitService);
   private locationService = inject(LocationService);
   private destroy$ = new Subject<void>();
+  public dialogRef = inject(MatDialogRef<ProductForm>, { optional: true });
+  public data = inject(MAT_DIALOG_DATA, { optional: true });
 
   productsForm!: FormGroup;
   loading = false;
   isEditMode = false;
   productId: string | null = null;
+  isDialog = false;
 
   categories: any[] = [];
   subcategories: any[] = [];
@@ -62,6 +65,13 @@ export class ProductForm implements OnInit, OnDestroy {
     this.createForm();
     this.setupAutocomplete();
     this.loadInitialLookups();
+
+    if (this.data) {
+      this.isDialog = true;
+      if (this.data.sku) {
+        this.productsForm.patchValue({ sku: this.data.sku });
+      }
+    }
 
     this.productId = this.route.snapshot.paramMap.get('id');
     if (this.productId) {
@@ -557,7 +567,16 @@ export class ProductForm implements OnInit, OnDestroy {
       next: (res) => {
         this.loading = false;
         this.cdr.detectChanges();
-        this.showDialog(true, res.message || (this.isEditMode ? 'Product updated successfully' : 'Product saved successfully'));
+        
+        const successMsg = res.message || (this.isEditMode ? 'Product updated successfully' : 'Product saved successfully');
+        
+        if (this.isDialog) {
+             // Return the newly created/updated product object to caller
+             this.dialogRef?.close({ ...productsData, id: res.id || this.productId });
+             return;
+        }
+
+        this.showDialog(true, successMsg);
       },
       error: (err) => {
         this.loading = false;
@@ -578,6 +597,10 @@ export class ProductForm implements OnInit, OnDestroy {
   }
 
   onCancel() {
+    if (this.isDialog) {
+      this.dialogRef?.close();
+      return;
+    }
     this.router.navigate(['/app/master/products']);
   }
 

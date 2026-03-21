@@ -57,6 +57,13 @@
       mat-icon {
         margin-right: 8px;
       }
+
+      &:disabled {
+        background-color: #e2e8f0 !important;
+        color: #94a3b8 !important;
+        box-shadow: none !important;
+        cursor: not-allowed;
+      }
     }
 
     button[mat-stroked-button] {

@@ -22,6 +22,7 @@ import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barco
 import { InventoryService } from '../service/inventory.service';
 import { BatchSelectionDialogComponent } from '../../../shared/components/batch-selection-dialog/batch-selection-dialog';
 import { ActivatedRoute } from '@angular/router';
+import { ProductForm } from '../../master/product/product-form/product-form';
 
 @Component({
   selector: 'app-so-form',
@@ -282,6 +283,23 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
           this.items.removeAt(0);
         }
         this.addProductToForm(match);
+      } else {
+        // Product not found - Open Quick Add Product Dialog
+        const dialogRef = this.dialog.open(ProductForm, {
+          width: '850px',
+          disableClose: true,
+          data: { sku: sku }
+        });
+
+        dialogRef.afterClosed().subscribe(newProduct => {
+          if (newProduct) {
+            // If first row is empty and not touched, replace it
+            if (this.items.length === 1 && !this.items.at(0).get('productId')?.value) {
+              this.items.removeAt(0);
+            }
+            this.addProductToForm(newProduct);
+          }
+        });
       }
     });
   }

@@ -184,3 +184,39 @@ mat-card.product-card {
     padding-right: 8px;
   }
 }
+
+/* ==========================================================================
+   MODAL DIALOG ADAPTATIONS
+   ========================================================================== */
+.dialog-wrapper {
+  overflow-x: hidden;
+}
+
+mat-card.product-card.is-modal {
+  margin: 0 !important;
+  max-width: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: white !important;
+
+  .modal-header {
+    background: transparent !important;
+    padding: 16px 24px 8px 24px !important;
+    border-bottom: 2px solid #3b82f633 !important;
+  }
+
+  mat-card-content {
+    padding: 12px !important;
+  }
+
+  .form-grid {
+    padding: 12px !important;
+    // For smaller dialog widths, force 2 columns or 1 column
+    grid-template-columns: repeat(3, 1fr) !important;
+    
+    @media (max-width: 800px) {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+  }
+}

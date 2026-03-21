@@ -21,6 +21,9 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { SoSuccessDialogComponent } from '../so-success-dialog/so-success-dialog.component';
 import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { ProductForm } from '../../master/product/product-form/product-form';
+import { FinanceService } from '../../finance/service/finance.service';
+import { StatusDialogComponent } from '../../../shared/components/status-dialog-component/status-dialog-component';
 
 @Component({
     selector: 'app-quick-sale',
@@ -56,6 +59,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
     private customerService = inject(customerService);
     private barcodeHelper = inject(BarcodeReaderHelper);
     private cdr = inject(ChangeDetectorRef);
+    private financeService = inject(FinanceService);
     private destroy$ = new Subject<void>();
 
     saleOrderId: number | null = null;
@@ -72,8 +76,10 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
     filteredUnits: Observable<any[]>[] = [];
     isScanning = false;
     lastScannedCode = '';
-    today = new Date();
     isAtTop = true;
+    isMobile = false;
+    today = new Date();
+    minDate: Date | null = new Date();
     private scrollContainer: HTMLElement | null = null;
     private scrollListener: any;
 
@@ -134,6 +140,8 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             if (id) {
                 this.saleOrderId = +id;
                 this.isEdit = true;
+                this.minDate = null; // Important: Disable past date restriction for editing
+                this.isSaving = false; // Ensure not stuck
                 this.loadSaleOrder(this.saleOrderId);
             }
         });
@@ -153,6 +161,9 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                 const sanitizedName = (res.customerName || '').replace(/^"|"$/g, '');
                 this.customerSearchCtrl.setValue({ id: res.customerId, customerName: sanitizedName });
 
+                this.saleForm.updateValueAndValidity();
+                this.cdr.detectChanges();
+
                 while (this.items.length) {
                     this.items.removeAt(0);
                 }
@@ -171,6 +182,9 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                                const originalQty = item.qty || 0;
                                currentItem.get('availableStock')?.setValue(stockInWarehouse + originalQty);
                                this.calculateItemTotal(idx);
+                               
+                               // Force validity check for each item
+                               currentItem.updateValueAndValidity();
                            }
                         });
 
@@ -187,8 +201,14 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                         }
                     });
                 }
+                this.isSaving = false;
+                this.saleForm.updateValueAndValidity();
+                this.cdr.detectChanges();
             },
-            error: () => this.notification.showStatus(false, 'Failed to load sale order.')
+            error: () => {
+                this.isSaving = false;
+                this.notification.showStatus(false, 'Failed to load sale order.');
+            }
         });
     }
 
@@ -228,7 +248,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             date: [new Date()],
             expectedDeliveryDate: [new Date()],
             status: ['Confirmed'],
-            items: this.fb.array([], Validators.required),
+            items: this.fb.array([]), // Removed Validators.required
             taxType: ['local'],
             tdsPercent: [0],
             tcsPercent: [0]
@@ -312,6 +332,11 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             expiryDate: [formatDt(product.expiryDate)],
             originalQty: [isExistingItem ? (product.qty || 0) : 0]
         });
+
+        // For existing items, manually trigger any derived calculations
+        if (isExistingItem) {
+            itemForm.updateValueAndValidity();
+        }
 
         const index = this.items.length;
         this.items.push(itemForm);
@@ -623,7 +648,13 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             return;
         }
         if (this.saleForm.invalid) {
+            this.saleForm.markAllAsTouched();
             this.notification.showStatus(false, 'Please correct the highlighted errors.');
+            return;
+        }
+
+        if (this.items.length === 0) {
+            this.notification.showStatus(false, 'Please add at least one item to the sale.');
             return;
         }
 
@@ -693,7 +724,17 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                         });
 
                         dialogRef.afterClosed().subscribe(action => {
-                            this.router.navigate(['/app/quick-inventory/sale/list']);
+                            if (action === 'make-payment') {
+                                this.performDirectPayment({
+                                    id: soId,
+                                    soNumber: orderNo,
+                                    grandTotal: Number(this.grandTotal) || 0,
+                                    customerId: formRaw.customerId,
+                                    customerName: formRaw.customerName
+                                });
+                            } else {
+                                this.router.navigate(['/app/quick-inventory/sale/list']);
+                            }
                         });
                     },
                     error: (err) => {
@@ -757,8 +798,64 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.addProductToForm(match, true); // bypassBatchDialog = true for scanner
                 this.notification.showStatus(true, `Product added: ${match.productName}`);
             } else {
-                this.notification.showStatus(false, `Product with SKU ${sku} not found.`);
+                // Product not found - Open Quick Add Product Dialog
+                const dialogRef = this.dialog.open(ProductForm, {
+                    width: '850px',
+                    disableClose: true,
+                    data: { sku: sku }
+                });
+
+                dialogRef.afterClosed().subscribe(newProduct => {
+                    if (newProduct) {
+                        this.addProductToForm(newProduct, true);
+                        this.notification.showStatus(true, `New product created and added: ${newProduct.productName}`);
+                    }
+                });
             }
         });
+    }
+
+    performDirectPayment(data: any) {
+        this.isSaving = true;
+        this.cdr.detectChanges();
+
+        const receiptPayload = {
+            id: 0,
+            customerId: Number(data.customerId),
+            amount: Number(data.grandTotal),
+            totalAmount: Number(data.grandTotal),
+            discountAmount: 0,
+            netAmount: Number(data.grandTotal),
+            paymentMode: 'Cash',
+            referenceNumber: `${data.soNumber}-${new Date().getTime().toString().slice(-4)}`,
+            paymentDate: new Date().toISOString(),
+            remarks: `Direct Receipt for Quick Sale: ${data.soNumber}`,
+            createdBy: (this.authService as any).getUserName?.() || localStorage.getItem('email') || 'Admin'
+        };
+
+        // Delay to ensure SO transaction is fully committed
+        setTimeout(() => {
+            this.financeService.recordCustomerReceipt(receiptPayload).subscribe({
+                next: () => {
+                    this.isSaving = false;
+                    this.dialog.open(StatusDialogComponent, {
+                        width: '350px',
+                        data: {
+                            isSuccess: true,
+                            title: 'Payment Successful',
+                            message: `Receipt of ₹${data.grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })} recorded. Ledger Updated.`,
+                            status: 'success'
+                        }
+                    });
+                    this.router.navigate(['/app/quick-inventory/sale/list']);
+                },
+                error: (err) => {
+                    this.isSaving = false;
+                    console.error('❌ Direct receipt failed:', err);
+                    this.notification.showStatus(false, err.error?.message || 'Payment recording failed, but Sale is saved.');
+                    this.router.navigate(['/app/quick-inventory/sale/list']);
+                }
+            });
+        }, 1000);
     }
 }

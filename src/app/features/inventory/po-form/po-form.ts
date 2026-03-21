@@ -19,6 +19,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
 
 import { trigger, transition, style, animate } from '@angular/animations';
+import { ProductForm } from '../../master/product/product-form/product-form';
 
 @Component({
   selector: 'app-po-form',
@@ -183,15 +184,33 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
     ).subscribe(products => {
       // Find exact SKU match if multiple returned
       const match = products.find(p => p.sku === sku);
+
       if (match) {
         // If first row is empty and not touched, replace it
         if (this.items.length === 1 && !this.items.at(0).get('productId')?.value) {
           this.items.removeAt(0);
         }
+        // Product found, add it to the list
         this.addProductToForm(match);
         this.notification.showStatus(true, `Product added: ${match.productName}`);
       } else {
-        this.notification.showStatus(false, `Product with SKU ${sku} not found.`);
+        // Product not found - Open Quick Add Product Dialog
+        const dialogRef = this.dialog.open(ProductForm, {
+          width: '850px',
+          disableClose: true,
+          data: { sku: sku }
+        });
+
+        dialogRef.afterClosed().subscribe(newProduct => {
+          if (newProduct) {
+            // If first row is empty and not touched, replace it
+            if (this.items.length === 1 && !this.items.at(0).get('productId')?.value) {
+              this.items.removeAt(0);
+            }
+            this.addProductToForm(newProduct);
+            this.notification.showStatus(true, `New product created and added: ${newProduct.productName}`);
+          }
+        });
       }
     });
   }
