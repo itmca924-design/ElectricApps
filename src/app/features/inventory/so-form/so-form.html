@@ -11,9 +11,9 @@
       </div>  
 
       <form [formGroup]="soForm">
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; align-items: start; margin-bottom: 24px;">
+        <div class="so-header-grid">
           <!-- Order Status -->
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Order Status</mat-label>
             <mat-select formControlName="status">
               <mat-option value="Draft">Save as Draft</mat-option>
@@ -21,13 +21,26 @@
             </mat-select>
           </mat-form-field>
 
-          <!-- Customer -->
+          <!-- Customer Autocomplete -->
           <div class="customer-field-container">
-            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="customer-autocomplete">
               <mat-label>Customer *</mat-label>
-              <mat-select formControlName="customerId">
-                <mat-option *ngFor="let c of customers" [value]="c.id">{{ c.customerName }}</mat-option>
-              </mat-select>
+              <input type="text" matInput formControlName="customerSearch" [matAutocomplete]="autoCust">
+              
+              <!-- Loader and Cancel Icon -->
+              <div matSuffix class="d-flex align-items-center">
+                <mat-spinner *ngIf="isCustomerLoading" diameter="18" style="margin-right: 8px;"></mat-spinner>
+                <button mat-icon-button *ngIf="soForm.get('customerSearch')?.value && !isCustomerLoading" 
+                  (click)="clearCustomerSearch()" type="button" class="clear-btn">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+
+              <mat-autocomplete #autoCust="matAutocomplete" [displayWith]="displayCustomerFn" (optionSelected)="onCustomerSelected($event)">
+                <mat-option *ngFor="let c of filteredCustomersSo | async" [value]="c">
+                  {{ c.customerName }}
+                </mat-option>
+              </mat-autocomplete>
             </mat-form-field>
             <button mat-icon-button type="button" class="add-customer-btn flex-shrink-0" (click)="openAddCustomerDialog()" matTooltip="Add New Customer">
               <mat-icon color="primary">add_circle</mat-icon>
@@ -35,7 +48,7 @@
           </div>
 
           <!-- SO Date -->
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="so-date-field">
             <mat-label>SO Date*</mat-label>
             <input matInput [matDatepicker]="soPicker" formControlName="soDate" [min]="minDate">
             <mat-datepicker-toggle matSuffix [for]="soPicker"></mat-datepicker-toggle>
@@ -43,7 +56,7 @@
           </mat-form-field>
 
           <!-- Expected Delivery -->
-          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="w-100">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="del-date-field">
             <mat-label>Expected Delivery*</mat-label>
             <input matInput [matDatepicker]="delPicker" formControlName="expectedDeliveryDate" [min]="soForm.get('soDate')?.value || minDate">
             <mat-datepicker-toggle matSuffix [for]="delPicker"></mat-datepicker-toggle>

@@ -145,6 +145,29 @@ mat-card.so-card {
   width: 100%;
 }
 
+.so-header-grid {
+  display: grid; 
+  grid-template-columns: 1.2fr 2fr 0.9fr 0.9fr 1.2fr; // Balanced layout
+  gap: 16px; 
+  align-items: start; 
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .so-header-grid {
+    grid-template-columns: 1fr 1.5fr 1fr 1fr;
+    row-gap: 20px;
+  }
+}
+
+.customer-autocomplete {
+  flex: 1;
+}
+
+.so-date-field, .del-date-field {
+  max-width: 160px;
+}
+
 /* Customer Field & Button Wrapper */
 .customer-field-container {
   display: flex;
@@ -602,5 +625,25 @@ mat-card.so-card {
     border-color: #3f51b5;
     box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
     outline: none;
+  }
+}
+
+.clear-btn {
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  
+  mat-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #94a3b8 !important;
+  }
+
+  &:hover mat-icon {
+    color: #ef4444 !important;
   }
 }

@@ -3,7 +3,7 @@ import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy, AfterViewInit 
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { Observable, of, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, finalize, map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomerComponent } from '../../master/customer-component/customer-component';
 
@@ -91,7 +91,9 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   isLoading = false;
   filteredProducts: Observable<any[]>[] = [];
   filteredUnits: Observable<any[]>[] = [];
+  filteredCustomersSo!: Observable<any[]>;
   isProductLoading: boolean[] = [];
+  isCustomerLoading = false;
   isScanning = false;
   lastScannedCode = '';
 
@@ -112,6 +114,14 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
     this.initForm();
     this.loadCustomers();
     this.loadUnits();
+
+    this.filteredCustomersSo = this.soForm.get('customerSearch')!.valueChanges.pipe(
+      startWith(''),
+      map(value => {
+        const name = typeof value === 'string' ? value : value?.customerName;
+        return name ? this._filterCustomers(name) : this.customers.slice();
+      })
+    );
 
     this.activatedRoute.params.subscribe(params => {
       if (params['id']) {
@@ -205,6 +215,14 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
             }
           });
         });
+
+        // Find and set customer in autocomplete
+        if (this.customers && this.customers.length > 0) {
+          const cust = this.customers.find((c: any) => c.id === order.customerId);
+          if (cust) {
+            this.soForm.get('customerSearch')?.setValue(cust);
+          }
+        }
 
         this.calculateGrandTotal();
         this.cdr.detectChanges();
@@ -434,6 +452,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   initForm() {
     this.soForm = this.fb.group({
       customerId: [null, [Validators.required]],
+      customerSearch: ['', [Validators.required]],
       soDate: [new Date(), Validators.required],
       expectedDeliveryDate: [new Date(), Validators.required],
       remarks: [''],
@@ -448,8 +467,29 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
+  private _filterCustomers(name: string): any[] {
+    const filterValue = name.toLowerCase();
+    return this.customers.filter((c: any) => 
+      (c.customerName || c.name || '').toLowerCase().includes(filterValue)
+    );
+  }
+
+  displayCustomerFn(customer: any): string {
+    return customer && customer.customerName ? customer.customerName : (typeof customer === 'string' ? customer : '');
+  }
+
+  onCustomerSelected(event: any): void {
+    const customer = event.option.value;
+    this.soForm.get('customerId')?.setValue(customer.id);
+  }
+
+  clearCustomerSearch(): void {
+    this.soForm.get('customerSearch')?.setValue('');
+    this.soForm.get('customerId')?.setValue(null);
+  }
+
   loadCustomers(): void {
-    this.isLoading = true;
+    this.isCustomerLoading = true;
     this.customerService.getAllCustomers().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         // Filter out Internal/Proprietor accounts
@@ -461,11 +501,18 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
           return name !== PROPRIETOR_NAME && name !== BANK_ACCOUNT_NAME;
         });
         
-        this.isLoading = false;
+        // Handle initial value for edit mode
+        const currentCustId = this.soForm.get('customerId')?.value;
+        if (currentCustId && this.customers.length > 0) {
+            const cust = this.customers.find((c: any) => c.id === currentCustId);
+            if (cust) this.soForm.get('customerSearch')?.setValue(cust);
+        }
+
+        this.isCustomerLoading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        this.isLoading = false;
+        this.isCustomerLoading = false;
       }
     });
   }
