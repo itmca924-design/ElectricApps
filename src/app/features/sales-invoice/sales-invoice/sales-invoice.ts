@@ -110,8 +110,13 @@ export class SalesInvoice implements OnInit {
 
   loadCustomers(): void {
     const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
+    const BANK_ACCOUNT_NAME = 'Company Bank Account (Internal)';
+
     this.customerService.getAllCustomers().subscribe((res: any) => {
-      this.customers = (res || []).filter((c: any) => (c.customerName || c.name) !== PROPRIETOR_NAME);
+      this.customers = (res || []).filter((c: any) => {
+        const name = c.customerName || c.name || '';
+        return name !== PROPRIETOR_NAME && name !== BANK_ACCOUNT_NAME;
+      });
       
       this.filteredCustomers = this.customerSearchCtrl.valueChanges.pipe(
         startWith(''),

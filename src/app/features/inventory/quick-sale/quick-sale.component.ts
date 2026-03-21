@@ -561,6 +561,7 @@ export class QuickSaleComponent implements OnInit {
             next: (res: any) => {
                 // Sanitize names and filter out Internal/Proprietor accounts
                 const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
+                const BANK_ACCOUNT_NAME = 'Company Bank Account (Internal)';
                 
                 let loadedCustomers = (res || [])
                     .map((c: any) => ({
@@ -568,7 +569,10 @@ export class QuickSaleComponent implements OnInit {
                         customerName: (c.customerName || c.name || '').replace(/^"|"$/g, ''),
                         name: (c.name || c.customerName || '').replace(/^"|"$/g, '')
                     }))
-                    .filter((c: any) => c.customerName !== PROPRIETOR_NAME);
+                    .filter((c: any) => 
+                        c.customerName !== PROPRIETOR_NAME && 
+                        c.customerName !== BANK_ACCOUNT_NAME
+                    );
 
                 // Sort array to keep Walk-in customer at the top
                 loadedCustomers.sort((a: any, b: any) => {

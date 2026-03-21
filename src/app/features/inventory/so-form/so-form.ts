@@ -454,7 +454,12 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       next: (res: any) => {
         // Filter out Internal/Proprietor accounts
         const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
-        this.customers = (res || []).filter((c: any) => (c.customerName || c.name) !== PROPRIETOR_NAME);
+        const BANK_ACCOUNT_NAME = 'Company Bank Account (Internal)';
+        
+        this.customers = (res || []).filter((c: any) => {
+          const name = c.customerName || c.name || '';
+          return name !== PROPRIETOR_NAME && name !== BANK_ACCOUNT_NAME;
+        });
         
         this.isLoading = false;
         this.cdr.detectChanges();
