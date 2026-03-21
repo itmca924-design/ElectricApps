@@ -559,12 +559,16 @@ export class QuickSaleComponent implements OnInit {
         this.isLoadingCustomers = true;
         this.customerService.getAllCustomers().subscribe({
             next: (res: any) => {
-                // Sanitize names to remove any unexpected double quotes
-                let loadedCustomers = (res || []).map((c: any) => ({
-                    ...c,
-                    customerName: (c.customerName || c.name || '').replace(/^"|"$/g, ''),
-                    name: (c.name || c.customerName || '').replace(/^"|"$/g, '')
-                }));
+                // Sanitize names and filter out Internal/Proprietor accounts
+                const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
+                
+                let loadedCustomers = (res || [])
+                    .map((c: any) => ({
+                        ...c,
+                        customerName: (c.customerName || c.name || '').replace(/^"|"$/g, ''),
+                        name: (c.name || c.customerName || '').replace(/^"|"$/g, '')
+                    }))
+                    .filter((c: any) => c.customerName !== PROPRIETOR_NAME);
 
                 // Sort array to keep Walk-in customer at the top
                 loadedCustomers.sort((a: any, b: any) => {
@@ -578,15 +582,15 @@ export class QuickSaleComponent implements OnInit {
                 this.customers = loadedCustomers;
                 
                 if (!this.isEdit) {
-                const walkIn = this.customers.find(c => this.isWalkIn(c));
-                if (walkIn) {
-                    this.customerSearchCtrl.setValue({ id: walkIn.id, customerName: walkIn.customerName });
-                    this.saleForm.patchValue({ customerId: walkIn.id, customerName: walkIn.customerName });
-                } else if (this.customers.length > 0) {
-                    this.customerSearchCtrl.setValue({ id: this.customers[0].id, customerName: this.customers[0].customerName });
-                    this.saleForm.patchValue({ customerId: this.customers[0].id, customerName: this.customers[0].customerName });
+                    const walkIn = this.customers.find(c => this.isWalkIn(c));
+                    if (walkIn) {
+                        this.customerSearchCtrl.setValue({ id: walkIn.id, customerName: walkIn.customerName });
+                        this.saleForm.patchValue({ customerId: walkIn.id, customerName: walkIn.customerName });
+                    } else if (this.customers.length > 0) {
+                        this.customerSearchCtrl.setValue({ id: this.customers[0].id, customerName: this.customers[0].customerName });
+                        this.saleForm.patchValue({ customerId: this.customers[0].id, customerName: this.customers[0].customerName });
+                    }
                 }
-            }
 
             this.filteredCustomers = this.customerSearchCtrl.valueChanges.pipe(
                 startWith(''),

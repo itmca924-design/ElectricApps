@@ -113,7 +113,8 @@ export class ReceiptReportComponent implements OnInit, AfterViewInit {
 
     loadCustomers() {
         this.customerSvc.getAllCustomers().subscribe((data: any) => {
-            this.customers = data || [];
+            const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
+            this.customers = (data || []).filter((c: any) => (c.customerName || c.name) !== PROPRIETOR_NAME);
 
             // Check for query parameters first, then dialog data
             const customerIdFromRoute = this.route.snapshot.queryParams['customerId'];

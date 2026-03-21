@@ -9,6 +9,7 @@ export interface User {
     email: string;
     isActive: boolean;
     roles: string[];
+    createdAt: string;
 }
 
 export interface RegisterUserDto {

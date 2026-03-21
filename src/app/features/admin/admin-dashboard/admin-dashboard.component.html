@@ -1,0 +1,204 @@
+
+<div class="admin-dashboard-container" [class.disabled-content]="isLoading">
+  
+  <!-- Header -->
+  <header class="header-section">
+    <div class="title-group">
+      <h1>Admin Dashboard</h1>
+      <p class="subtitle">System overview and managing user permissions.</p>
+    </div>
+
+    <div class="system-status">
+      <div class="status-indicator">
+        <div class="dot"></div>
+        <span>SYSTEM OPERATIONAL</span>
+      </div>
+      <div class="uptime">
+        UPTIME: 99.9%
+      </div>
+    </div>
+  </header>
+
+  <!-- KPI Grid -->
+  <section class="kpi-grid">
+    
+    <!-- Total Users -->
+    <div class="kpi-card glass-blue">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #3b82f6;">
+          <mat-icon>group</mat-icon>
+        </div>
+        <div class="trend up">
+          <mat-icon>trending_up</mat-icon>
+          <span>5%</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <p class="label">Total Users</p>
+        <h2 class="value">{{ totalUsers }}</h2>
+      </div>
+      <mat-icon class="card-bg-icon">people_outline</mat-icon>
+    </div>
+
+    <!-- Active Sessions -->
+    <div class="kpi-card glass-emerald">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #10b981;">
+          <mat-icon>how_to_reg</mat-icon>
+        </div>
+        <div class="trend up">
+           <mat-icon>trending_up</mat-icon>
+           <span>2%</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <p class="label">Active Users</p>
+        <h2 class="value">{{ activeUsers }}</h2>
+      </div>
+      <mat-icon class="card-bg-icon">verified_user</mat-icon>
+    </div>
+
+    <!-- Roles/Permissions -->
+    <div class="kpi-card glass-indigo">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #4f46e5;">
+          <mat-icon>admin_panel_settings</mat-icon>
+        </div>
+        <div class="trend neutral">
+          <mat-icon>remove</mat-icon>
+          <span>Static</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <p class="label">Total Roles</p>
+        <h2 class="value">{{ totalRoles }}</h2>
+      </div>
+      <mat-icon class="card-bg-icon">security</mat-icon>
+    </div>
+
+    <!-- System Menus -->
+    <div class="kpi-card glass-purple">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #8b5cf6;">
+          <mat-icon>menu_open</mat-icon>
+        </div>
+        <div class="trend up">
+           <mat-icon>add</mat-icon>
+           <span>New</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <p class="label">Configured Menus</p>
+        <h2 class="value">{{ totalMenus }}</h2>
+      </div>
+      <mat-icon class="card-bg-icon">apps</mat-icon>
+    </div>
+
+  </section>
+
+  <!-- Main Grid -->
+  <div class="dashboard-grid">
+    
+    <!-- User Growth Chart -->
+    <div class="charts-card">
+      <div class="chart-header">
+        <h2>User Activity Trends</h2>
+        <mat-icon style="color: #94a3b8;">more_horiz</mat-icon>
+      </div>
+      <div class="chart-content">
+        <canvas *ngIf="chartData.labels?.length" baseChart 
+                [data]="chartData" 
+                [options]="chartOptions" 
+                [type]="'line'">
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <aside class="actions-sidebar">
+      <div class="action-card">
+        <h3>Quick Management</h3>
+        <div class="action-list">
+          <button class="action-btn primary" (click)="navigate('/app/admin/users')">
+            <div class="icon-circle"><mat-icon>person_add</mat-icon></div>
+            Manage Users
+          </button>
+          <button class="action-btn success" (click)="navigate('/app/admin/role-permissions')">
+            <div class="icon-circle"><mat-icon>lock_open</mat-icon></div>
+            Set Permissions
+          </button>
+          <button class="action-btn warning" (click)="navigate('/app/admin/menus')">
+            <div class="icon-circle"><mat-icon>reorder</mat-icon></div>
+             Menu Configuration
+          </button>
+          <button class="action-btn danger" (click)="showSystemLogs()">
+            <div class="icon-circle"><mat-icon>terminal</mat-icon></div>
+             System Logs
+          </button>
+        </div>
+      </div>
+
+      <div class="action-card" style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: white;">
+        <h3 style="color: white; margin-bottom: 8px;">Admin Tip</h3>
+        <p style="font-size: 0.85rem; opacity: 0.9; margin: 0;">Regularly audit user permissions to maintain high system security levels.</p>
+        <button mat-button style="margin-top: 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; color: white;">Run Security Scan</button>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Recent Activity Table -->
+  <section class="activity-card">
+    <div class="section-title">
+      <h2>Recently Added Users</h2>
+      <button mat-button color="primary" (click)="navigate('/app/admin/users')">View All</button>
+    </div>
+    
+    <div class="activity-table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>User Details</th>
+            <th>Role / Permissions</th>
+            <th>Status</th>
+            <th>Joined Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of recentUsers">
+            <td>
+              <div class="user-info">
+                <div class="avatar">{{ user.userName.charAt(0).toUpperCase() }}</div>
+                <div class="name-email">
+                  <span class="name">{{ user.userName }}</span>
+                  <span class="email">{{ user.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                <span *ngFor="let role of user.roles" class="badge" [class.admin]="role === 'Admin'" [class.user]="role !== 'Admin'">
+                  {{ role }}
+                </span>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                {{ user.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td>{{ user.createdAt | date:'dd MMM yyyy' }}</td>
+            <td>
+               <button mat-icon-button color="primary" (click)="navigate('/app/admin/users')"><mat-icon>edit</mat-icon></button>
+            </td>
+          </tr>
+          <tr *ngIf="recentUsers.length === 0">
+            <td colspan="5" style="text-align: center; padding: 32px; color: #64748b;">No recent users found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</div>

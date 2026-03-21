@@ -110,6 +110,19 @@ export class MenuService {
                 // 🎯 Inject "Tax Invoice" and "Balance Sheet" into Finance menu
                 const financeMenu = filtered.find(m => m.title === 'Finance');
                 if (financeMenu && financeMenu.children) {
+                    const alreadyHasDash = financeMenu.children.some(c => c.title === 'Finance Dashboard' || c.url === '/app/finance');
+                    if (!alreadyHasDash) {
+                        financeMenu.children.unshift({
+                            id: 9989, // Dummy ID
+                            title: 'Finance Dashboard',
+                            url: '/app/finance',
+                            icon: 'dashboard',
+                            order: 0,
+                            children: [],
+                            permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+
                     const alreadyHasTax = financeMenu.children.some(c => c.title === 'Tax Invoice');
                     if (!alreadyHasTax) {
                         financeMenu.children.push({
@@ -198,6 +211,29 @@ export class MenuService {
                             order: 120,
                             children: [],
                             permissions: { canView: true, canAdd: false, canEdit: false, canDelete: false }
+                        });
+                    }
+                }
+
+                // 🎯 5. Inject "Admin Dashboard" if not exists in Admin menu
+                const adminMenu = filtered.find(m => m.title === 'Admin' || m.url?.includes('/admin'));
+                if (adminMenu) {
+                    // Force ensure children array
+                    if (!adminMenu.children) adminMenu.children = [];
+
+                    const alreadyHasAdminDash = adminMenu.children.some(c => 
+                        c.title === 'Admin Dashboard' || c.url === '/app/admin/dashboard'
+                    );
+
+                    if (!alreadyHasAdminDash) {
+                        adminMenu.children.unshift({
+                            id: 9990, // Dummy ID
+                            title: 'Admin Dashboard',
+                            url: '/app/admin/dashboard',
+                            icon: 'admin_panel_settings',
+                            order: -1, // First in list
+                            children: [],
+                            permissions: { canView: true, canAdd: true, canEdit: true, canDelete: true }
                         });
                     }
                 }

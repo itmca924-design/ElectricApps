@@ -451,8 +451,11 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   loadCustomers(): void {
     this.isLoading = true;
     this.customerService.getAllCustomers().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res) => {
-        this.customers = res;
+      next: (res: any) => {
+        // Filter out Internal/Proprietor accounts
+        const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
+        this.customers = (res || []).filter((c: any) => (c.customerName || c.name) !== PROPRIETOR_NAME);
+        
         this.isLoading = false;
         this.cdr.detectChanges();
       },

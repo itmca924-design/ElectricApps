@@ -135,17 +135,18 @@ export class FinanceService {
 
         return forkJoin([paymentReq, receiptReq, expensesReq, purchaseReq, saleReq]).pipe(
             map(([paymentRes, receiptRes, expensesRes, purchaseRes, saleRes]) => {
-                const supplierPayments = paymentRes.totalPayments || 0;
-                const generalExpenses = Array.isArray(expensesRes) ? expensesRes.reduce((sum, e) => sum + (e.amount || 0), 0) : 0;
+                const supplierPayments = paymentRes.totalPayments || paymentRes.TotalPayments || 0;
+                const totalReceipts = receiptRes.totalReceipts || receiptRes.TotalReceipts || 0;
+                const generalExpenses = Array.isArray(expensesRes) ? expensesRes.reduce((sum, e) => sum + (e.amount || e.Amount || 0), 0) : 0;
                 
-                const purchaseItems = purchaseRes.data || purchaseRes.items || [];
+                const purchaseItems = purchaseRes.data || purchaseRes.items || purchaseRes.Items || purchaseRes.Data || [];
                 const totalPurchases = purchaseItems.reduce((sum: number, p: any) => sum + (p.grandTotal || p.GrandTotal || 0), 0);
 
-                const saleItems = saleRes.data || saleRes.items || [];
+                const saleItems = saleRes.data || saleRes.items || saleRes.Items || saleRes.Data || [];
                 const totalSales = saleItems.reduce((sum: number, s: any) => sum + (s.grandTotal || s.GrandTotal || 0), 0);
 
                 return {
-                    totalIncome: receiptRes.totalReceipts || 0,
+                    totalIncome: totalReceipts,
                     totalExpenses: supplierPayments + generalExpenses,
                     totalPurchases,
                     totalSales

@@ -3,6 +3,17 @@ import { PermissionGuard } from '../core/gaurds/permission.guard';
 
 export const ADMIN_ROUTES: Routes = [
     {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+    },
+    {
+        path: 'dashboard',
+        canActivate: [PermissionGuard],
+        loadComponent: () => import('../features/admin/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
+        data: { breadcrumb: 'Dashboard' }
+    },
+    {
         path: 'role-permissions',
         canActivate: [PermissionGuard],
         loadComponent: () => import('../features/admin/role-permissions/role-permissions.component').then(m => m.RolePermissionsComponent),

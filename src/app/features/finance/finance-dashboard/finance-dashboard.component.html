@@ -1,0 +1,243 @@
+
+<div class="finance-dashboard-container" [class.disabled-content]="isLoading">
+  
+  <!-- Header Section -->
+  <header class="header-section">
+    <div class="title-group">
+      <h1>Finance Overview</h1>
+      <p class="subtitle">Real-time snapshots of cash flow, receivables, and payables.</p>
+    </div>
+
+    <div class="header-widgets">
+      <div class="date-widget">
+        <mat-icon>calendar_today</mat-icon>
+        <div class="date-info">
+          <p class="label">Today's Date</p>
+          <p class="value">{{ today | date:'dd MMM yyyy' }}</p>
+        </div>
+      </div>
+      <button mat-flat-button color="primary" class="export-btn" (click)="loadDashboardData()">
+        <mat-icon>refresh</mat-icon>
+        Refresh Data
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI Grid -->
+  <section class="kpi-grid">
+    
+    <!-- Receivables -->
+    <div class="kpi-card glass-emerald">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #10b981;">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <div class="trend up">
+          <mat-icon>trending_up</mat-icon>
+          <span>Receivables</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <h2 class="value">₹{{ totalReceivables | number:'1.2-2' }}</h2>
+        <p class="label">Total Amount to be Collected</p>
+      </div>
+      <mat-icon class="card-bg-icon">payments</mat-icon>
+    </div>
+
+    <!-- Payables -->
+    <div class="kpi-card glass-rose">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #f43f5e;">
+          <mat-icon>receipt_long</mat-icon>
+        </div>
+        <div class="trend down">
+          <mat-icon>trending_down</mat-icon>
+          <span>Payables</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <h2 class="value">₹{{ totalPayables | number:'1.2-2' }}</h2>
+        <p class="label">Total Amount to be Paid</p>
+      </div>
+      <mat-icon class="card-bg-icon">outbound</mat-icon>
+    </div>
+
+    <!-- Monthly Revenue -->
+    <div class="kpi-card glass-indigo">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #6366f1;">
+          <mat-icon>show_chart</mat-icon>
+        </div>
+        <div class="trend up">
+          <mat-icon>add</mat-icon>
+          <span>This Month</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <h2 class="value">₹{{ monthlyRevenue | number:'1.2-2' }}</h2>
+        <p class="label">Monthly Revenue (Inflow)</p>
+      </div>
+      <mat-icon class="card-bg-icon">bar_chart</mat-icon>
+    </div>
+
+    <!-- Net Cash Flow -->
+    <div class="kpi-card glass-purple">
+      <div class="card-top">
+        <div class="icon-wrapper" style="color: #8b5cf6;">
+          <mat-icon>account_balance</mat-icon>
+        </div>
+        <div class="trend" [class.up]="netCashFlow >= 0" [class.down]="netCashFlow < 0">
+          <mat-icon>{{ netCashFlow >= 0 ? 'compare_arrows' : 'trending_down' }}</mat-icon>
+          <span>Net Flow</span>
+        </div>
+      </div>
+      <div class="card-info">
+        <h2 class="value">₹{{ netCashFlow | number:'1.2-2' }}</h2>
+        <p class="label">Revenue vs Expenses</p>
+      </div>
+      <mat-icon class="card-bg-icon">donut_small</mat-icon>
+    </div>
+
+  </section>
+
+  <!-- Middle Grid: Charts & Actions -->
+  <div class="main-content-grid">
+    
+    <!-- Cash Flow Trends Chart -->
+    <div class="charts-card">
+      <div class="card-header">
+        <div class="title-group">
+          <h2>Cash Flow Trends</h2>
+          <p>Monthly overview of inflow vs outflow</p>
+        </div>
+        <div class="legend-badges">
+            <span class="l-badge in">Inflow</span>
+            <span class="l-badge out">Outflow</span>
+        </div>
+      </div>
+      <div class="chart-content">
+        <canvas *ngIf="lineChartData.labels?.length" baseChart 
+                [data]="lineChartData" 
+                [options]="lineChartOptions" 
+                [type]="'line'">
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Quick Actions Sidebar -->
+    <aside class="sidebar-actions">
+      <div class="actions-card gradient-action">
+        <h3>Quick Operations</h3>
+        <div class="action-buttons-list">
+          <button class="action-item primary" (click)="navigate('/app/finance/customers/receipt')">
+            <div class="icon-circle"><mat-icon>add_shopping_cart</mat-icon></div>
+            <span>New Receipt</span>
+          </button>
+          <button class="action-item success" (click)="navigate('/app/finance/suppliers/payment')">
+            <div class="icon-circle"><mat-icon>payment</mat-icon></div>
+            <span>New Payment</span>
+          </button>
+          <button class="action-item indigo" (click)="navigate('/app/finance/expenses/entry')">
+            <div class="icon-circle"><mat-icon>receipt</mat-icon></div>
+            <span>Record Expense</span>
+          </button>
+          <button class="action-item warning" (click)="navigate('/app/finance/balance-sheet')">
+            <div class="icon-circle"><mat-icon>account_balance</mat-icon></div>
+            <span>Financial Report</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="status-summary-card">
+          <div class="status-header">
+            <h4>Outstanding Status</h4>
+            <span class="badge warning">High Priority</span>
+          </div>
+          <div class="status-progress-list">
+              <div class="prog-item">
+                  <div class="prog-label"><span>Receiv. Progress</span> <span class="val">₹{{ totalReceivables | number }}</span></div>
+                  <div class="prog-bar"><div class="fill emerald" style="width: 75%"></div></div>
+              </div>
+              <div class="prog-item">
+                <div class="prog-label"><span>Payab. Target</span> <span class="val">₹{{ totalPayables | number }}</span></div>
+                <div class="prog-bar"><div class="fill rose" style="width: 45%"></div></div>
+            </div>
+          </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Bottom Section: Recent Transactions -->
+  <section class="bottom-section">
+      <div class="section-card">
+          <div class="card-title-row">
+            <div class="title-group">
+                <h2>Recent Transactions</h2>
+                <span class="count-tag">{{ recentTransactions.length }} Entries</span>
+            </div>
+            <button mat-button color="primary" class="view-all-btn" (click)="navigate('/app/finance/customers/receipts-report')">
+                View Full Logs <mat-icon>keyboard_arrow_right</mat-icon>
+            </button>
+          </div>
+
+          <div class="table-container">
+              <table>
+                  <thead>
+                      <tr>
+                          <th>Transaction Info</th>
+                          <th>Category/Role</th>
+                          <th>Method / Refernce</th>
+                          <th>Status</th>
+                          <th>Total Amount</th>
+                          <th>Date</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr *ngFor="let tx of recentTransactions">
+                          <td>
+                              <div class="tx-info">
+                                  <div class="tx-icon" [ngClass]="tx.type === 'Inflow' ? 'inflow' : 'outflow'">
+                                      <mat-icon>{{ tx.type === 'Inflow' ? 'arrow_downward' : 'arrow_upward' }}</mat-icon>
+                                  </div>
+                                  <div class="tx-details">
+                                      <span class="tx-title">{{ tx.customerName || tx.supplierName || 'General Transaction' }}</span>
+                                      <span class="tx-subtitle">{{ tx.referenceNumber || tx.ReferenceNumber || 'No Ref' }}</span>
+                                  </div>
+                              </div>
+                          </td>
+                          <td>
+                              <span class="category-chip" [ngClass]="tx.type === 'Inflow' ? 'cust' : 'supp'">
+                                  {{ tx.type === 'Inflow' ? 'Customer' : 'Supplier' }}
+                              </span>
+                          </td>
+                          <td>
+                              <div class="method-cell">
+                                  <mat-icon>{{ tx.paymentMode === 'Bank' ? 'account_balance' : 'payments' }}</mat-icon>
+                                  <span>{{ tx.paymentMode || 'Cash/Cheque' }}</span>
+                              </div>
+                          </td>
+                          <td>
+                              <span class="status-dot-badge" [ngClass]="tx.color">
+                                  {{ tx.type }}
+                              </span>
+                          </td>
+                          <td>
+                              <span class="amount-text" [ngClass]="tx.type === 'Inflow' ? 'plus' : 'minus'">
+                                  {{ tx.type === 'Inflow' ? '+' : '-' }} ₹{{ (tx.grandTotal || tx.GrandTotal || tx.amount || tx.Amount || 0) | number:'1.2-2' }}
+                              </span>
+                          </td>
+                          <td>
+                              <span class="date-text">{{ (tx.date || tx.Date) | date:'dd MMM, yyyy' }}</span>
+                          </td>
+                      </tr>
+                      <tr *ngIf="recentTransactions.length === 0">
+                          <td colspan="6" class="no-data-cell">No recent transactions found for this period.</td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+      </div>
+  </section>
+
+</div>

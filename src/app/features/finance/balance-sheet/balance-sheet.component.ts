@@ -26,7 +26,9 @@ import { customerService } from '../../master/customer-component/customer.servic
 })
 export class BalanceSheetComponent implements OnInit {
     private readonly CAPITAL_TAG = '[PROPRIETOR_CAPITAL]';
+    private readonly BANK_TAG = '[BANK_TRANSFER]';
     private readonly OWNER_CUSTOMER_NAME = 'Proprietor (Self / Capital Account)';
+    private readonly BANK_CUSTOMER_NAME = 'Company Bank Account (Internal)';
     
     private cdr = inject(ChangeDetectorRef);
     private loadingService = inject(LoadingService);
@@ -117,23 +119,35 @@ export class BalanceSheetComponent implements OnInit {
                 pageSize: 1000,
                 sortBy: 'Date',
                 sortOrder: 'desc'
+            }),
+            bankReceipts: this.financeService.getReceiptsReport({
+                searchTerm: this.BANK_TAG,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                pageNumber: 1,
+                pageSize: 1000,
+                sortBy: 'Date',
+                sortOrder: 'desc'
             })
         }).subscribe({
             next: (results) => {
-                // 1. Calculate Capital Injection from DB (Professional Way)
+                // 1. Calculate Capital & Bank from DB (Professional Way)
                 const cItems = results.capitalReceipts?.items?.items || results.capitalReceipts?.items || [];
                 const totalCapitalInDB = cItems.reduce((sum: number, r: any) => sum + (r.amount || r.Amount || 0), 0);
                 this.capital = Number(totalCapitalInDB);
-                localStorage.setItem('company_initial_capital', this.capital.toString());
+                
+                const bItems = results.bankReceipts?.items?.items || results.bankReceipts?.items || [];
+                const totalBankInDB = bItems.reduce((sum: number, r: any) => sum + (r.amount || r.Amount || 0), 0);
+                this.bankBalance = Number(totalBankInDB);
 
-                // 2. Map P&L / Net Profit (Important: Exclude Capital from Income)
+                // 2. Map P&L / Net Profit (Important: Exclude Capital & Bank Transfers from Income)
                 if (results.pl) {
                     const totalIncome = results.pl.totalIncome || results.pl.TotalReceipts || 0;
                     const expenses = results.pl.totalExpenses || results.pl.TotalPayments || 0;
                     
                     // Net Profit = (Internal Business Income) - Expenses
-                    // We subtract Capital from Income because Capital is an Investment (Equity), not Revenue (Profit).
-                    this.netProfit = (totalIncome - totalCapitalInDB) - expenses;
+                    // Subtract both Capital and Bank transfers as they are Equity/Balance Sheet movements, not Revenue.
+                    this.netProfit = (totalIncome - totalCapitalInDB - totalBankInDB) - expenses;
                 }
 
                 // 2. Map Assets
@@ -170,39 +184,26 @@ export class BalanceSheetComponent implements OnInit {
                     }, 0);
                 }
 
-                // EMERGENCY FALLBACK: If Inventory is 0 but we have Purchases in P&L, 
-                // use Total Purchases as Closing Stock (common in fresh setups)
-                if (this.inventoryValue === 0 && results.pl?.totalPurchases > 0) {
-                    this.inventoryValue = results.pl.totalPurchases;
-                }
+                // (Removed Emergency Fallback that was causing negative cash)
+                // Stock will now strictly depend on real Inventory API entries.
 
                 // 3. OTHER ASSETS & LIABILITIES
                 this.totalPayables = results.payables?.totalPending ?? results.payables?.TotalPending ?? results.payables?.balance ?? 0;
 
-                // 4. SMART CASH & BANK BALCULATION (The Balancing Figure)
-                // Fundamental Accounting Equation: Assets = Liabilities + Equity
-                // Assets (Inventory + Receivables + Cash + Bank) = Liabilities (Payables) + Equity (Net Profit + Capital)
-                
+                // 4. SMART CASH & BANK CALCULATION (Professional Ledger Logic)
                 const equity = Number(this.capital || 0) + Number(this.netProfit || 0);
                 const totalLiabilities = Number(this.totalPayables || 0) + Number(this.otherLiabilities || 0);
-                
                 const totalLiabAndEq = equity + totalLiabilities;
-                const nonCashAssets = Number(this.inventoryValue || 0) + Number(this.totalReceivables || 0);
+
+                // Adjust Receivables: We use the value from API which now correctly excludes internal accounts
+                this.totalReceivables = results.receivables?.totalOutstanding || results.receivables?.TotalOutstanding || 0;
                 
-                // Calculated Cash = Total Fund Source (Equity + Debt) - Investments in other Assets (Stock + Receivables)
-                const calculatedTotalCash = totalLiabAndEq - nonCashAssets;
-                
-                // Distribute total cash between physical cash and bank
-                if (calculatedTotalCash > 0) {
-                    // If we have total cash, prioritize bank balance set by user
-                    const availableBank = Math.min(Number(this.bankBalance || 0), calculatedTotalCash);
-                    this.bankBalance = availableBank;
-                    this.cashInHand = calculatedTotalCash - availableBank;
-                } else {
-                    // If no net cash (everything invested in stock on credit), set to 0 or negative (Overdraft)
-                    this.cashInHand = calculatedTotalCash; 
-                    this.bankBalance = 0; 
-                }
+                // If dashboard rounding shows a tiny remaining amount but no customers exist, force 0.
+                if (Math.abs(this.totalReceivables) < 1) this.totalReceivables = 0;
+
+                // Golden Rule: Assets (Stock + Receivables + Bank + Cash) = Liabilities + Equity
+                const otherAssets = Number(this.inventoryValue || 0) + Number(this.totalReceivables || 0) + Number(this.bankBalance || 0);
+                this.cashInHand = Math.round((totalLiabAndEq - otherAssets) * 100) / 100;
 
                 // Update charts
                 this.updateCharts();
@@ -348,19 +349,77 @@ export class BalanceSheetComponent implements OnInit {
         const dialogRef = this.dialog.open(BalanceSheetInputDialogComponent, {
             width: '400px',
             data: {
-                title: 'Bank Balance',
-                message: `Set how much cash to keep in the Bank.`,
-                label: 'Bank Amount',
-                amount: this.bankBalance,
+                title: 'Bank Transfer (DB Ledger)',
+                message: `Enter the amount you physically moved to the bank. This will be recorded in the Database Ledger.`,
+                label: 'Transfer Amount (to Bank)',
+                amount: 0, // Reset to 0 for new transfer
                 max: totalAvailable
             }
         });
 
+        // result is the amount to add to bank (Deposit)
         dialogRef.afterClosed().subscribe(result => {
-            if (result !== undefined) {
-                this.bankBalance = Number(result);
-                localStorage.setItem('company_bank_balance', this.bankBalance.toString());
-                this.loadBalanceSheet();
+            if (result !== undefined && Number(result) > 0) {
+                this.recordBankTransaction(Number(result));
+            }
+        });
+    }
+
+    private recordBankTransaction(amount: number) {
+        this.isDashboardLoading = true;
+        this.loadingService.setLoading(true);
+
+        const searchReq = { 
+            Search: this.BANK_CUSTOMER_NAME, 
+            PageNumber: 1, 
+            PageSize: 1 
+        };
+        
+        this.customerService.getPaged(searchReq).subscribe({
+            next: (res: any) => {
+                const customers = res.data || res.items || [];
+                const specificBank = customers.find((c: any) => 
+                    (c.customerName || c.name || '').toLowerCase() === this.BANK_CUSTOMER_NAME.toLowerCase()
+                );
+
+                if (specificBank) {
+                    this.executeBankReceipt(specificBank.id, amount);
+                } else {
+                    const newBank = {
+                        customerName: this.BANK_CUSTOMER_NAME,
+                        customerType: 'Retail',
+                        phone: '0000000000',
+                        email: 'bank@system.com',
+                        billingAddress: 'Internal Bank Ledger',
+                        customerStatus: 'Active',
+                        createdBy: localStorage.getItem('email') || 'Admin'
+                    };
+                    this.customerService.addCustomer(newBank).subscribe((id: any) => {
+                        this.executeBankReceipt(id, amount);
+                    });
+                }
+            },
+            error: () => this.isDashboardLoading = false
+        });
+    }
+
+    private executeBankReceipt(customerId: number, amount: number) {
+        const payload = {
+            id: 0,
+            customerId: customerId,
+            amount: amount,
+            paymentMode: 'Bank',
+            referenceNumber: 'BNK-' + new Date().getTime().toString().slice(-4),
+            paymentDate: new Date().toISOString(),
+            remarks: this.BANK_TAG + ' Deposit to Bank',
+            createdBy: localStorage.getItem('email') || 'Admin'
+        };
+
+        this.financeService.recordCustomerReceipt(payload).subscribe({
+            next: () => this.loadBalanceSheet(),
+            error: () => {
+                this.isDashboardLoading = false;
+                this.loadingService.setLoading(false);
             }
         });
     }

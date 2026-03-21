@@ -3,6 +3,12 @@ import { PermissionGuard } from '../core/gaurds/permission.guard';
 
 export const FINANCE_ROUTES: Routes = [
     {
+        path: '',
+        canActivate: [PermissionGuard],
+        data: { breadcrumb: 'Dashboard' },
+        loadComponent: () => import('../features/finance/finance-dashboard/finance-dashboard.component').then(m => m.FinanceDashboardComponent)
+    },
+    {
         path: 'suppliers',
         data: { breadcrumb: 'Suppliers' },
         children: [

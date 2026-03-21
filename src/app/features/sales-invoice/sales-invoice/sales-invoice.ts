@@ -109,8 +109,10 @@ export class SalesInvoice implements OnInit {
   }
 
   loadCustomers(): void {
+    const PROPRIETOR_NAME = 'Proprietor (Self / Capital Account)';
     this.customerService.getAllCustomers().subscribe((res: any) => {
-      this.customers = res;
+      this.customers = (res || []).filter((c: any) => (c.customerName || c.name) !== PROPRIETOR_NAME);
+      
       this.filteredCustomers = this.customerSearchCtrl.valueChanges.pipe(
         startWith(''),
         map(value => {
