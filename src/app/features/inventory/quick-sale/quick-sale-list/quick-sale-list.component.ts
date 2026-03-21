@@ -122,7 +122,13 @@ export class QuickSaleListComponent implements OnInit {
         sortable: true,
         isResizable: true,
         width: 165,
-        cell: (row: any) => this.datePipe.transform(row.soDate, 'dd/MM/yyyy hh:mm a', '+0530')
+        cell: (row: any) => {
+          const d = row.soDate;
+          if (!d) return '—';
+          // Treat as UTC if no timezone suffix exists
+          const utcDate = (typeof d === 'string' && !d.includes('Z') && !d.includes('+')) ? d + 'Z' : d;
+          return this.datePipe.transform(utcDate, 'dd/MM/yyyy hh:mm a', '+0530');
+        }
       },
       { field: 'customerName', header: 'Customer', sortable: true, isResizable: true, width: 220, isFilterable: true },
       {
