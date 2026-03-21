@@ -51,6 +51,7 @@ export class PLDashboardComponent implements OnInit {
         datasets: [
             { data: [], label: 'Income', backgroundColor: 'rgba(75, 192, 192, 0.7)', order: 2 },
             { data: [], label: 'Expenses', backgroundColor: 'rgba(255, 99, 132, 0.7)', order: 2 },
+            { data: [], label: 'Purchases', backgroundColor: 'rgba(255, 206, 86, 0.7)', order: 2 },
             {
                 data: [],
                 label: 'Net Profit',
@@ -265,17 +266,20 @@ export class PLDashboardComponent implements OnInit {
                         return row ? (row.amount || row.Amount || 0) : 0;
                     });
 
-                    // Map Payments + Expenses (Expenses)
+                    // Map Expenses (ONLY Operational Expenses)
                     this.barChartData.datasets[1].data = monthsLabels.map(m => {
-                        const pRow = payments.find((p: any) => (p.month || p.Month) === m);
                         const eRow = expenses.find((e: any) => (e.month || e.Month) === m);
-                        const pAmt = pRow ? (pRow.amount || pRow.Amount || 0) : 0;
-                        const eAmt = eRow ? (eRow.amount || eRow.Amount || 0) : 0;
-                        return pAmt + eAmt;
+                        return eRow ? (eRow.amount || eRow.Amount || 0) : 0;
                     });
 
-                    // Calculate Net Profit for the line chart
-                    this.barChartData.datasets[2].data = monthsLabels.map((m, index) => {
+                    // Map Purchases (Supplier Payments)
+                    this.barChartData.datasets[2].data = monthsLabels.map(m => {
+                        const pRow = payments.find((p: any) => (p.month || p.Month) === m);
+                        return pRow ? (pRow.amount || pRow.Amount || 0) : 0;
+                    });
+
+                    // Calculate Net Profit for the line chart (Matching the Summary Card: Income - Expenses)
+                    this.barChartData.datasets[3].data = monthsLabels.map((m, index) => {
                         const inc = (this.barChartData.datasets[0].data[index] as number) || 0;
                         const exp = (this.barChartData.datasets[1].data[index] as number) || 0;
                         return inc - exp;

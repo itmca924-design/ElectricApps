@@ -107,7 +107,8 @@ export class BalanceSheetComponent implements OnInit {
             pl: this.financeService.getProfitAndLossReport(filters),
             receivables: this.financeService.getTotalReceivables(),
             payables: this.financeService.getTotalPayables(),
-            stock: this.inventoryService.getCurrentStock('', '', 0, 1000, ''),
+            // Pass null for dates to get ALL current stock regardless of purchase date
+            stock: this.inventoryService.getCurrentStock('', '', 0, 2000, '', null, null),
             capitalReceipts: this.financeService.getReceiptsReport({
                 searchTerm: this.CAPITAL_TAG,
                 startDate: filters.startDate,
@@ -130,58 +131,77 @@ export class BalanceSheetComponent implements OnInit {
                     const totalIncome = results.pl.totalIncome || results.pl.TotalReceipts || 0;
                     const expenses = results.pl.totalExpenses || results.pl.TotalPayments || 0;
                     
-                    // Subtract Capital from Total Income because Capital is not profit
+                    // Net Profit = (Internal Business Income) - Expenses
+                    // We subtract Capital from Income because Capital is an Investment (Equity), not Revenue (Profit).
                     this.netProfit = (totalIncome - totalCapitalInDB) - expenses;
                 }
 
                 // 2. Map Assets
-                this.totalReceivables = results.receivables?.totalOutstanding || results.receivables?.TotalOutstanding || 0;
+                this.totalReceivables = results.receivables?.totalOutstanding || results.receivables?.TotalOutstanding || results.receivables?.pendingAmount || 0;
                 
                 // Calculate Inventory Valuation: sum of (quantity * cost rate)
-                // Standardizing extraction from different API response formats
-                let stockItems = [];
-                if (Array.isArray(results.stock)) {
-                    stockItems = results.stock;
-                } else if (results.stock?.data && Array.isArray(results.stock.data)) {
-                    stockItems = results.stock.data;
-                } else if (results.stock?.items && Array.isArray(results.stock.items)) {
-                    stockItems = results.stock.items;
-                } else if (results.stock?.Data && Array.isArray(results.stock.Data)) {
-                    stockItems = results.stock.Data;
+                const s = results.stock;
+                let stockItems: any[] = [];
+                
+                // Extremely aggressive path finding for stock array
+                if (Array.isArray(s)) {
+                    stockItems = s;
+                } else if (s) {
+                    stockItems = s.items || s.Items || s.data || s.Data || [];
+                    if (stockItems && !Array.isArray(stockItems) && typeof stockItems === 'object') {
+                        // Handle { data: { items: [] } } nested structure
+                        const nested = (stockItems as any).items || (stockItems as any).Items || (stockItems as any).data || (stockItems as any).Data;
+                        if (Array.isArray(nested)) stockItems = nested;
+                    }
                 }
 
-                this.inventoryValue = stockItems.reduce((sum: number, item: any) => {
-                    // Using investigated fields from CurrentStockComponent: availableStock and lastRate
-                    const qty = item.availableStock ?? item.currentStock ?? item.totalStock ?? item.Quantity ?? item.qty ?? 0;
-                    const rate = item.lastRate ?? item.unitRate ?? item.purchaseRate ?? item.basePurchasePrice ?? item.lastPurchaseRate ?? item.PurchaseRate ?? item.AverageCost ?? item.rate ?? 0;
-                    
-                    return sum + (Number(qty) * Number(rate));
-                }, 0);
+                // If still not an array, check if results.stock.data.items exists
+                if (!Array.isArray(stockItems) && s?.data?.items) stockItems = s.data.items;
+                if (!Array.isArray(stockItems) && s?.data?.data) stockItems = s.data.data;
 
-                // 3. Map Liabilities
-                this.totalPayables = results.payables?.totalPending || results.payables?.TotalPending || 0;
+                this.inventoryValue = 0;
+                if (Array.isArray(stockItems)) {
+                    this.inventoryValue = stockItems.reduce((sum: number, item: any) => {
+                        // Robust field mapping for Quantity and Rate
+                        const q = Number(item.availableStock ?? item.currentStock ?? item.totalStock ?? item.Quantity ?? item.AvailableStock ?? item.qty ?? 0);
+                        const r = Number(item.lastRate ?? item.unitRate ?? item.purchaseRate ?? item.LastRate ?? item.UnitRate ?? item.rate ?? item.unitPrice ?? 0);
+                        const val = q * r;
+                        return sum + (isNaN(val) ? 0 : val);
+                    }, 0);
+                }
 
-                // 4. SMART CASH & BANK CALCULATION
-                // Current Discrepancy Fix: Cash should be (Net Profit + Capital)
-                // The implied cash should only be the REMAINING cash after buying stock on credit.
-                const equity = (this.capital || 0) + (this.netProfit || 0);
+                // EMERGENCY FALLBACK: If Inventory is 0 but we have Purchases in P&L, 
+                // use Total Purchases as Closing Stock (common in fresh setups)
+                if (this.inventoryValue === 0 && results.pl?.totalPurchases > 0) {
+                    this.inventoryValue = results.pl.totalPurchases;
+                }
+
+                // 3. OTHER ASSETS & LIABILITIES
+                this.totalPayables = results.payables?.totalPending ?? results.payables?.TotalPending ?? results.payables?.balance ?? 0;
+
+                // 4. SMART CASH & BANK BALCULATION (The Balancing Figure)
+                // Fundamental Accounting Equation: Assets = Liabilities + Equity
+                // Assets (Inventory + Receivables + Cash + Bank) = Liabilities (Payables) + Equity (Net Profit + Capital)
                 
-                // If we have Payables, it means we have Assets (Stock) we haven't paid for yet.
-                // Balancing Equation: Cash + Inventory + Receivables = Equity + Payables
-                const totalLiabAndEq = equity + this.totalPayables + (this.otherLiabilities || 0);
-                const nonCashAssets = this.inventoryValue + (this.totalReceivables || 0);
+                const equity = Number(this.capital || 0) + Number(this.netProfit || 0);
+                const totalLiabilities = Number(this.totalPayables || 0) + Number(this.otherLiabilities || 0);
                 
+                const totalLiabAndEq = equity + totalLiabilities;
+                const nonCashAssets = Number(this.inventoryValue || 0) + Number(this.totalReceivables || 0);
+                
+                // Calculated Cash = Total Fund Source (Equity + Debt) - Investments in other Assets (Stock + Receivables)
                 const calculatedTotalCash = totalLiabAndEq - nonCashAssets;
                 
-                // We have a stored bank balance, the rest is physical cash
+                // Distribute total cash between physical cash and bank
                 if (calculatedTotalCash > 0) {
-                    // Safety check: Bank balance cannot exceed total available cash
-                    const availableBank = Math.min(this.bankBalance, calculatedTotalCash);
+                    // If we have total cash, prioritize bank balance set by user
+                    const availableBank = Math.min(Number(this.bankBalance || 0), calculatedTotalCash);
                     this.bankBalance = availableBank;
                     this.cashInHand = calculatedTotalCash - availableBank;
                 } else {
-                    this.cashInHand = 0;
-                    this.bankBalance = 0;
+                    // If no net cash (everything invested in stock on credit), set to 0 or negative (Overdraft)
+                    this.cashInHand = calculatedTotalCash; 
+                    this.bankBalance = 0; 
                 }
 
                 // Update charts

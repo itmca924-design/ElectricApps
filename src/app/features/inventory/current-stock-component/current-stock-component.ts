@@ -60,7 +60,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   lastpurchaseOrderId!: number;
 
   innerPageIndex: number = 0;
-  innerPageSize: number = 5;
+  innerPageSize: number = 10;
 
   searchTerm: string = '';
   startDate: Date | null = null;
@@ -99,14 +99,22 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
+    if (this.paginator) {
+      this.sort.sortChange.subscribe(() => (this.paginator.pageIndex = 0));
+    }
     this.isDashboardLoading = true;
     this.isFirstLoad = true;
     this.loadingService.setLoading(true);
     this.cdr.detectChanges();
 
     setTimeout(() => {
-      merge(this.sort.sortChange, this.paginator.page)
+      // Dynamically create observable list based on whether paginator exists
+      const eventStreams: any[] = [this.sort.sortChange];
+      if (this.paginator) {
+        eventStreams.push(this.paginator.page);
+      }
+      
+      merge(...eventStreams)
         .pipe(
           startWith({}),
           switchMap(() => this.fetchDataStream()),
@@ -150,8 +158,8 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
     return this.inventoryService.getCurrentStock(
       this.sort.active,
       this.sort.direction,
-      this.paginator.pageIndex,
-      this.paginator.pageSize,
+      this.paginator ? this.paginator.pageIndex : 0,
+      this.paginator ? this.paginator.pageSize : 10, // Back to 10 as default if paginator was somehow missing
       this.searchValue,
       this.startDate,
       this.endDate,
@@ -232,6 +240,19 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   toggleRow(element: any) {
     this.expandedElement = this.expandedElement === element ? null : element;
     this.innerPageIndex = 0;
+    this.cdr.detectChanges();
+  }
+
+  getPaginatedHistory(element: any): any[] {
+    if (!element || !element.history) return [];
+    const start = this.innerPageIndex * this.innerPageSize;
+    const end = start + this.innerPageSize;
+    return element.history.slice(start, end);
+  }
+
+  onInnerPageChange(event: any) {
+    this.innerPageIndex = event.pageIndex;
+    this.innerPageSize = event.pageSize;
     this.cdr.detectChanges();
   }
 

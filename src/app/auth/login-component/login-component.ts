@@ -24,6 +24,7 @@ export class LoginComponent implements OnInit {
   resetPasswordForm: FormGroup;
 
   @ViewChild('emailInputField') emailInputField!: ElementRef;
+  @ViewChild('passwordInputField') passwordInputField!: ElementRef;
 
   // existing
   changePasswordMode = false;
@@ -57,6 +58,14 @@ export class LoginComponent implements OnInit {
       ResetToken: ['', Validators.required],
       NewPassword: ['', [Validators.required, Validators.minLength(6)]]
     });
+
+    // Ensure change detection runs on form changes for all forms
+    const forms = [this.loginForm, this.forgotPasswordForm, this.resetPasswordForm, this.changePasswordForm];
+    forms.forEach(form => {
+      form.valueChanges.subscribe(() => {
+        this.cdr.detectChanges();
+      });
+    });
   }
 
   ngOnInit() {
@@ -68,6 +77,29 @@ export class LoginComponent implements OnInit {
         rememberMe: true
       });
     }
+
+    // Handle browser autofill which might not trigger standard input events
+    const autofillCheckInterval = setInterval(() => {
+      let changed = false;
+      const emailEl = this.emailInputField?.nativeElement;
+      const pwdEl = this.passwordInputField?.nativeElement;
+
+      if (emailEl && emailEl.value && this.loginForm.get('Email')?.value !== emailEl.value) {
+        this.loginForm.get('Email')?.patchValue(emailEl.value);
+        changed = true;
+      }
+      if (pwdEl && pwdEl.value && this.loginForm.get('Password')?.value !== pwdEl.value) {
+        this.loginForm.get('Password')?.patchValue(pwdEl.value);
+        changed = true;
+      }
+
+      if (changed || this.loginForm.valid) {
+        this.cdr.detectChanges();
+      }
+    }, 500);
+
+    // Stop checking after 6 seconds to save resources
+    setTimeout(() => clearInterval(autofillCheckInterval), 6000);
   }
 
   toggleChangePasswordMode() {

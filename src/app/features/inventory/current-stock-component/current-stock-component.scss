@@ -188,11 +188,11 @@
 .table-scroll-wrapper {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden !important; /* Strictly no horizontal scroll */
+  overflow-x: auto; /* Allow horizontal scroll if parent needs it */
   
   &::-webkit-scrollbar {
     width: 6px;
-    height: 0px; /* Hide horizontal scrollbar */
+    height: 6px; /* Show horizontal scrollbar */
   }
   &::-webkit-scrollbar-thumb {
     background: #cbd5e1;
@@ -378,10 +378,14 @@ tr.detail-row {
 }
 
 .element-detail {
-  overflow: hidden;
   display: flex !important;
+  flex-direction: column !important;
   padding: 0 16px 16px 48px;
   background: #f8fafc;
+  width: 100%;
+  min-width: 0; // CRITICAL: Allows flex child to be smaller than its content
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Ensure the detail row is visible when expanded */
@@ -395,13 +399,16 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
 }
 
 .history-card {
-  flex: 1;
+  width: 100%;
+  min-width: 0; // CRITICAL: Allows flex child to be smaller than its content
   background: #fff;
   border: 1px solid var(--dg-border);
   border-radius: 4px;
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.05);
   margin-top: 4px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .history-header {
@@ -424,6 +431,7 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
 .child-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto; // Let content determine the natural width
 
   th {
     text-align: left;
@@ -435,12 +443,14 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
     position: sticky;
     top: 0;
     z-index: 1;
+    white-space: nowrap; // Prevent header text wrapping
   }
 
   td {
     padding: 8px 12px;
     font-size: 12px;
     border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap; // Prevent cell data wrapping
   }
 
   tbody tr:hover {
@@ -449,17 +459,27 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
 }
 
 .history-scroll-container {
-  max-height: 350px;
+  max-height: 450px;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: auto !important;
+  display: block;
+  width: 100%;
+  min-width: 0; // CRITICAL: Force constraint
+  box-sizing: border-box;
+  position: relative;
   
   &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 10px !important;
   }
+  
   &::-webkit-scrollbar-thumb {
     background: #cbd5e1;
     border-radius: 10px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
   }
   &::-webkit-scrollbar-track {
     background: #f1f5f9;
