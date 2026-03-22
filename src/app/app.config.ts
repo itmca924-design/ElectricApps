@@ -1,4 +1,4 @@
-import { ApplicationConfig, APP_INITIALIZER, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, LOCALE_ID } from '@angular/core';
+import { ApplicationConfig, APP_INITIALIZER, provideBrowserGlobalErrorListeners, provideZoneChangeDetection, LOCALE_ID, isDevMode } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { registerLocaleData, DATE_PIPE_DEFAULT_OPTIONS } from '@angular/common';
@@ -12,6 +12,7 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { authInterceptor } from './core/auth.interceptors';
 import { PermissionService } from './core/services/permission.service';
 import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
+import { provideServiceWorker } from '@angular/service-worker';
 
 registerLocaleData(localeIn);
 
@@ -35,6 +36,10 @@ export const appConfig: ApplicationConfig = {
       useFactory: (permissionService: PermissionService) => () => permissionService.initializePermissions(),
       deps: [PermissionService],
       multi: true
-    }
+    },
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ]
 };

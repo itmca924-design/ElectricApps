@@ -352,17 +352,31 @@ table {
 
 /* CHILD TABLE SECTION */
 .child-table-scroll {
-  width: 100%;
-  overflow-x: auto; /* Proper scrolling for long item lists */
-  padding-bottom: 5px;
+  width: 100% !important;
+  max-width: 100vw;
+  overflow-x: auto !important; /* Force scroll for long item lists */
+  overflow-y: hidden;
+  padding-bottom: 5px; /* Added padding for scrollbar visibility */
+  position: relative;
+  display: block;
+  -webkit-overflow-scrolling: touch;
   
-  /* Scrollbar for child table - thinner and cleaner */
+  /* Scrollbar for child table - ensure it's visible and premium */
   &::-webkit-scrollbar {
-    height: 4px;
+    height: 10px; /* Thicker for better visibility */
   }
   &::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
-    border-radius: 10px;
+    background: #cbd5e1;
+    border-radius: 5px;
+    border: 2px solid white; 
+    
+    &:hover {
+      background: #94a3b8;
+    }
+  }
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 5px;
   }
 }
 
@@ -443,14 +457,17 @@ th.child-th {
   transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1),
     opacity 0.4s ease-in-out,
     padding 0.6s ease;
+  width: 100%; /* Changed from width: 0 to ensure content isn't squashed */
+  display: block;
 }
 
 .detail-panel.is-expanded {
-  max-height: 5000px; /* Increased to accommodate large orders and footer */
+  max-height: 5000px;
   opacity: 1;
   border-left: 4px solid #3b82f6;
-  padding: 15px 15px 15px 0; /* Remove left padding to align with parent */
-  overflow: visible; /* Ensure footer isn't clipped by panel */
+  padding: 15px 25px; 
+  overflow: visible; /* Return to visible for standard use */
+  display: block;
 }
 
 .active-filter {
@@ -707,12 +724,14 @@ th.child-th {
 }
 
 .child-table-scroll {
-  width: 100%;
-  overflow-x: visible !important;
+  width: 100% !important;
+  max-width: 100%;
+  overflow-x: auto !important; /* Enable horizontal scrolling */
   overflow-y: hidden;
-  padding: 5px;
-  display: block;
+  padding: 10px 0;
+  display: block !important;
   -webkit-overflow-scrolling: touch;
+  border-bottom: 2px solid #f1f5f9; /* Visual anchor for scrollbar */
 }
 
 .child-header {
@@ -756,10 +775,14 @@ th.child-th {
 :host ::ng-deep {
   .detail-panel {
     padding: 0px !important;
+    width: 100%;
+    display: block;
+    box-sizing: border-box;
+    overflow: visible;
 
     .inner-table {
-      min-width: 100% !important;
-      width: auto !important;
+      min-width: 1000px !important; /* Reverted to 1000px to avoid affecting PO List */
+      width: max-content !important; 
       border-collapse: collapse;
       table-layout: fixed !important; /* Required for programmatic resizing to work reliably */
 
@@ -831,6 +854,8 @@ th.child-th {
   justify-content: flex-end;
   padding: 20px 0;
   border-top: 1px solid #f1f5f9;
+  width: 100%;
+  min-width: max-content; /* Ensure it spans the full width of the scrolled content */
 }
 
 .summary-box {

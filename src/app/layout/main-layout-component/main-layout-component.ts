@@ -19,13 +19,16 @@ import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { LoadingService } from '../../core/services/loading.service';
 import { CompanyService } from '../../features/company/services/company.service';
 import { environment } from '../../enviornments/environment';
-import { map } from 'rxjs/operators';
+import { map, filter } from 'rxjs/operators';
 import { StockDrawerComponent } from '../../features/inventory/stock-drawer-component/stock-drawer-component';
+import { NavigationEnd } from '@angular/router';
+import { DOCUMENT } from '@angular/common';
+import { UserProfileComponent } from '../../shared/components/user-profile/user-profile';
 
 @Component({
   selector: 'app-main-layout-component',
   imports: [CommonModule, RouterOutlet, RouterModule, BreadcrumbComponent,
-    MaterialModule, StockDrawerComponent],
+    MaterialModule, StockDrawerComponent, UserProfileComponent],
   templateUrl: './main-layout-component.html',
   styleUrl: './main-layout-component.scss',
 })
@@ -44,6 +47,7 @@ export class MainLayoutComponent implements OnInit {
   private companyService = inject(CompanyService);
   private dialog = inject(MatDialog);
   private titleService = inject(Title);
+  private document = inject(DOCUMENT);
 
   isMobile = false;
   isDarkMode = false;
@@ -113,6 +117,7 @@ export class MainLayoutComponent implements OnInit {
           this.companyName = profile.name || 'Electric Inventory';
           this.companyTagline = profile.tagline || 'Inventory Management System';
           this.titleService.setTitle(this.companyName);
+          this.updateManifest(this.companyName);
 
           if (profile.logoUrl && !profile.logoUrl.startsWith('http')) {
             // Remove leading slash from logoUrl if present to avoid double slashes
@@ -159,6 +164,48 @@ export class MainLayoutComponent implements OnInit {
       this.currentTime = new Date();
       this.cdr.detectChanges();
     }, 1000);
+
+    // Dynamic Title based on Route
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      map(() => {
+        let child = this.router.routerState.snapshot.root;
+        while (child.firstChild) {
+          child = child.firstChild;
+        }
+        return child.data['title'] || child.data['breadcrumb'] || null;
+      })
+    ).subscribe((routeTitle) => {
+      const baseName = this.companyName || 'ElectricApps';
+      if (routeTitle) {
+        this.titleService.setTitle(`${baseName} - ${routeTitle}`);
+      } else {
+        this.titleService.setTitle(baseName);
+      }
+    });
+  }
+
+  private updateManifest(name: string): void {
+    const manifestElement = this.document.getElementById('app-manifest') as HTMLLinkElement;
+    if (manifestElement) {
+      // Create a dynamic manifest blob to reflect the dynamic name
+      const manifest = {
+        name: name + ' - Inventory ERP',
+        short_name: name,
+        display: 'standalone',
+        start_url: './',
+        theme_color: '#3b82f6',
+        background_color: '#f8fafc',
+        icons: [
+          { src: 'icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512x512.png', sizes: '512x512', type: 'image/png' }
+        ]
+      };
+      const stringManifest = JSON.stringify(manifest);
+      const blob = new Blob([stringManifest], { type: 'application/json' });
+      const manifestUrl = URL.createObjectURL(blob);
+      manifestElement.setAttribute('href', manifestUrl);
+    }
   }
 
   ngOnDestroy(): void {
@@ -188,7 +235,15 @@ export class MainLayoutComponent implements OnInit {
     this.authService.logout();
   }
 
-  openProfile() { }
+  openProfile(): void {
+    this.dialog.open(UserProfileComponent, {
+      panelClass: 'user-profile-dialog-panel',
+      maxWidth: '420px',
+      autoFocus: false,
+      enterAnimationDuration: '250ms',
+      exitAnimationDuration: '200ms'
+    });
+  }
   openSettings() { }
 
   // Step 1 Helper: Load count

@@ -175,14 +175,42 @@ app-enterprise-hierarchical-grid {
     line-height: normal !important;
   }
 
-  .child-table-scroll {
-    overflow: visible !important;
-    display: block;
-    width: 100%;
-  }
+  /* FORCED: SPECIFIC FIX FOR QUICK SALE ONLY - DON'T TOUCH PO */
+  .mat-row.detail-row, .detail-row {
+     .detail-panel {
+       display: block !important;
+       width: 0 !important;
+       min-width: 100% !important; 
+       max-height: none !important; /* Fix: Show content */
+       opacity: 1 !important;      /* Fix: Make visible */
+       overflow: hidden !important; 
+       padding: 0 !important;
+       background-color: transparent !important;
 
-  .inner-table {
-    width: 100% !important;
-    border-collapse: collapse;
+       .child-table-scroll {
+         display: block !important;
+         width: 100% !important;
+         overflow-x: auto !important; /* Standard scroll behavior */
+         padding: 24px 0; /* Space for scrollbar */
+         -webkit-overflow-scrolling: touch;
+         background-color: #f8fafc;
+         border-radius: 8px;
+
+         .inner-table {
+           min-width: 1800px !important; 
+           width: max-content !important;
+           border-collapse: collapse;
+         }
+
+         .child-footer-summary {
+           display: flex !important;
+           justify-content: flex-end;
+           min-width: 1800px !important;
+           width: max-content !important;
+           padding: 25px;
+           background-color: transparent;
+         }
+       }
+     }
   }
 }

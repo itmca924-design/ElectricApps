@@ -165,6 +165,10 @@
   padding: 0 32px !important;
   display: flex !important;
   align-items: center;
+
+  @media (max-width: 600px) {
+    padding: 0 8px !important; /* Minimum padding for mobile */
+  }
 }
 
 .toolbar-title {
@@ -173,13 +177,30 @@
   letter-spacing: 0.02em;
   margin-left: 16px;
   font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* Truncate if too long on smaller desktops */
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    max-width: 150px;
+  }
+
+  @media (max-width: 500px) {
+    display: none; /* Hide title on very small screens to favor icons */
+  }
 }
 
 .breadcrumb {
   flex-shrink: 0;
-  padding: 0;
+  padding: 8px 16px !important; /* Reduced padding for mobile by default */
   background: transparent;
   border-bottom: 1px solid #e5e7eb;
+
+  @media (min-width: 769px) {
+     padding: 8px 32px !important;
+  }
 }
 
 .content {
@@ -195,11 +216,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 32px;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(10px);
   font-size: 0.8rem;
   color: #64748b;
   border-top: 1px solid #e2e8f0;
   font-family: 'Inter', sans-serif;
+  position: relative;
+  z-index: 10;
 
   .footer-left {
     strong { color: #1e293b; font-weight: 700; }
@@ -250,13 +274,37 @@
   border-radius: 99px;
   margin-right: 16px;
   border: 1px solid #e2e8f0;
+  white-space: nowrap;
+
+  @media (max-width: 900px) {
+    display: none !important; /* Force hide the email bubble on mobile/tablet */
+    width: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    visibility: hidden;
+  }
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px; /* Increased gap for better touch on tablets */
+
+  @media (max-width: 600px) {
+    gap: 2px !important;
+  }
 }
 
 .sidenav-footer {
   margin-top: auto;
-  padding: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05); /* Highly Translucent */
+  backdrop-filter: blur(12px); /* Premium Glass Effect */
   border-top: 1px solid rgba(156, 39, 176, 0.1);
-  background: linear-gradient(to top, #111317, #1e1b2e);
+  margin: 15px; /* Floating box effect */
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 .clock-calendar-section {

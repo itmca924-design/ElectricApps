@@ -1,0 +1,65 @@
+<mat-card class="profile-card">
+  <!-- Card Header with Gradient -->
+  <div class="card-header">
+    <div class="avatar-container">
+      <div class="avatar-circle">
+        <mat-icon>person</mat-icon>
+      </div>
+      <div class="online-indicator"></div>
+    </div>
+    <h2 class="user-name">{{ userName }}</h2>
+    <span class="user-badge">{{ userRole }}</span>
+  </div>
+
+  <mat-card-content class="card-body">
+    <!-- User Info List -->
+    <div class="info-section">
+      <div class="info-row">
+        <mat-icon class="row-icon">email</mat-icon>
+        <div class="row-content">
+          <label>Email Address</label>
+          <span>{{ userEmail }}</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <mat-icon class="row-icon">verified_user</mat-icon>
+        <div class="row-content">
+          <label>Account Status</label>
+          <span class="status-active">Active</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <mat-icon class="row-icon">calendar_month</mat-icon>
+        <div class="row-content">
+          <label>Member Since</label>
+          <span>{{ joinedDate }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Stats Summary -->
+    <div class="stats-summary">
+      <div class="stat-item">
+        <strong>Last Login</strong>
+        <span>Today, 12:45 PM</span>
+      </div>
+      <div class="stat-item">
+        <strong>Location</strong>
+        <span>Warehouse Unit 4</span>
+      </div>
+    </div>
+  </mat-card-content>
+
+  <mat-card-actions class="card-actions">
+    <button mat-button color="primary" (click)="close()" class="btn-close">
+      <mat-icon>close</mat-icon>
+      Close
+    </button>
+    <button mat-flat-button color="warn" (click)="onLogout()" class="btn-logout">
+      <mat-icon>logout</mat-icon>
+      Sign Out
+    </button>
+  </mat-card-actions>
+</mat-card>

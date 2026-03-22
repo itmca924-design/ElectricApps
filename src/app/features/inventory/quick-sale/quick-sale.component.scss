@@ -234,10 +234,32 @@
   }
 }
 
-.items-grid {
+.items-scroll-container {
+  width: 100%;
+  overflow-x: auto;
   border: 1px solid #ebf2ee;
   border-radius: 8px;
-  overflow-x: auto;
+  background-color: white;
+  margin-top: 8px;
+  
+  /* Modern Scrollbar Styling */
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+    &:hover { background: #94a3b8; }
+  }
+  &::-webkit-scrollbar-track {
+    background: #f8fafc;
+  }
+}
+
+.items-grid {
+  min-width: 1050px; /* Force minimum width to trigger scroll on smaller containers */
+  width: 100%;
+  overflow-x: hidden; /* Scroll is handled by parent container now */
 
   .item-header {
     display: flex;
@@ -395,8 +417,9 @@
   display: flex;
   justify-content: flex-end;
   margin-top: 24px;
-  padding: 20px 0;
+  padding: 20px 24px; /* Added right padding for consistency in scroll */
   width: 100%;
+  min-width: 1050px; /* Match grid width so summary stays aligned to the right of content */
   overflow: visible;
   z-index: 10;
 

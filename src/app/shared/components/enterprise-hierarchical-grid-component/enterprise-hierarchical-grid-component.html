@@ -334,7 +334,6 @@
                     Delete Selected ({{childSelection.selected.length}})
                   </button>
                 </div>
-
                 <div class="child-table-scroll">
                   <table class="inner-table" cdkDropList cdkDropListOrientation="horizontal"
                     (cdkDropListDropped)="dropChild($event)">
@@ -420,30 +419,31 @@
                       </tr>
                     </tbody>
                   </table>
-                </div>
 
-                <!-- Footer Summary Box: Moved outside table for better layout control -->
-                <div class="child-footer-summary">
-                  <div class="summary-box">
-                    <div class="summary-item">
-                      <span class="label">Total Qty:</span>
-                      <span class="value">{{ calculateTotalQty(element) }}</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="label">Sub-Total:</span>
-                      <span class="value">{{ calculateSubTotal(element) | currency:'INR' }}</span>
-                    </div>
-                    <div class="summary-item">
-                      <span class="label">Total Tax:</span>
-                      <span class="value">{{ (element.totalTax || 0) | currency:'INR' }}</span>
-                    </div>
-                    <div class="summary-item grand-total-section">
-                      <span class="label">GRAND TOTAL:</span>
-                      <span class="value">{{ (element.grandTotal || 0) | currency:'INR' }}</span>
+                  <!-- Footer Summary Box: Moved INSIDE scrollable area -->
+                  <div class="child-footer-summary">
+                    <div class="summary-box">
+                      <div class="summary-item">
+                        <span class="label">Total Qty:</span>
+                        <span class="value">{{ calculateTotalQty(element) }}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="label">Sub-Total:</span>
+                        <span class="value">{{ calculateSubTotal(element) | currency:'INR' }}</span>
+                      </div>
+                      <div class="summary-item">
+                        <span class="label">Total Tax:</span>
+                        <span class="value">{{ (element.totalTax || 0) | currency:'INR' }}</span>
+                      </div>
+                      <div class="summary-item grand-total-section">
+                        <span class="label">GRAND TOTAL:</span>
+                        <span class="value">{{ (element.grandTotal || 0) | currency:'INR' }}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </ng-container>
+
               </div>
             </div>
           </td>

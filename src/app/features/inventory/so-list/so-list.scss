@@ -723,4 +723,39 @@ button[color="warning"] {
     font-style: italic;
 }
 
+/* FORCED: SPECIFIC FIX FOR SALE ORDER LIST ONLY - DON'T TOUCH PO */
+::ng-deep {
+  .detail-panel {
+    display: block !important;
+    width: 0 !important;
+    min-width: 100% !important; /* Forces scrollbar for cell */
+    max-height: none !important;
+    opacity: 1 !important;
+    overflow: hidden !important; 
+    padding: 0 !important;
 
+    .child-table-scroll {
+      display: block !important;
+      width: 100% !important;
+      overflow-x: auto !important; /* Forced scrollbar */
+      padding: 24px 0;
+      -webkit-overflow-scrolling: touch;
+      background-color: #f8fafc;
+      border-radius: 8px;
+
+      .inner-table {
+        min-width: 1800px !important; /* Triggers overflow on all screens */
+        width: max-content !important;
+        border-collapse: collapse;
+      }
+
+      .child-footer-summary {
+        display: flex !important;
+        justify-content: flex-end;
+        min-width: 1800px !important;
+        width: max-content !important;
+        padding: 25px;
+      }
+    }
+  }
+}
