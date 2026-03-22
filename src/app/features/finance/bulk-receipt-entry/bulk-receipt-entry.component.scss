@@ -32,11 +32,6 @@
         }
     }
 
-    button.save-btn {
-        min-width: 100px;
-        font-weight: 500;
-        letter-spacing: 0.5px;
-    }
 }
 
 // Table Container
@@ -152,11 +147,39 @@
     
     // Datepicker alignment fix
     .mat-datepicker-toggle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 4px;
+
         button {
-            height: 32px !important;
-            width: 32px !important;
-            line-height: 32px !important;
-            margin-bottom: 12px; // Adjusted to move icon up further
+            height: 26px !important;
+            width: 26px !important;
+            background: #ffffff !important;
+            border-radius: 50% !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            transition: all 0.2s ease;
+
+            .mat-icon {
+                font-size: 16px !important;
+                width: 16px !important;
+                height: 16px !important;
+                margin: 0 !important;
+                color: #5f6368;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+            }
+
+            &:hover {
+                background: #f1f3f4 !important;
+                box-shadow: 0 3px 6px rgba(0,0,0,0.2) !important;
+                transform: translateY(-1px);
+            }
         }
     }
 
@@ -174,14 +197,32 @@
     border-top: 1px solid #e0e0e0;
     background: #fff;
     display: flex;
-    justify-content: flex-start;
+    justify-content: space-between;
+    align-items: center;
     flex-shrink: 0;
     z-index: 20;
 
-    button {
-        border-style: dashed;
-        border-width: 1.5px;
-        &:hover { border-style: solid; background: #e3f2fd; }
+    .add-row-btn {
+        border-style: dashed !important;
+        border-width: 1.5px !important;
+        height: 40px;
+        padding: 0 16px !important;
+        &:hover { border-style: solid !important; background: #e3f2fd; }
+    }
+
+    button.save-btn {
+        min-width: 120px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        padding: 0 24px !important;
+        height: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+        
+        &:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15) !important;
+        }
     }
 }
 

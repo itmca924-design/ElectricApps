@@ -76,7 +76,7 @@
                     <!-- Row 3 -->
                      <mat-form-field appearance="outline" class="full-width">
                         <mat-label>Receipt Date</mat-label>
-                        <input matInput [matDatepicker]="picker" [(ngModel)]="receipt.paymentDate" name="paymentDate" required>
+                        <input matInput [matDatepicker]="picker" [(ngModel)]="receipt.paymentDate" name="paymentDate" [min]="minDate" [max]="maxDate" readonly required>
                         <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                         <mat-datepicker #picker></mat-datepicker>
                     </mat-form-field>

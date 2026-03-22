@@ -1,17 +1,11 @@
 <div class="popup-container">
     <div class="header">
         <div class="title-group">
-            <button mat-icon-button (click)="goBack()">
-                <mat-icon>close</mat-icon>
-            </button>
             <h2>Bulk Receipt Entry</h2>
         </div>
         
-        <button mat-flat-button color="primary" class="save-btn" (click)="saveAll()" [disabled]="isLoading || bulkForm.invalid">
-            <mat-icon *ngIf="!isLoading">save</mat-icon>
-            <mat-spinner diameter="18" *ngIf="isLoading" class="spinner-white"></mat-spinner>
-            <span *ngIf="!isLoading">Save All</span>
-            <span *ngIf="isLoading">Saving...</span>
+        <button mat-icon-button (click)="goBack()">
+            <mat-icon>close</mat-icon>
         </button>
     </div>
 
@@ -90,10 +84,9 @@
                         </mat-form-field>
                     </td>
 
-                    <!-- Date -->
                     <td class="cell-input">
                         <mat-form-field appearance="outline" class="table-input-field">
-                            <input matInput [matDatepicker]="picker" formControlName="date">
+                            <input matInput [matDatepicker]="picker" formControlName="date" [min]="minDate" [max]="maxDate" readonly>
                             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                             <mat-datepicker #picker></mat-datepicker>
                         </mat-form-field>
@@ -118,8 +111,15 @@
     </form>
 
     <div class="footer-actions">
-        <button mat-stroked-button color="primary" (click)="addRow()">
+        <button mat-stroked-button color="primary" class="add-row-btn" (click)="addRow()">
             <mat-icon>add</mat-icon> Add New Row
+        </button>
+
+        <button mat-flat-button color="primary" class="save-btn" (click)="saveAll()" [disabled]="isLoading || bulkForm.invalid">
+            <mat-icon *ngIf="!isLoading">save</mat-icon>
+            <mat-spinner diameter="18" *ngIf="isLoading" class="spinner-white"></mat-spinner>
+            <span *ngIf="!isLoading">Save All</span>
+            <span *ngIf="isLoading">Saving...</span>
         </button>
     </div>
 </div>

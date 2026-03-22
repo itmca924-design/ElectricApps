@@ -37,6 +37,9 @@ export class BulkReceiptEntryComponent implements OnInit {
     customers: any[] = [];
     filteredCustomers: Observable<any[]>[] = [];
     modes = ['Cash', 'GPay', 'PhonePe', 'Paytm', 'Bank Transfer', 'Check'];
+    today = new Date();
+    minDate = new Date();
+    maxDate = new Date();
     isLoading = false;
 
     ngOnInit() {
@@ -101,14 +104,14 @@ export class BulkReceiptEntryComponent implements OnInit {
 
     addRow() {
         const row = this.fb.group({
-            selected: [false],
+            selected: [true],
             customer: ['', Validators.required],
             customerId: [null, Validators.required],
             currentBalance: [{ value: 0, disabled: true }],
             amount: [null, [Validators.required, Validators.min(1)]],
             paymentMode: ['Cash', Validators.required],
             referenceBy: [''],
-            date: [new Date(), Validators.required],
+            date: [this.today, Validators.required],
             remarks: ['']
         });
 

@@ -35,12 +35,16 @@ export class ReceiptEntryComponent implements OnInit {
   private permissionService = inject(PermissionService);
   canAdd: boolean = true;
 
+  today = new Date();
+  minDate = new Date();
+  maxDate = new Date();
+
   receipt: any = {
     customerId: null,
     amount: null,
     paymentMode: 'Cash',
     referenceNumber: '',
-    paymentDate: new Date(),
+    paymentDate: this.today,
     remarks: '',
     createdBy: 'Admin'
   };
@@ -385,7 +389,7 @@ export class ReceiptEntryComponent implements OnInit {
       amount: null,
       paymentMode: 'Cash',
       referenceNumber: '',
-      paymentDate: new Date(),
+      paymentDate: this.today,
       remarks: '',
       createdBy: 'Admin'
     };
