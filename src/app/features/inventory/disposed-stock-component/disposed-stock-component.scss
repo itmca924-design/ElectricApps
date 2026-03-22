@@ -56,6 +56,10 @@
        .card-icon { background: #fee2e2; color: var(--danger-main); }
        .value { color: var(--danger-main); }
     }
+    &.purge {
+       border-left: 5px solid #d946ef;
+       .card-icon { background: #fdf4ff; color: #d946ef; }
+    }
   }
 }
 
@@ -128,6 +132,7 @@ table {
   }
 
   .amount { font-weight: 700; color: #1e293b; text-align: right; }
+  .loss-value-cell { text-align: left !important; color: #1e293b; font-weight: 600; }
 }
 
 .view-btn {
@@ -202,3 +207,4 @@ table {
 .font-600 { font-weight: 600; }
 .font-700 { font-weight: 700; }
 .text-danger { color: var(--danger-main); }
+.text-muted { color: #94a3b8 !important; }

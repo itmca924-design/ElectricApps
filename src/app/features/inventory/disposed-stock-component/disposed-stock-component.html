@@ -4,7 +4,7 @@
     <mat-card class="summary-card total">
       <mat-card-content>
         <div class="card-icon">
-          <mat-icon>delete_sweep</mat-icon>
+          <mat-icon>inventory_2</mat-icon>
         </div>
         <div class="card-info">
           <span class="label">TOTAL DISPOSED QTY</span>
@@ -21,6 +21,32 @@
         <div class="card-info">
           <span class="label">ESTIMATED LOSS VALUE</span>
           <span class="value">₹{{ totalDisposedValue | number:'1.2-2' }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="summary-card purge" *ngIf="expiryAlertCount > 0 || nearExpiryCount > 0">
+      <mat-card-content>
+        <div class="card-icon">
+          <mat-icon>warning_amber</mat-icon>
+        </div>
+        <div class="card-info">
+          <span class="label">EXPIRED BATCHES</span>
+          <div class="value-row" style="display: flex; align-items: baseline; gap: 6px;">
+            <span class="value text-danger" [class.text-muted]="expiryAlertCount === 0" style="font-size: 1.8rem; font-weight: 700;">{{ expiryAlertCount }}</span>
+            <span style="font-size: 0.8rem; font-weight: 600; color: #666; opacity: 0.8;">Batches / <b>{{ totalExpiredQty }}</b> Nos</span>
+          </div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #e53935; margin-top: 2px;">
+            Value: ₹{{ totalExpiredLoss | number:'1.2-2' }}
+          </div>
+          <div class="near-expiry-notice" *ngIf="nearExpiryCount > 0" 
+               style="display: flex; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 10px; background: #fff7e6; border-radius: 6px; border: 1px solid #ffe7ba;">
+            <mat-icon style="font-size: 16px; height: 16px; width: 16px; color: #faad14;">error_outline</mat-icon>
+            <span style="font-size: 0.75rem; font-weight: 600; color: #fa8c16;">
+              {{ nearExpiryCount }} batch{{ nearExpiryCount > 1 ? 'es' : '' }} expiring soon ( < 15 days )
+            </span>
+          </div>
+          <span class="sub-label" *ngIf="nearExpiryCount === 0" style="font-size: 0.75rem; color: #666; margin-top: 4px;">Items in expired rack/state</span>
         </div>
       </mat-card-content>
     </mat-card>
@@ -89,22 +115,22 @@
         </ng-container>
 
         <ng-container matColumnDef="rackName">
-            <th mat-header-cell *matHeaderCellDef mat-sort-header>Rack</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Staging Rack</th>
             <td mat-cell *matCellDef="let element">
-                <span class="rack-badge">{{ element.rackName }}</span>
+                <span class="rack-badge danger">{{ element.rackName }}</span>
             </td>
           </ng-container>
 
         <ng-container matColumnDef="disposedQty">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Disposed Qty</th>
           <td mat-cell *matCellDef="let element">
-             <span class="qty-badge warn">{{ element.totalRejected }}</span>
+             <span class="qty-badge warn">{{ (element.totalRejected || 0) + (element.totalExpired || 0) }}</span>
           </td>
         </ng-container>
 
         <ng-container matColumnDef="disposedValue">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Loss Value</th>
-          <td mat-cell *matCellDef="let element" class="amount">₹{{ (element.totalRejected * element.lastRate) | number:'1.2-2' }}</td>
+          <td mat-cell *matCellDef="let element" class="loss-value-cell">₹{{ ((element.totalRejected + (element.totalExpired || 0)) * element.lastRate) | number:'1.2-2' }}</td>
         </ng-container>
 
         <ng-container matColumnDef="lastPurchase">
@@ -131,6 +157,7 @@
                         <th>PO Ref</th>
                         <th>GRN Ref</th>
                         <th>Supplier</th>
+                        <th>Rack</th>
                         <th>Mfg Date</th>
                         <th>Exp Date</th>
                         <th>Rejected</th>
@@ -143,6 +170,7 @@
                         <td><span class="po-link">#{{$any(h).poNumber}}</span></td>
                         <td>{{$any(h).grnNumber}}</td>
                         <td>{{$any(h).supplierName}}</td>
+                        <td><span class="rack-badge">{{$any(h).rackName}}</span></td>
                         <td>{{$any(h).isExpiryRequired || $any(h).IsExpiryRequired ? ($any(h).manufacturingDate | date:'dd MMM yyyy') : 'N/A'}}</td>
                         <td>
                           <span [class.text-danger]="$any(h).isExpiryRequired || $any(h).IsExpiryRequired" 

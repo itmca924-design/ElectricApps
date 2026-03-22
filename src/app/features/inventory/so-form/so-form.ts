@@ -202,8 +202,10 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
             const productStock = itemsArray.find((x: any) => String(x.productId || x.ProductId) === String(item.productId));
             if (productStock) {
               // For Drafts, total available stock is just what's in the warehouse
-              const currentStock = productStock.availableStock || 0;
-              row.get('availableStock')?.setValue(currentStock);
+              const maxStock = (productStock.availableStock || 0);
+              row.get('availableStock')?.setValue(maxStock);
+              row.get('qty')?.setValidators([Validators.required, Validators.min(1), Validators.max(maxStock)]);
+              row.get('qty')?.updateValueAndValidity();
 
               // If Rack Name is missing (common in Drafts), pick from current stock
               if (!row.get('rackName')?.value) {
@@ -326,7 +328,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
     const row = this.fb.group({
       productSearch: [product, Validators.required],
       productId: [productId, Validators.required],
-      qty: [product.qty || 1, [Validators.required, Validators.min(1)]],
+      qty: [product.qty || 1, [Validators.required, Validators.min(1), Validators.max(product.currentStock || product.availableStock || 0)]],
       unit: [product.unit || 'PCS'],
       rate: [product.rate || product.saleRate || 0, [Validators.required, Validators.min(0.01)]],
       discountPercent: [product.discount || product.discountPercent || 0],
@@ -366,48 +368,57 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
         const currentItem = row;
         const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
         
-        // Match by ID (Case Insensitive for GUIDs) or Product Name as fallback
-        const productItem = itemsArray.find((x: any) => {
+        // AGGREGATE ALL ITEMS for the same product Id from ALL racks
+        const matchingProductItems = itemsArray.filter((x: any) => {
           const xId = String(x.productId || x.ProductId || x.id || x.Id).toLowerCase();
           const targetId = String(productId).toLowerCase();
           return xId === targetId || (x.productName === productName && productName.length > 0);
         });
 
-        if (!productItem) {
+        if (matchingProductItems.length === 0) {
           this.dialog.open(StatusDialogComponent, { width: '350px', data: { isSuccess: false, title: 'Out of Stock', message: 'No stock available for this product.' } });
           const idx = this.items.controls.indexOf(row);
           if (idx > -1) this.removeItem(idx);
           return;
         }
 
-        currentItem.get('availableStock')?.setValue(productItem.availableStock || 0);
+        // Sum total stock from all racks for display
+        const totalAvail = matchingProductItems.reduce((acc: number, curr: any) => acc + (curr.availableStock || 0), 0);
+        currentItem.get('availableStock')?.setValue(totalAvail);
 
-        // ✅ Now using backend-calculated 'AvailableQty' for each batch
-        const allBatches = (productItem.history || []).map((h: any) => ({
-          grnNumber: h.grnNumber || 'N/A',
-          manufacturingDate: h.manufacturingDate,
-          expiryDate: h.expiryDate,
-          availableStock: h.availableQty ?? h.AvailableQty ?? 0,
-          warehouseName: h.warehouseName,
-          rackName: h.rackName,
-          warehouseId: h.warehouseId,
-          rackId: h.rackId,
-          isExpired: isExpiredBatch(h.expiryDate)
-        }));
+        // Build consolidated history from ALL matching items
+        const allBatches: any[] = [];
+        matchingProductItems.forEach((pItem: any) => {
+            const pItemHistory = pItem.history || [];
+            pItemHistory.forEach((h: any) => {
+              allBatches.push({
+                grnNumber: h.grnNumber || 'N/A',
+                manufacturingDate: h.manufacturingDate,
+                expiryDate: h.expiryDate,
+                availableStock: h.availableQty ?? h.AvailableQty ?? 0,
+                warehouseName: h.warehouseName || pItem.warehouseName,
+                rackName: h.rackName || pItem.rackName,
+                warehouseId: h.warehouseId || pItem.warehouseId,
+                rackId: h.rackId || pItem.rackId,
+                isExpired: isExpiredBatch(h.expiryDate)
+              });
+            });
 
-        if (allBatches.length === 0) {
-          allBatches.push({
-            grnNumber: 'N/A',
-            manufacturingDate: productItem.manufacturingDate,
-            expiryDate: productItem.expiryDate,
-            availableStock: productItem.availableStock || 0,
-            warehouseName: productItem.warehouseName,
-            rackName: productItem.rackName,
-            warehouseId: productItem.warehouseId,
-            rackId: productItem.rackId,
-            isExpired: isExpiredBatch(productItem.expiryDate)
-          });
-        }
+            // If item has stock but NO history records, add the item itself as a batch
+            if (pItemHistory.length === 0 && (pItem.availableStock || 0) > 0) {
+              allBatches.push({
+                grnNumber: 'N/A',
+                manufacturingDate: pItem.manufacturingDate,
+                expiryDate: pItem.expiryDate,
+                availableStock: pItem.availableStock || 0,
+                warehouseName: pItem.warehouseName,
+                rackName: pItem.rackName,
+                warehouseId: pItem.warehouseId,
+                rackId: pItem.rackId,
+                isExpired: isExpiredBatch(pItem.expiryDate)
+              });
+            }
+        });
 
         // Show batches that have stock OR are expired OR are valid but 0 stock (so they are visible)
         const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired || b.manufacturingDate); 
@@ -458,6 +469,8 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       expiryDate: expDate ? new Date(expDate) : null,
       availableStock: stock
     });
+    formGroup.get('qty')?.setValidators([Validators.required, Validators.min(1), Validators.max(stock)]);
+    formGroup.get('qty')?.updateValueAndValidity();
     this.updateTotal(formGroup);
     this.cdr.detectChanges();
   }

@@ -138,10 +138,9 @@
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="qty-field">
               <mat-label>Qty</mat-label>
-              <input matInput type="number" formControlName="qty" (input)="updateTotal(i)">
-              <mat-hint *ngIf="items.at(i).get('productId')?.value && items.at(i).get('qty')?.value > items.at(i).get('availableStock')?.value" class="qty-error-hint">
-                 Exceeds Stock!
-              </mat-hint>
+              <input matInput type="number" formControlName="qty" (input)="updateTotal(i)"
+                     [matTooltip]="items.at(i).get('qty')?.errors?.['max'] ? 'Exceeds Stock! Max allowed: ' + items.at(i).get('availableStock')?.value : ''"
+                     matTooltipPosition="above">
             </mat-form-field>
 
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="unit-field">

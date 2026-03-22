@@ -428,6 +428,12 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
     width: 16px;
     height: 16px;
   }
+
+  .purged-toggle {
+    ::ng-deep .mdc-label {
+      color: white !important;
+    }
+  }
 }
 
 .child-table {

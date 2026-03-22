@@ -38,20 +38,6 @@
       </mat-card-content>
   </mat-card>
 
-  <mat-card class="stat-card purge" *ngIf="expiryAlertCount > 0">
-    <mat-card-content>
-        <div class="stat-icon"><mat-icon>auto_delete</mat-icon></div>
-        <div class="stat-info">
-            <span class="label">Expired Batches</span>
-            <div class="value-row">
-                <span class="value">{{expiryAlertCount}}</span>
-                <button mat-raised-button color="warn" class="stat-purge-btn" (click)="onPurgeAllExpired()" matTooltip="Purge All Expired Stock">
-                    Purge
-                </button>
-            </div>
-        </div>
-    </mat-card-content>
-</mat-card>
 </div>
 
 <div class="table-container mat-elevation-z8" [class.disabled-content]="isDashboardLoading">
@@ -262,9 +248,14 @@
                 [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
             
             <div class="history-card" *ngIf="element == expandedElement">
-              <div class="history-header">
-                <mat-icon>analytics</mat-icon>
-                <span>Audit Trail | Transaction & Rejection History</span>
+              <div class="history-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0 15px;">
+                <div style="display: flex; align-items: center;">
+                  <mat-icon style="margin-right: 8px;">analytics</mat-icon>
+                  <span style="font-weight: 600;">Audit Trail | Transaction & Rejection History</span>
+                </div>
+                <mat-slide-toggle [(ngModel)]="showPurgedHistory" (change)="cdr.detectChanges()" color="primary" labelPosition="before" style="font-size: 0.8rem;" class="purged-toggle">
+                   Show Purged/Removed Batches
+                </mat-slide-toggle>
               </div>
               
               <div class="history-scroll-container">
@@ -332,6 +323,12 @@
                                 (click)="onMoveToExpired(h, $event)" color="primary" matTooltip="Move to Expired Rack">
                           <mat-icon style="font-size: 18px;">move_to_inbox</mat-icon>
                         </button>
+
+                        <div *ngIf="$any(h).receivedQty === 0 && ($any(h).rejectedQty === 0 || !$any(h).rejectedQty) && ($any(h).expiredQty === 0 || !$any(h).expiredQty)" 
+                             class="purged-badge" style="color: #52c41a; font-weight: 600; font-size: 0.7rem; border: 1px solid #b7eb8f; padding: 2px 6px; border-radius: 4px; background: #f6ffed; display: inline-flex; align-items: center;">
+                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">done_all</mat-icon>
+                          PURGED / REMOVED
+                        </div>
 
                         <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && ($any(h).rackName.includes('Expired') || $any(h).rackName.includes('E1'))" 
                                 (click)="onRemoveStock(h, $event)" color="warn" matTooltip="Permanent Purge">

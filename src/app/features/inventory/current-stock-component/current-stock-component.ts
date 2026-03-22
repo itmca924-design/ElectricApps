@@ -56,6 +56,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   totalStockQty: number = 0;
   expiryAlertCount: number = 0;
   nearExpiryCount: number = 0;
+  showPurgedHistory: boolean = false;
   searchValue: string = '';
   lastpurchaseOrderId!: number;
 
@@ -73,7 +74,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   selectedRackId: string | null = null;
 
   constructor(private inventoryService: InventoryService, private router: Router,
-    private cdr: ChangeDetectorRef) { }
+    public cdr: ChangeDetectorRef) { }
 
   selection = new SelectionModel<any>(true, []);
 
@@ -245,9 +246,18 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
 
   getPaginatedHistory(element: any): any[] {
     if (!element || !element.history) return [];
+    
+    // Filter history based on toggle
+    let filteredHistory = element.history;
+    if (!this.showPurgedHistory) {
+      filteredHistory = element.history.filter((h: any) => 
+        (h.receivedQty || 0) + (h.rejectedQty || 0) + (h.expiredQty || 0) > 0
+      );
+    }
+
     const start = this.innerPageIndex * this.innerPageSize;
     const end = start + this.innerPageSize;
-    return element.history.slice(start, end);
+    return filteredHistory.slice(start, end);
   }
 
   onInnerPageChange(event: any) {
@@ -307,7 +317,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
           this.notification.showStatus(false, 'No stock available to move.');
           return;
         }
-        const payload = { productId: historyItem.productId, sourceWarehouseId: historyItem.warehouseId, sourceRackId: historyItem.rackId, quantity: targetQty, expiryDate: historyItem.expiryDate };
+        const payload = { productId: historyItem.productId, sourceWarehouseId: historyItem.warehouseId, sourceRackId: historyItem.rackId, sourceRackName: historyItem.rackName, quantity: targetQty, expiryDate: historyItem.expiryDate };
         this.inventoryService.moveStockToExpiredRack(payload).subscribe({
           next: () => {
             this.notification.showStatus(true, 'Batch moved to Expired Products rack successfully.');

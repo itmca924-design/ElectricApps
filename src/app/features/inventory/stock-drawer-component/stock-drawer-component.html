@@ -89,6 +89,11 @@
                   </span>
                 </span>
                 <span class="batch-po">PO: #{{batch.poNumber}}</span>
+                <span *ngIf="(batch.receivedQty - (batch.rejectedQty || 0) - (batch.expiredQty || 0)) === 0" 
+                      class="purged-text" 
+                      style="color: #f5222d; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
+                  (DELETED / PURGED)
+                </span>
               </div>
             </div>
           </div>

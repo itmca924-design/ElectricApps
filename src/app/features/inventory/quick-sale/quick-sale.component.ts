@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule, FormControl, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { InventoryService } from '../service/inventory.service';
 import { ProductService } from '../../master/product/service/product.service';
@@ -184,6 +184,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                                this.calculateItemTotal(idx);
                                
                                // Force validity check for each item
+                               currentItem.get('qty')?.updateValueAndValidity();
                                currentItem.updateValueAndValidity();
                            }
                         });
@@ -321,7 +322,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             rackName: [product.rackName || 'NA'],
             warehouseId: [product.warehouseId || product.defaultWarehouseId || null],
             rackId: [product.rackId || product.defaultRackId || null],
-            qty: [product.qty || 1, [Validators.required, Validators.min(0.01)]],
+            qty: [product.qty || 1, [Validators.required, Validators.min(0.01), this.stockValidator()]],
             unit: [{ value: product.unit || 'PCS', disabled: true }],
             rate: [product.rate || product.Rate || product.saleRate || product.salePrice || product.price || product.mrp || 0, [Validators.required, Validators.min(0)]],
             discountPercent: [product.discountPercent || product.discount || 0],
@@ -345,70 +346,84 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
         this.setupUnitFilter(index);
 
         if (!isExistingItem) {
-             const productName = product.productName || product.name || '';
-             this.inventoryService.getCurrentStock('', '', 0, 100, productName).subscribe((res: any) => {
-                 const currentItem = this.items.at(index);
-                 const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
-                 const productItem = itemsArray.find((x: any) => {
-                     const xId = String(x.productId || x.ProductId || x.id || x.Id).toLowerCase();
-                     const targetId = String(productId).toLowerCase();
-                     return xId === targetId || (x.productName === productName && productName.length > 0);
-                 });
+              const productName = product.productName || product.name || '';
+              this.inventoryService.getCurrentStock('', '', 0, 100, productName).subscribe((res: any) => {
+                  const currentItem = this.items.at(index);
+                  const itemsArray = res?.data?.items || res?.items || res?.Items || res?.data?.Items || [];
+                  
+                  // AGGREGATE ALL ITEMS for the same product Id from ALL racks
+                  const matchingProductItems = itemsArray.filter((x: any) => {
+                      const xId = String(x.productId || x.ProductId || x.id || x.Id).toLowerCase();
+                      const targetId = String(productId).toLowerCase();
+                      return xId === targetId || (x.productName === productName && productName.length > 0);
+                  });
 
-                 if (!productItem) {
-                     this.notification.showStatus(false, 'No stock available for this product.');
-                     this.items.removeAt(index);
-                     return;
-                 }
+                  if (matchingProductItems.length === 0) {
+                      this.notification.showStatus(false, 'No stock available for this product.');
+                      this.items.removeAt(index);
+                      return;
+                  }
 
-                if (currentItem) {
-                    currentItem.get('availableStock')?.setValue(productItem.availableStock || 0);
-                }
+                  // Sum total stock from all racks for display
+                  const totalAvail = matchingProductItems.reduce((acc: number, curr: any) => acc + (curr.availableStock || 0), 0);
+                  if (currentItem) {
+                      currentItem.get('availableStock')?.setValue(totalAvail);
+                      currentItem.get('qty')?.updateValueAndValidity();
+                  }
 
-                const allBatches = (productItem.history || []).map((h: any) => {
-                     return {
-                         grnNumber: h.grnNumber || 'N/A',
-                         manufacturingDate: h.manufacturingDate,
-                         expiryDate: h.expiryDate,
-                         availableStock: h.availableQty ?? h.AvailableQty ?? 0,
-                         warehouseName: h.warehouseName, warehouseId: productItem.warehouseId,
-                         rackName: h.rackName, rackId: productItem.rackId,
-                         isExpired: isExpiredBatch(h.expiryDate)
-                     };
-                 });
+                  // Build consolidated history from ALL matching items
+                  const allBatches: any[] = [];
+                  matchingProductItems.forEach((pItem: any) => {
+                      const pItemHistory = pItem.history || [];
+                      pItemHistory.forEach((h: any) => {
+                          allBatches.push({
+                              grnNumber: h.grnNumber || 'N/A',
+                              manufacturingDate: h.manufacturingDate,
+                              expiryDate: h.expiryDate,
+                              availableStock: h.availableQty ?? h.AvailableQty ?? 0,
+                              warehouseName: h.warehouseName || pItem.warehouseName, 
+                              warehouseId: h.warehouseId || pItem.warehouseId,
+                              rackName: h.rackName || pItem.rackName, 
+                              rackId: h.rackId || pItem.rackId,
+                              isExpired: isExpiredBatch(h.expiryDate)
+                          });
+                      });
 
-                 if (allBatches.length === 0) {
-                     allBatches.push({
-                         grnNumber: 'N/A',
-                         manufacturingDate: productItem.manufacturingDate,
-                         expiryDate: productItem.expiryDate,
-                         availableStock: productItem.availableStock || 0,
-                         warehouseName: productItem.warehouseName,
-                         rackName: productItem.rackName,
-                         warehouseId: productItem.warehouseId,
-                         rackId: productItem.rackId,
-                         isExpired: isExpiredBatch(productItem.expiryDate)
-                     });
-                 }
+                      // If item has stock but NO history records, add the item itself as a batch
+                      if (pItemHistory.length === 0 && (pItem.availableStock || 0) > 0) {
+                          allBatches.push({
+                              grnNumber: 'N/A',
+                              manufacturingDate: pItem.manufacturingDate,
+                              expiryDate: pItem.expiryDate,
+                              availableStock: pItem.availableStock || 0,
+                              warehouseName: pItem.warehouseName,
+                              rackName: pItem.rackName,
+                              warehouseId: pItem.warehouseId,
+                              rackId: pItem.rackId,
+                              isExpired: isExpiredBatch(pItem.expiryDate)
+                          });
+                      }
+                  });
 
-                 const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired || b.manufacturingDate);
-                 const validBatches = allBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
+                  // Filter for selectable batches (positive stock or valid future info)
+                  const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired || b.manufacturingDate);
+                  const validBatches = allBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
 
-                 if (bypassBatchDialog && validBatches.length > 0) {
-                     // Auto-select first valid batch for scanning
-                     this.applyBatchToForm(validBatches[0], currentItem, formatDt, index);
-                 } else if (validBatches.length === 1 && allBatches.filter((b: any) => b.availableStock > 0).length === 1) {
-                     this.applyBatchToForm(validBatches[0], currentItem, formatDt, index);
-                 } else if (validBatches.length > 0 || selectableBatches.length > 0) {
-                     const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
-                         width: '620px',
-                         disableClose: false,
-                         data: {
-                             productName: product.productName || product.name,
-                             batches: selectableBatches,
-                             validCount: validBatches.length
-                         }
-                     });
+                  if (bypassBatchDialog && validBatches.length > 0) {
+                      // Auto-select first valid batch for scanning
+                      this.applyBatchToForm(validBatches[0], currentItem, formatDt, index);
+                  } else if (validBatches.length === 1 && allBatches.filter((b: any) => b.availableStock > 0).length === 1) {
+                      this.applyBatchToForm(validBatches[0], currentItem, formatDt, index);
+                  } else if (validBatches.length > 0 || selectableBatches.length > 0) {
+                      const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
+                          width: '620px',
+                          disableClose: false,
+                          data: {
+                              productName: product.productName || product.name,
+                              batches: selectableBatches.sort((a,b) => (new Date(a.expiryDate || 0)).getTime() - (new Date(b.expiryDate || 0)).getTime()),
+                              validCount: validBatches.length
+                          }
+                      });
 
                      dialogRef.afterClosed().subscribe((selectedBatch: any) => {
                          if (selectedBatch) {
@@ -457,6 +472,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
         if (formGroup.get('warehouseId')?.value) {
             this.onWarehouseChange(index);
         }
+        formGroup.get('qty')?.updateValueAndValidity();
     }
 
     get items(): FormArray {
@@ -473,7 +489,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             rackName: ['NA'],
             warehouseId: [null],
             rackId: [null],
-            qty: [1, [Validators.required, Validators.min(0.01)]],
+            qty: [1, [Validators.required, Validators.min(0.01), this.stockValidator()]],
             unit: ['PCS'],
             rate: [0, [Validators.required, Validators.min(0)]],
             discountPercent: [0],
@@ -640,6 +656,16 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
     clearCustomer() {
         this.customerSearchCtrl.setValue('');
         this.saleForm.patchValue({ customerId: null, customerName: '' });
+    }
+
+    stockValidator(): ValidatorFn {
+        return (control: AbstractControl): ValidationErrors | null => {
+            const group = control.parent as FormGroup;
+            if (!group) return null;
+            const qty = control.value;
+            const stock = group.get('availableStock')?.value;
+            return qty > stock ? { 'insufficientStock': true } : null;
+        };
     }
 
     save() {
