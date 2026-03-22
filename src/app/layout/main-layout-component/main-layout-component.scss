@@ -91,6 +91,10 @@
   position: relative;
   cursor: pointer;
   width: 100%;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.1px;
   box-sizing: border-box;
 
   &:hover {
@@ -105,7 +109,7 @@
   &.active-link {
     background: rgba(156, 39, 176, 0.15) !important;
     color: #ce93d8 !important;
-    font-weight: 600;
+    font-weight: 700 !important;
     
     &::before {
       content: '';
@@ -205,7 +209,7 @@
 
 .content {
   flex: 1;
-  padding: 24px;
+  padding: 16px 24px 24px; // Reduced top padding to move content UP
   background-color: #f9fafb;
   overflow-y: auto;
 }
@@ -327,9 +331,10 @@
     }
 
     span {
-      font-size: 0.85rem;
-      font-weight: 600;
+      font-size: 0.825rem;
+      font-weight: 700;
       color: #e2e8f0;
+      font-family: 'Outfit', sans-serif;
     }
   }
 }

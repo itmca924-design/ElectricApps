@@ -19,14 +19,25 @@ export class UserProfileComponent implements OnInit {
   userName: string = 'Super Admin';
   userRole: string = 'Administrator';
   joinedDate: string = 'March 2026';
+  lastLogin: string = '';
+  userLocation: string = 'Main Office';
 
   ngOnInit(): void {
     this.userEmail = localStorage.getItem('email');
-    if (this.userEmail) {
-       // Extracting name from email if needed, or keeping it static for now
-       const namePart = this.userEmail.split('@')[0];
-       this.userName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+    this.userName = localStorage.getItem('userName') || 'Super Admin';
+    this.userRole = this.authService.getUserRole() || 'Administrator';
+    
+    // Dynamic Last Login (using current date/time if not stored)
+    const storedLastLogin = localStorage.getItem('lastLogin');
+    if (storedLastLogin) {
+      this.lastLogin = storedLastLogin;
+    } else {
+      const now = new Date();
+      this.lastLogin = `Today, ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
     }
+
+    // Dynamic Location
+    this.userLocation = localStorage.getItem('userLocation') || 'Warehouse Unit 4';
   }
 
   close(): void {

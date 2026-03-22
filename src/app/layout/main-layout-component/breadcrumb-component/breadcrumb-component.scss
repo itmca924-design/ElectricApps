@@ -4,6 +4,9 @@
   display: flex;
   align-items: center;
   border-bottom: 1px solid #f1f5f9;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13.5px !important;
+  letter-spacing: 0.2px;
 }
 
 .breadcrumb-item {
@@ -24,8 +27,8 @@
 }
 
 .crumb-active {
-  color: #64748b;
-  font-weight: 600;
+  color: #1e293b; 
+  font-weight: 700 !important;
 }
 
 .separator-icon {

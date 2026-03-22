@@ -268,12 +268,17 @@ form#saleReturnForm {
     .table-container {
         flex: 1;
         width: 100%;
+        min-width: 0; // CRITICAL: Allow flex item to shrink for overflow
         overflow-x: auto !important;
         overflow-y: auto !important;
         background: #fff;
         position: relative;
         display: block; 
-        border: 1px solid #e2e8f0;
+        border: 1px solid #f1f5f9;
+        
+        // Ensure scrollbar is always visible and easy to interact with
+        scrollbar-width: auto; // For Firefox
+        scrollbar-color: #3b82f6 #f8fafc; // For Firefox
         
         // Highly Visible Scrollbars
         &::-webkit-scrollbar {
@@ -288,8 +293,8 @@ form#saleReturnForm {
         
         &::-webkit-scrollbar-thumb {
             background: #3b82f6 !important;
-            border-radius: 8px;
-            border: 3px solid #f8fafc;
+            border-radius: 10px;
+            border: 2px solid #f8fafc;
             
             &:hover {
                 background: #2563eb !important;
@@ -311,9 +316,10 @@ form#saleReturnForm {
 
     // Force table width for horizontal scroll
     .table-container table {
-        min-width: 1800px !important; 
-        width: 1800px !important;
+        min-width: 1500px !important; // Slightly reduced for better fit
+        width: 100% !important;
         table-layout: fixed !important;
+        display: table !important;
     }
 
     /* Forced Column Widths */

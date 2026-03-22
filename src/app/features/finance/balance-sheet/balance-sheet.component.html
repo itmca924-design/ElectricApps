@@ -126,11 +126,7 @@
         </mat-card>
     </div>
 
-    <!-- LOADER -->
-    <div class="loading-overlay" *ngIf="isDashboardLoading">
-        <mat-spinner diameter="50"></mat-spinner>
-        <p>Calculating Balance Sheet...</p>
-    </div>
+    <!-- LOCAL LOADER REMOVED - Using Global Loading System via LoadingService -->
 
     <!-- BALANCE INDICATOR -->
     <div class="balance-footer" *ngIf="!isDashboardLoading">

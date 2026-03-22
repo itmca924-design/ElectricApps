@@ -1,5 +1,6 @@
 .transaction-history-container {
-  min-width: 800px;
+  width: 100%;
+  min-width: 340px;
   max-width: 1000px;
   max-height: 90vh;
   display: flex;
@@ -38,14 +39,39 @@
         h2 {
           margin: 0;
           font-size: 1.25rem;
-          font-weight: 600;
+          font-weight: 700;
           color: white;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .subtitle {
           margin: 0;
-          font-size: 0.875rem;
-          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.825rem;
+          color: rgba(255, 255, 255, 0.85);
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 250px;
+        }
+      }
+    }
+
+    @media (max-width: 600px) {
+      padding: 12px 16px;
+      .header-info {
+        gap: 10px;
+        .header-icon {
+          width: 28px;
+          height: 28px;
+          font-size: 24px;
+          padding: 6px;
+        }
+        .title-group {
+          h2 { font-size: 1.05rem; }
+          .subtitle { font-size: 0.75rem; max-width: 180px; }
         }
       }
     }
@@ -62,6 +88,12 @@
     flex-grow: 1;
     overflow-y: auto;
     background-color: #f8fafc;
+    max-height: calc(90vh - 140px); // Ensure dialog content is constrained for scrolling
+    
+    @media (max-width: 600px) {
+      padding: 12px;
+      max-height: calc(90vh - 120px);
+    }
   }
 
   .loading-spinner {
@@ -101,24 +133,39 @@
     p { margin: 0; }
   }
 
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden; // Vertial scroll handled by content-scroll
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: white;
+    
+    &::-webkit-scrollbar { height: 8px; }
+    &::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    &::-webkit-scrollbar-track { background: #f1f5f9; }
+  }
+
   .history-table {
     width: 100%;
+    min-width: 800px; // Increased to ensure horizontal scroll on mobile
     border-collapse: collapse;
     background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: visible; // Needed for sticky header
 
     th {
+      position: sticky; // Keep headers visible
+      top: 0;
+      z-index: 10;
       background: #f1f5f9;
       text-align: left;
-      padding: 12px 16px;
+      padding: 14px 16px;
       font-size: 0.75rem;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
-      color: #475569;
+      color: #334155;
       letter-spacing: 0.05em;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 2px solid #e2e8f0;
     }
 
     td {

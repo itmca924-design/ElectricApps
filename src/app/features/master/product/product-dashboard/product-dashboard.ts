@@ -9,6 +9,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
 import { ProductTransactionHistory } from '../product-transaction-history/product-transaction-history';
+import { LoadingService } from '../../../../core/services/loading.service';
 
 @Component({
   selector: 'app-product-dashboard',
@@ -23,11 +24,12 @@ export class ProductDashboard implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
   private dialog = inject(MatDialog);
+  private loadingService = inject(LoadingService);
 
   searchForm!: FormGroup;
   products: Product[] = [];
   filteredProducts: Product[] = [];
-  loading = false;
+  loading = false; // Kept for local logic if needed, but will sync with Global
 
   ngOnInit() {
     this.initForm();
@@ -51,15 +53,18 @@ export class ProductDashboard implements OnInit {
 
   private loadProducts() {
     this.loading = true;
+    this.loadingService.setLoading(true);
     this.productService.getAll().subscribe({
       next: (res) => {
         this.products = res;
         this.applyFilters();
         this.loading = false;
+        this.loadingService.setLoading(false);
         this.cdr.detectChanges();
       },
       error: () => {
         this.loading = false;
+        this.loadingService.setLoading(false);
         this.cdr.detectChanges();
       }
     });
@@ -101,9 +106,11 @@ export class ProductDashboard implements OnInit {
   }
 
   onHistory(product: Product) {
+    const isMobile = window.innerWidth < 768;
     this.dialog.open(ProductTransactionHistory, {
       data: { product },
-      width: '900px',
+      width: isMobile ? '95%' : '900px',
+      maxWidth: '100vw',
       panelClass: 'custom-dialog-container'
     });
   }

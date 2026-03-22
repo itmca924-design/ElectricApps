@@ -4,7 +4,7 @@
   overflow: hidden !important;
   background: white !important;
   border: none !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2) !important;
+  box-shadow: none !important; // Shadow will be handled by dialog surface
   font-family: 'Inter', sans-serif !important;
 
   .card-header {
@@ -13,6 +13,9 @@
     text-align: center;
     position: relative;
     color: white;
+    border-top-left-radius: 22px !important; // Explicitly round top corners
+    border-top-right-radius: 22px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
     .avatar-container {
       position: relative;
