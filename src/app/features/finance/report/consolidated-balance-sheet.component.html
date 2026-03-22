@@ -50,9 +50,11 @@
                     
                     <ng-container matColumnDef="companyName">
                         <th mat-header-cell *matHeaderCellDef> Company Name </th>
-                        <td mat-cell *matCellDef="let element" class="company-name-cell clickable" (click)="viewCompanyDetails(element)"> 
-                            <mat-icon>corporate_fare</mat-icon>
-                            <span class="name-link">{{ element.companyName }}</span>
+                        <td mat-cell *matCellDef="let element" class="clickable" (click)="viewCompanyDetails(element)"> 
+                            <div class="company-name-wrapper">
+                                <mat-icon>corporate_fare</mat-icon>
+                                <span class="name-link">{{ element.companyName }}</span>
+                            </div>
                         </td>
                     </ng-container>
 
