@@ -39,7 +39,7 @@
                     <mat-datepicker #endPicker></mat-datepicker>
                 </mat-form-field>
 
-                <button mat-raised-button color="primary" class="refresh-btn" (click)="updateReport()" [disabled]="isLoading || !customerId">
+                <button mat-raised-button color="primary" class="refresh-btn" (click)="updateReport()" [disabled]="isLoading || !filters.startDate || !filters.endDate">
                     <mat-icon *ngIf="!isLoading">search</mat-icon>
                     <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
                     Show Ledger
@@ -60,8 +60,9 @@
                     <div class="customer-details">
                         <mat-icon class="avatar-icon">person_pin</mat-icon>
                         <div>
-                            <h2 class="customer-name">{{ledgerData.customerName}}</h2>
-                            <span class="customer-id">ID: #{{customerId}}</span>
+                            <h2 class="customer-name">{{ledgerData.customerName || 'Consolidated Report'}}</h2>
+                            <span class="customer-id" *ngIf="customerId">ID: #{{customerId}}</span>
+                            <span class="customer-id" *ngIf="!customerId">Viewing All Transactions</span>
                         </div>
                     </div>
                     

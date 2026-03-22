@@ -15,6 +15,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { LoadingService } from '../../../core/services/loading.service';
 import { ChangeDetectorRef } from '@angular/core';
 import { SummaryStat, SummaryStatsComponent } from '../../../shared/components/summary-stats-component/summary-stats-component';
+import { forkJoin, of } from 'rxjs';
+import { SaleOrderService } from '../../inventory/service/saleorder.service';
 
 @Component({
     selector: 'app-customer-ledger',
@@ -62,7 +64,8 @@ export class CustomerLedgerComponent implements OnInit, AfterViewInit {
         private route: ActivatedRoute,
         private router: Router,
         private loadingService: LoadingService,
-        private cdr: ChangeDetectorRef
+        private cdr: ChangeDetectorRef,
+        private saleOrderService: SaleOrderService
     ) { }
 
     ngOnInit() {
@@ -79,6 +82,20 @@ export class CustomerLedgerComponent implements OnInit, AfterViewInit {
                 return name ? this._filter(name as string) : (Array.isArray(this.customers) ? this.customers.slice() : []);
             }),
         );
+
+        // Auto-detect customer ID even from manual typing to enable "Show Ledger" button
+        this.customerControl.valueChanges.subscribe(value => {
+            if (!value) {
+                this.customerId = null;
+            } else if (value && typeof value === 'object') {
+                this.customerId = (value as any).id;
+            } else {
+                // If user types exact name, find it in the lookup
+                const match = (this.customers || []).find(c => c.name.toLowerCase() === value.toLowerCase());
+                this.customerId = match ? match.id : null;
+            }
+            this.cdr.detectChanges();
+        });
 
         // Safety timeout
         setTimeout(() => {
@@ -175,89 +192,129 @@ export class CustomerLedgerComponent implements OnInit, AfterViewInit {
     }
 
     loadLedger() {
-        if (this.customerId && this.customerId > 0) {
-            this.isLoading = true;
-            this.loadingService.setLoading(true);
+        if (!this.filters.startDate || !this.filters.endDate) return;
 
+        this.isLoading = true;
+        this.loadingService.setLoading(true);
+
+        const start = new Date(this.filters.startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(this.filters.endDate);
+        end.setHours(23, 59, 59, 999);
+
+        if (this.customerId && this.customerId > 0) {
+            // SPECIFIC CUSTOMER VIEW (Original Logic)
             const request = {
                 customerId: this.customerId,
                 pageNumber: this.pageNumber,
                 pageSize: this.pageSize,
                 sortBy: this.sortBy,
                 sortOrder: this.sortOrder,
-                startDate: this.filters.startDate.toISOString(),
-                endDate: this.filters.endDate.toISOString(),
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
                 typeFilter: this.filters.type,
                 referenceFilter: this.filters.reference,
                 searchTerm: ''
             };
 
             this.financeService.getCustomerLedger(request).subscribe({
-                next: (data: any) => {
-                    this.isLoading = false;
-                    this.loadingService.setLoading(false);
-                    this.ledgerData = data;
-                    if (data && data.ledger) {
-                        const items = (data.ledger.items || []).map((item: any) => {
-                            if (item.transactionDate && typeof item.transactionDate === 'string') {
-                                const d = item.transactionDate;
-                                // Server UTC time bina timezone ke bhejta hai (e.g. "2026-03-03T03:05:00")
-                                // 'Z' append karo taaki Angular isse UTC maane aur
-                                // 'Asia/Kolkata' timezone me +05:30 jodke sahi IST time dikhaye
-                                const hasTimezone = /[Zz]$/.test(d) || /[+-]\d{2}:\d{2}$/.test(d);
-                                if (!hasTimezone) {
-                                    item.transactionDate = d + 'Z';
-                                }
-                            }
-                            return item;
-                        });
-                        this.dataSource.data = items;
-                        this.totalCount = data.ledger.totalCount || 0;
-                        this.currentBalance = data.currentBalance || 0;
+                next: (data: any) => this.handleResponse(data),
+                error: (err) => this.handleError(err)
+            });
+        } else {
+            // CONSOLIDATED VIEW (All Customers)
+            const receiptReq = this.financeService.getReceiptsReport({
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
+                pageNumber: 1,
+                pageSize: 2000, 
+                sortBy: 'ReceiptDate',
+                sortOrder: 'desc'
+            });
 
-                        // Stats
-                        this.summaryStats = [
-                            {
-                                label: 'Current Balance',
-                                value: this.currentBalance >= 0 ? `₹${this.currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `₹${Math.abs(this.currentBalance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Adv)`,
-                                icon: 'account_balance_wallet',
-                                type: this.currentBalance > 0 ? 'warning' : 'success'
-                            },
-                            { label: 'Transactions', value: this.totalCount, icon: 'receipt_long', type: 'info' }
-                        ];
-                        console.log('Customer Stats updated:', this.summaryStats);
-                    } else {
-                        this.dataSource.data = [];
-                        this.currentBalance = 0;
-                        this.totalCount = 0;
-                        this.summaryStats = [];
-                    }
+            const saleReq = this.saleOrderService.getSaleOrders(1, 2000, 'soDate', 'desc', '', start, end);
 
-                    if (this.isFirstLoad) {
-                        this.isFirstLoad = false;
-                        this.isDashboardLoading = false;
-                        this.loadingService.setLoading(false);
-                    }
-                    this.cdr.detectChanges();
+            forkJoin([receiptReq, saleReq]).subscribe({
+                next: ([receiptsRes, salesRes]: any) => {
+                    const mappedReceipts = (receiptsRes.items || []).map((r: any) => ({
+                        transactionDate: r.receiptDate || r.ReceiptDate,
+                        transactionType: 'Receipt',
+                        referenceId: r.referenceNumber || r.ReferenceNumber || '-',
+                        description: `Received from ${r.customerName || 'Customer'}`,
+                        debit: 0,
+                        credit: r.amount || r.Amount || 0,
+                        balance: 0 
+                    }));
+
+                    const mappedSales = (salesRes.data || salesRes.items || []).map((s: any) => ({
+                        transactionDate: s.soDate || s.SoDate || s.date,
+                        transactionType: 'Sales',
+                        referenceId: s.soNumber || s.SoNumber || '-',
+                        description: `Sale to ${s.customerName || 'Cash Customer'}`,
+                        debit: s.grandTotal || s.GrandTotal || 0,
+                        credit: 0,
+                        balance: 0
+                    }));
+
+                    const combined = [...mappedReceipts, ...mappedSales].sort((a: any, b: any) => 
+                        new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
+                    );
+
+                    this.handleResponse({
+                        ledger: { items: combined, totalCount: combined.length },
+                        customerName: 'Consolidated Transaction History',
+                        currentBalance: 0
+                    });
                 },
-                error: (err) => {
-                    this.isLoading = false;
-                    this.loadingService.setLoading(false);
-                    console.error('Error fetching ledger:', err);
-                    this.ledgerData = null;
-                    this.dataSource.data = [];
-                    this.totalCount = 0;
-                    this.summaryStats = [];
-
-                    if (this.isFirstLoad) {
-                        this.isFirstLoad = false;
-                        this.isDashboardLoading = false;
-                        this.loadingService.setLoading(false);
-                    }
-                    this.cdr.detectChanges();
-                }
+                error: (err) => this.handleError(err)
             });
         }
+    }
+
+    private handleResponse(data: any) {
+        this.isLoading = false;
+        this.loadingService.setLoading(false);
+        this.ledgerData = data;
+        if (data && data.ledger) {
+            const items = (data.ledger.items || []).map((item: any) => {
+                const d = item.transactionDate;
+                if (d && typeof d === 'string' && !/[Zz]$/.test(d) && !/[+-]\d{2}:\d{2}$/.test(d)) {
+                    item.transactionDate = d + 'Z';
+                }
+                return item;
+            });
+            this.dataSource.data = items;
+            this.totalCount = data.ledger.totalCount || 0;
+            this.currentBalance = data.currentBalance || 0;
+
+            this.summaryStats = [
+                {
+                    label: this.customerId ? 'Current Balance' : 'Transactions Total',
+                    value: this.customerId ? 
+                        (this.currentBalance >= 0 ? `₹${this.currentBalance.toLocaleString('en-IN')}` : `₹${Math.abs(this.currentBalance).toLocaleString('en-IN')} (Adv)`) :
+                        `Entries: ${this.totalCount}`,
+                    icon: 'account_balance_wallet',
+                    type: this.customerId ? (this.currentBalance > 0 ? 'warning' : 'success') : 'info'
+                }
+            ];
+        }
+        
+        if (this.isFirstLoad) {
+            this.isFirstLoad = false;
+            this.isDashboardLoading = false;
+        }
+        this.cdr.detectChanges();
+    }
+
+    private handleError(err: any) {
+        this.isLoading = false;
+        this.loadingService.setLoading(false);
+        console.error('Error fetching data:', err);
+        this.ledgerData = null;
+        this.dataSource.data = [];
+        this.totalCount = 0;
+        this.summaryStats = [];
+        this.cdr.detectChanges();
     }
     goToReceipt() {
         if (!this.customerId) return;
