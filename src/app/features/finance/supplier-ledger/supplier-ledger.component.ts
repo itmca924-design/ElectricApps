@@ -12,6 +12,8 @@ import { SupplierService, Supplier } from '../../inventory/service/supplier.serv
 import { Observable, Subscription } from 'rxjs';
 import { map, startWith, finalize } from 'rxjs/operators';
 import { SummaryStat, SummaryStatsComponent } from '../../../shared/components/summary-stats-component/summary-stats-component';
+import { forkJoin, of } from 'rxjs';
+import { InventoryService } from '../../inventory/service/inventory.service';
 
 @Component({
     selector: 'app-supplier-ledger',
@@ -59,6 +61,7 @@ export class SupplierLedgerComponent implements OnInit, AfterViewInit, OnDestroy
         private financeService: FinanceService,
         private loadingService: LoadingService,
         private supplierService: SupplierService,
+        private inventoryService: InventoryService,
         private route: ActivatedRoute,
         private cdr: ChangeDetectorRef
     ) {
@@ -184,86 +187,142 @@ export class SupplierLedgerComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     loadLedger() {
-        if (this.supplierId && this.supplierId > 0) {
-            this.isLoading = true;
-            this.loadingService.setLoading(true); // Global Loader
+        if (!this.filters.startDate || !this.filters.endDate) return;
 
+        this.isLoading = true;
+        this.loadingService.setLoading(true);
+
+        const start = this.filters.startDate;
+        start.setHours(0, 0, 0, 0);
+        const end = this.filters.endDate;
+        end.setHours(23, 59, 59, 999);
+
+        if (this.supplierId && this.supplierId > 0) {
+            // SINGLE SUPPLIER VIEW
             const request = {
                 supplierId: this.supplierId,
                 pageNumber: this.pageNumber,
                 pageSize: this.pageSize,
                 sortBy: this.sortBy,
                 sortOrder: this.sortOrder,
-                startDate: this.filters.startDate.toISOString(),
-                endDate: this.filters.endDate.toISOString(),
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
                 typeFilter: this.filters.type,
                 referenceFilter: this.filters.reference,
                 searchTerm: ''
             };
 
-            this.financeService.getSupplierLedger(request).pipe(
-                finalize(() => {
-                    this.isLoading = false;
-                    this.loadingService.setLoading(false);
-                    if (this.isFirstLoad) {
-                        this.isFirstLoad = false;
-                        this.isDashboardLoading = false;
-                    }
-                    this.cdr.detectChanges();
-                })
-            ).subscribe({
-                next: (result: any) => {
-                    if (result && result.ledger) {
-                        this.ledgerData = result;
-                        const items = (result.ledger.items || []).map((item: any) => {
-                            if (item.transactionDate && typeof item.transactionDate === 'string' && !item.transactionDate.includes('Z') && !item.transactionDate.includes('+')) {
-                                item.transactionDate += 'Z';
-                            }
-                            return item;
-                        });
-                        this.dataSource.data = items;
-                        this.totalCount = result.ledger.totalCount || 0;
-                        this.currentBalance = result.currentBalance || 0;
+            this.financeService.getSupplierLedger(request).subscribe({
+                next: (result: any) => this.handleResult(result),
+                error: (err) => this.handleError(err)
+            });
+        } else {
+            // CONSOLIDATED VIEW (All Suppliers) - FIXING 400 BY SENDING SPACE AS SEARCH TERM
+            const paymentReq = this.financeService.getPaymentsReport({
+                startDate: start.toISOString(),
+                endDate: end.toISOString(),
+                pageNumber: 1,
+                pageSize: 2000, 
+                sortBy: 'PaymentDate',
+                sortOrder: 'desc',
+                searchTerm: ' ' // CRITICAL: Space satisfies the 'Required' backend check
+            });
 
-                        // Stats
-                        this.summaryStats = [
-                            {
-                                label: 'Current Balance',
-                                value: this.currentBalance >= 0 ? `₹${this.currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : `₹${Math.abs(this.currentBalance).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (Adv)`,
-                                icon: 'account_balance_wallet',
-                                type: this.currentBalance > 0 ? 'warning' : 'success'
-                            },
-                            { label: 'Transactions', value: this.totalCount, icon: 'receipt_long', type: 'info' }
-                        ];
-                        console.log('Stats updated:', this.summaryStats);
-                    } else {
-                        this.dataSource.data = [];
-                        this.currentBalance = 0;
-                        this.totalCount = 0;
-                        this.summaryStats = [];
-                    }
+            const purchaseReq = this.inventoryService.getPagedOrders({
+                pageIndex: 0,
+                pageSize: 2000,
+                sortField: 'CreatedDate',
+                sortOrder: 'desc',
+                fromDate: start.toISOString(),
+                toDate: end.toISOString()
+            });
 
+            forkJoin([paymentReq, purchaseReq]).subscribe({
+                next: ([paymentsRes, purchasesRes]: any) => {
+                    const mappedPayments = (paymentsRes.items || []).map((p: any) => ({
+                        transactionDate: p.paymentDate || p.PaymentDate,
+                        transactionType: 'Payment',
+                        referenceId: p.referenceNumber || p.ReferenceNumber || '-',
+                        description: `Paid to ${p.supplierName || 'Supplier'}`,
+                        debit: p.amount || p.Amount || 0,
+                        credit: 0,
+                        balance: 0 
+                    }));
+
+                    const mappedPurchases = (purchasesRes.items || []).map((pu: any) => ({
+                        transactionDate: pu.createdDate || pu.CreatedDate || pu.poDate,
+                        transactionType: 'Purchase',
+                        referenceId: pu.poNumber || pu.PoNumber || '-',
+                        description: `Purchase from ${pu.supplierName || 'Global'}`,
+                        debit: 0,
+                        credit: pu.totalAmount || pu.TotalAmount || 0,
+                        balance: 0
+                    }));
+
+                    const combined = [...mappedPayments, ...mappedPurchases].sort((a: any, b: any) => 
+                        new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
+                    );
+
+                    this.handleResult({
+                        ledger: { items: combined, totalCount: combined.length },
+                        supplierName: 'Consolidated Supplier History',
+                        currentBalance: 0
+                    });
                 },
-                error: (err) => {
-                    console.error('Error fetching ledger:', err);
-                    this.ledgerData = null;
-                    this.dataSource.data = [];
-                    this.totalCount = 0;
-                    this.summaryStats = [];
-
-                    if (err.status === 404) {
-                        this.ledgerData = { supplierName: 'Not Found', ledger: [] };
-                        this.dataSource.data = [];
-                        this.currentBalance = 0;
-                    } else {
-                        this.ledgerData = null;
-                        this.dataSource.data = [];
-                        alert('Failed to fetch ledger. Please check Supplier ID.');
-                    }
-
-                }
+                error: (err) => this.handleError(err)
             });
         }
+    }
+
+    private handleResult(result: any) {
+        this.isLoading = false;
+        this.loadingService.setLoading(false);
+        if (result && result.ledger) {
+            this.ledgerData = result;
+            const items = (result.ledger.items || []).map((item: any) => {
+                const d = item.transactionDate;
+                if (d && typeof d === 'string' && !/[Zz]$/.test(d) && !/[+-]\d{2}:\d{2}$/.test(d)) {
+                    item.transactionDate = d + 'Z';
+                }
+                return item;
+            });
+            this.dataSource.data = items;
+            this.totalCount = result.ledger.totalCount || 0;
+            this.currentBalance = result.currentBalance || 0;
+
+            this.summaryStats = [
+                {
+                    label: this.supplierId ? 'Current Balance' : 'Transactions Total',
+                    value: this.supplierId ? 
+                        (this.currentBalance >= 0 ? `₹${this.currentBalance.toLocaleString('en-IN')}` : `₹${Math.abs(this.currentBalance).toLocaleString('en-IN')} (Adv)`) :
+                        `Entries: ${this.totalCount}`,
+                    icon: 'account_balance_wallet',
+                    type: this.supplierId ? (this.currentBalance > 0 ? 'warning' : 'success') : 'info'
+                }
+            ];
+        } else {
+            this.dataSource.data = [];
+            this.currentBalance = 0;
+            this.totalCount = 0;
+            this.summaryStats = [];
+        }
+        
+        if (this.isFirstLoad) {
+            this.isFirstLoad = false;
+            this.isDashboardLoading = false;
+        }
+        this.cdr.detectChanges();
+    }
+
+    private handleError(err: any) {
+        this.isLoading = false;
+        this.loadingService.setLoading(false);
+        console.error('Error fetching data:', err);
+        this.ledgerData = null;
+        this.dataSource.data = [];
+        this.totalCount = 0;
+        this.summaryStats = [];
+        this.cdr.detectChanges();
     }
 
 }
