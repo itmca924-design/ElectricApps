@@ -38,7 +38,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
   private notification = inject(NotificationService);
   private locationService = inject(LocationService);
 
-  displayedColumns: string[] = ['select', 'productName', 'warehouseName', 'rackName', 'manufacturingDate', 'expiryDate', 'totalReceived', 'totalRejected', 'totalSold', 'availableStock', 'unitRate', 'actions'];
+  displayedColumns: string[] = ['select', 'productName', 'warehouseName', 'rackName', 'manufacturingDate', 'expiryDate', 'totalReceived', 'totalRejected', 'totalExpired', 'totalSold', 'availableStock', 'unitRate', 'actions'];
   stockDataSource = new MatTableDataSource<any>([]);
 
   selectedProductIds: number[] = [];
@@ -258,7 +258,9 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
 
   onRemoveStock(historyItem: any, event: MouseEvent) {
     if (event) event.stopPropagation();
-    const targetQty = (historyItem.receivedQty - historyItem.rejectedQty);
+    const targetQty = historyItem.expiredQty > 0 ? historyItem.expiredQty : 
+                 (historyItem.availableQty > 0 ? historyItem.availableQty : 
+                 (historyItem.receivedQty - historyItem.rejectedQty));
     const productName = historyItem.productName || 'this item';
     
     this.dialog.open(ConfirmDialogComponent, {
@@ -269,6 +271,10 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
       }
     }).afterClosed().subscribe(result => {
       if (result) {
+        if (!targetQty || targetQty <= 0) {
+          this.notification.showStatus(false, 'No stock available to remove.');
+          return;
+        }
         const payload = { productId: historyItem.productId, warehouseId: historyItem.warehouseId, rackId: historyItem.rackId, quantity: targetQty, expiryDate: historyItem.expiryDate };
         this.inventoryService.adjustStock(payload).subscribe({
           next: () => {
@@ -283,7 +289,9 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
 
   onMoveToExpired(historyItem: any, event: MouseEvent) {
     if (event) event.stopPropagation();
-    const targetQty = (historyItem.receivedQty - historyItem.rejectedQty);
+    const targetQty = historyItem.expiredQty > 0 ? historyItem.expiredQty : 
+                 (historyItem.availableQty > 0 ? historyItem.availableQty : 
+                 (historyItem.receivedQty - historyItem.rejectedQty));
     const productName = historyItem.productName || 'this item';
     const sourceRack = historyItem.rackName || 'Current Rack';
 
@@ -295,6 +303,10 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
       }
     }).afterClosed().subscribe(result => {
       if (result) {
+        if (!targetQty || targetQty <= 0) {
+          this.notification.showStatus(false, 'No stock available to move.');
+          return;
+        }
         const payload = { productId: historyItem.productId, sourceWarehouseId: historyItem.warehouseId, sourceRackId: historyItem.rackId, quantity: targetQty, expiryDate: historyItem.expiryDate };
         this.inventoryService.moveStockToExpiredRack(payload).subscribe({
           next: () => {
