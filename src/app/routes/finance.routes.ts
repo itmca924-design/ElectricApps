@@ -12,6 +12,7 @@ export const FINANCE_ROUTES: Routes = [
         path: 'suppliers',
         data: { breadcrumb: 'Suppliers' },
         children: [
+            { path: '', data: { breadcrumb: 'Dashboard' }, loadComponent: () => import('../features/finance/suppliers/supplier-dashboard/supplier-dashboard.component').then(m => m.SupplierDashboardComponent) },
             { path: 'list', data: { breadcrumb: 'List' }, loadComponent: () => import('../features/finance/suppliers/supplier-list/supplier-list').then(m => m.SupplierList) },
             {
                 path: 'ledger',
@@ -43,6 +44,7 @@ export const FINANCE_ROUTES: Routes = [
         path: 'customers',
         data: { breadcrumb: 'Customers' },
         children: [
+            { path: '', data: { breadcrumb: 'Dashboard' }, loadComponent: () => import('../features/finance/customers/customer-dashboard/customer-dashboard.component').then(m => m.CustomerDashboardComponent) },
             { path: 'list', data: { breadcrumb: 'List' }, loadComponent: () => import('../features/master/customer-list/customer-list').then(m => m.CustomerList) },
             {
                 path: 'ledger',

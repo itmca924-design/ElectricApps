@@ -194,11 +194,51 @@
   display: flex !important;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 24px;
+  padding: 14px 32px;
   background: #ffffff;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   color: #64748b;
   border-top: 1px solid #e2e8f0;
+  font-family: 'Inter', sans-serif;
+
+  .footer-left {
+    strong { color: #1e293b; font-weight: 700; }
+  }
+
+  .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+
+    .footer-link {
+      text-decoration: none;
+      color: #475569;
+      font-weight: 600;
+      font-size: 0.75rem;
+      letter-spacing: 0.3px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #6366f1;
+      }
+    }
+
+    .version-badge {
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid #e2e8f0;
+    }
+
+    @media (max-width: 600px) {
+        display: none; // Keep it clean on very small screens or stack if needed
+    }
+  }
 }
 
 .welcome-text {

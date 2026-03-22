@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { FinanceService } from '../service/finance.service';
-import { customerService } from '../../master/customer-component/customer.service';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { LoadingService } from '../../../core/services/loading.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -16,14 +15,13 @@ import { AuthService } from '../../../core/services/auth.service';
 @Component({
     selector: 'app-bulk-receipt-entry',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule, MaterialModule, RouterModule],
+    imports: [CommonModule, ReactiveFormsModule, MaterialModule, RouterModule, StatusDialogComponent, ConfirmDialogComponent],
     templateUrl: './bulk-receipt-entry.component.html',
     styleUrls: ['./bulk-receipt-entry.component.scss']
 })
 export class BulkReceiptEntryComponent implements OnInit {
     fb = inject(FormBuilder);
     financeService = inject(FinanceService);
-    customerService = inject(customerService);
     loadingService = inject(LoadingService);
     authService = inject(AuthService); // Inject Auth Service
 
@@ -31,7 +29,7 @@ export class BulkReceiptEntryComponent implements OnInit {
     dialog = inject(MatDialog);
 
     router = inject(Router);
-    dialogRef = inject(MatDialogRef<BulkReceiptEntryComponent>);
+    dialogRef = inject(MatDialogRef<BulkReceiptEntryComponent>, { optional: true });
 
     bulkForm!: FormGroup;
     customers: any[] = [];
@@ -357,7 +355,12 @@ export class BulkReceiptEntryComponent implements OnInit {
                 });
 
                 ref.afterClosed().subscribe(() => {
-                    this.dialogRef.close(true);
+                    if (this.dialogRef) {
+                        this.dialogRef.close(true);
+                    } else {
+                        // If not in dialog, navigate back
+                        this.router.navigate(['/app/finance/customers']);
+                    }
                 });
             },
             error: (err) => {
@@ -395,6 +398,11 @@ export class BulkReceiptEntryComponent implements OnInit {
     }
 
     goBack() {
-        this.dialogRef.close(false);
+        if (this.dialogRef) {
+            this.dialogRef.close(false);
+        } else {
+            // Use location or router to go back
+            this.router.navigate(['/app/finance/customers']);
+        }
     }
 }

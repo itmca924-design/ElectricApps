@@ -1,0 +1,142 @@
+<div class="dashboard-container" [class.is-loading]="isLoading">
+  <div class="header-section">
+    <div class="title-info">
+      <h1 class="mat-headline-4">Suppliers Dashboard</h1>
+      <p class="subtitle">Overview of vendor relationships, payables, and transactions.</p>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button color="primary" routerLink="/app/finance/suppliers/list">
+        <mat-icon>group</mat-icon> View All Suppliers
+      </button>
+      <button mat-stroked-button (click)="loadDashboardData()">
+        <mat-icon>refresh</mat-icon> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total-suppliers">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg"><mat-icon>groups</mat-icon></div>
+          <span class="label">Total Suppliers</span>
+        </div>
+        <div class="stat-value">{{stats.totalSuppliers}}</div>
+        <div class="stat-trend" routerLink="/app/finance/suppliers/list">Manage Active Vendors</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card total-payables">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg warn"><mat-icon>account_balance_wallet</mat-icon></div>
+          <span class="label">Total Payable</span>
+        </div>
+        <div class="stat-value">₹{{stats.totalPayables | number:'1.0-0'}}</div>
+        <div class="stat-trend" routerLink="/app/finance/suppliers/dues">Check Pending Dues</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card monthly-purchases">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg info"><mat-icon>shopping_cart</mat-icon></div>
+          <span class="label">Monthly Purchases</span>
+        </div>
+        <div class="stat-value">₹{{stats.monthlyPurchases | number:'1.0-0'}}</div>
+        <div class="stat-trend">Fresh Inventory Inbound</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card monthly-payments">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg success"><mat-icon>payments</mat-icon></div>
+          <span class="label">Monthly Payments</span>
+        </div>
+        <div class="stat-value">₹{{stats.monthlyPayments | number:'1.0-0'}}</div>
+        <div class="stat-trend">Healthy Outflow State</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="dashboard-main-grid">
+    <!-- Top Outstanding Suppliers -->
+    <mat-card class="table-card elevation-z2">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>warning</mat-icon> Top Pending Payables
+        </mat-card-title>
+        <button mat-button color="primary" routerLink="/app/finance/suppliers/dues">Full Report</button>
+      </mat-card-header>
+      <mat-card-content>
+        <table class="simple-table">
+          <thead>
+            <tr>
+              <th>Supplier</th>
+              <th class="text-right">Outstanding</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of topSuppliers">
+              <td>
+                <div class="entity-name">{{s.supplierName}}</div>
+                <div class="entity-id">ID: #{{s.supplierId}}</div>
+              </td>
+              <td class="text-right amount-cell warn">₹{{s.pendingAmount | number:'1.2-2'}}</td>
+              <td>
+                <button mat-icon-button [routerLink]="['/app/finance/suppliers/payment']" [queryParams]="{supplierId: s.supplierId}" matTooltip="Pay Now">
+                  <mat-icon color="primary">add_card</mat-icon>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="topSuppliers.length === 0">
+              <td colspan="3" class="empty-msg">No pending dues found. Everything's clean!</td>
+            </tr>
+          </tbody>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recent Payments -->
+    <mat-card class="table-card elevation-z2">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>receipt_long</mat-icon> Recent Payments
+        </mat-card-title>
+        <button mat-button color="primary" routerLink="/app/finance/suppliers/payments-report">All Logs</button>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="list-view">
+          <div class="list-item" *ngFor="let p of recentPayments">
+            <div class="item-icon success"><mat-icon>check_circle</mat-icon></div>
+            <div class="item-content">
+              <div class="item-title">{{p.supplierName}}</div>
+              <div class="item-subtitle">{{p.paymentDate | date:'mediumDate'}} ({{p.paymentMode}})</div>
+            </div>
+            <div class="item-amount">₹{{p.amount | number:'1.2-2'}}</div>
+          </div>
+          <div *ngIf="recentPayments.length === 0" class="empty-msg">No recent payments recorded.</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Quick Access Tiles -->
+  <div class="quick-access">
+    <mat-card class="action-tile clickable" [routerLink]="['/app/finance/suppliers/ledger']">
+       <mat-icon>history</mat-icon>
+       <span>Full Ledger History</span>
+    </mat-card>
+    <mat-card class="action-tile clickable" [routerLink]="['/app/finance/suppliers/list']">
+       <mat-icon>person_add</mat-icon>
+       <span>New Supplier Form</span>
+    </mat-card>
+    <mat-card class="action-tile clickable" [routerLink]="['/app/finance/suppliers/payment']">
+       <mat-icon>send</mat-icon>
+       <span>Direct Outbound Pay</span>
+    </mat-card>
+  </div>
+</div>

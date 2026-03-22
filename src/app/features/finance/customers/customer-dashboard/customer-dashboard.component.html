@@ -1,0 +1,146 @@
+<div class="dashboard-container" [class.is-loading]="isLoading">
+  <div class="header-section">
+    <div class="title-info">
+      <h1 class="mat-headline-4">Customers Dashboard</h1>
+      <p class="subtitle">Real-time overview of sales, collections, and receivables.</p>
+    </div>
+    <div class="header-actions">
+      <button mat-flat-button color="accent" routerLink="/app/finance/customers/list">
+        <mat-icon>group</mat-icon> View All Customers
+      </button>
+      <button mat-stroked-button (click)="loadDashboardData()">
+        <mat-icon>refresh</mat-icon> Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="stats-grid">
+    <mat-card class="stat-card total-receivables">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg warn"><mat-icon>account_balance</mat-icon></div>
+          <span class="label">Total Receivables</span>
+        </div>
+        <div class="stat-value">₹{{stats.totalReceivables | number:'1.0-0'}}</div>
+        <div class="stat-trend" routerLink="/app/finance/customers/outstanding">Track All Collections</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card monthly-sales">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg success"><mat-icon>trending_up</mat-icon></div>
+          <span class="label">Monthly Sales</span>
+        </div>
+        <div class="stat-value">₹{{stats.monthlySales | number:'1.0-0'}}</div>
+        <div class="stat-trend">Total Orders This Month</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card monthly-receipts">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg info"><mat-icon>receipt</mat-icon></div>
+          <span class="label">Monthly Receipts</span>
+        </div>
+        <div class="stat-value">₹{{stats.monthlyReceipts | number:'1.0-0'}}</div>
+        <div class="stat-trend">Cash/Bank Inflow (Gross)</div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card pending-customers">
+      <mat-card-content>
+        <div class="stat-header">
+          <div class="icon-bg error"><mat-icon>history_toggle_off</mat-icon></div>
+          <span class="label">Pending Customers</span>
+        </div>
+        <div class="stat-value">{{stats.pendingCustomersCount}}</div>
+        <div class="stat-trend">Overdue or Part-Paid Users</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="dashboard-main-grid">
+    <!-- Top Outstanding Customers -->
+    <mat-card class="table-card elevation-z2">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>notifications_active</mat-icon> Top Collection Candidates
+        </mat-card-title>
+        <button mat-button color="primary" routerLink="/app/finance/customers/outstanding">Full List</button>
+      </mat-card-header>
+      <mat-card-content>
+        <table class="simple-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th class="text-right">Balance</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of topReceivables">
+              <td>
+                <div class="entity-name">{{c.customerName}}</div>
+                <div class="entity-id">ID: #{{c.customerId}}</div>
+              </td>
+              <td class="text-right amount-cell warn">₹{{c.pendingAmount | number:'1.2-2'}}</td>
+              <td>
+                <button mat-icon-button [routerLink]="['/app/finance/customers/receipt']" [queryParams]="{customerId: c.customerId}" matTooltip="Collect Payment">
+                  <mat-icon color="accent">payments</mat-icon>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="topReceivables.length === 0">
+              <td colspan="3" class="empty-msg">No outstanding receivables. Happy Days!</td>
+            </tr>
+          </tbody>
+        </table>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Recent Receipts -->
+    <mat-card class="table-card elevation-z2">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>account_balance_wallet</mat-icon> Recent Collections
+        </mat-card-title>
+        <button mat-button color="primary" routerLink="/app/finance/customers/receipts-report">View Report</button>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="list-view">
+          <div class="list-item" *ngFor="let r of recentReceipts">
+            <div class="item-icon success"><mat-icon>file_download_done</mat-icon></div>
+            <div class="item-content">
+              <div class="item-title">{{r.customerName}}</div>
+              <div class="item-subtitle">{{r.receiptDate | date:'mediumDate'}} ({{r.receiptMode}})</div>
+            </div>
+            <div class="item-amount">₹{{r.amount | number:'1.2-2'}}</div>
+          </div>
+          <div *ngIf="recentReceipts.length === 0" class="empty-msg">No recent collections found.</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Quick Access Tiles -->
+  <div class="quick-access">
+    <mat-card class="action-tile clickable" [routerLink]="['/app/finance/customers/ledger']">
+       <mat-icon>history_edu</mat-icon>
+       <span>Customer Ledger</span>
+    </mat-card>
+    <mat-card class="action-tile clickable" [routerLink]="['/app/finance/customers/receipt']">
+       <mat-icon>savings</mat-icon>
+       <span>Collect Payment</span>
+    </mat-card>
+    <mat-card class="action-tile clickable" [routerLink]="['/app/finance/customers/bulk-receipt']">
+       <mat-icon>dynamic_feed</mat-icon>
+       <span>Bulk Receipt Entry</span>
+    </mat-card>
+    <mat-card class="action-tile clickable" [routerLink]="['/app/finance/customers/outstanding']">
+       <mat-icon>assessment</mat-icon>
+       <span>Outstanding Report</span>
+    </mat-card>
+  </div>
+</div>
