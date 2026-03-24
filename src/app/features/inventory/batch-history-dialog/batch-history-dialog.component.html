@@ -1,0 +1,87 @@
+<div class="batch-history-dialog">
+  <div class="dialog-header">
+    <div class="title-group">
+      <mat-icon color="primary">history</mat-icon>
+      <h2>Detailed Transactional History</h2>
+    </div>
+    <button mat-icon-button (click)="onClose()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="batch-info-banner">
+    <div class="info-item">
+      <span class="label">Product:</span>
+      <span class="value">{{data.productName}}</span>
+    </div>
+    <div class="info-item">
+      <span class="label">Location:</span>
+      <span class="value">{{data.warehouseName}} / {{data.rackName}}</span>
+    </div>
+    <div class="info-item" *ngIf="data.manufacturingDate">
+      <span class="label">Mfg Date:</span>
+      <span class="value">{{data.manufacturingDate | date:'dd MMM yyyy'}}</span>
+    </div>
+    <div class="info-item" *ngIf="data.expiryDate">
+      <span class="label">Exp Date:</span>
+      <span class="value">{{data.expiryDate | date:'dd MMM yyyy'}}</span>
+    </div>
+  </div>
+
+  <mat-dialog-content>
+    <div class="loading-shade" *ngIf="isLoading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading transactions...</p>
+    </div>
+
+    <div class="table-container" *ngIf="!isLoading && transactions.length > 0">
+      <table mat-table [dataSource]="transactions" class="w-100">
+        
+        <ng-container matColumnDef="transactionDate">
+          <th mat-header-cell *matHeaderCellDef> Date & Time </th>
+          <td mat-cell *matCellDef="let t"> {{t.transactionDate | date:'dd MMM yyyy, hh:mm a'}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="transactionType">
+          <th mat-header-cell *matHeaderCellDef> Action Type </th>
+          <td mat-cell *matCellDef="let t"> 
+            <span class="type-badge" [ngClass]="t.transactionType.toLowerCase()">
+              {{t.transactionType}}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="referenceId">
+          <th mat-header-cell *matHeaderCellDef> Ref No. </th>
+          <td mat-cell *matCellDef="let t"> {{t.referenceId}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef> Qty </th>
+          <td mat-cell *matCellDef="let t"> 
+            <span class="qty-text" [ngClass]="t.category === 'IN' ? 'text-success' : 'text-danger'">
+              {{t.category === 'IN' ? '+' : '-'}} {{t.quantity}}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="category">
+          <th mat-header-cell *matHeaderCellDef> Movement </th>
+          <td mat-cell *matCellDef="let t">
+            <span class="move-badge" [ngClass]="t.category === 'IN' ? 'in-badge' : 'out-badge'">
+              {{t.category === 'IN' ? 'INWARD' : 'OUTWARD'}}
+            </span>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      </table>
+    </div>
+
+    <div class="no-data-msg" *ngIf="!isLoading && transactions.length === 0">
+      <mat-icon>info</mat-icon>
+      <p>No transactional records found for this specific batch.</p>
+    </div>
+  </mat-dialog-content>
+</div>

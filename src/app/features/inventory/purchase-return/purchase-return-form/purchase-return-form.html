@@ -51,8 +51,8 @@
           <div class="input-item">
             <mat-form-field appearance="outline" class="w-100 custom-field">
               <mat-label>Return Date*</mat-label>
-              <input matInput [matDatepicker]="picker" formControlName="returnDate" [min]="minDate">
-              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <input matInput [matDatepicker]="picker" formControlName="returnDate" [min]="minDate" [disabled]="isFromDashboard">
+              <mat-datepicker-toggle matSuffix [for]="picker" [disabled]="isFromDashboard"></mat-datepicker-toggle>
               <mat-datepicker #picker></mat-datepicker>
             </mat-form-field>
           </div>

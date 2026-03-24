@@ -35,6 +35,7 @@ export class PurchaseReturnForm implements OnInit {
   minDate: Date = new Date();
   isQuick: boolean = false;
   isPolicyViolated: boolean = false;
+  isFromDashboard: boolean = false;
 
   viewLiveLocation(item: any) {
     if (!item) return;
@@ -91,6 +92,11 @@ export class PurchaseReturnForm implements OnInit {
         this.route.queryParams.subscribe(params => {
           let sId = params['supplierId'];
           const poId = params['poId'];
+
+          if (poId) {
+            this.isFromDashboard = true;
+            this.returnForm.get('returnDate')?.disable();
+          }
 
           // If supplierId is "0" or missing but poId exists, fetch PO to get supplierId
           if ((!sId || sId === '0') && poId) {

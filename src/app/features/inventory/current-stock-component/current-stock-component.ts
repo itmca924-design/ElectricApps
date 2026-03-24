@@ -17,6 +17,7 @@ import { LoadingService } from '../../../core/services/loading.service';
 import { LocationService } from '../../master/locations/services/locations.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { NotificationService } from '../../shared/notification.service';
+import { BatchHistoryDialogComponent } from '../batch-history-dialog/batch-history-dialog.component';
 
 @Component({
   selector: 'app-current-stock-component',
@@ -412,6 +413,13 @@ export class CurrentStockComponent implements OnInit, AfterViewInit, OnDestroy {
         productId: item.productId,
         description: `Current quantity at this location: ${qty}`
       }
+    });
+  }
+
+  openBatchHistory(h: any) {
+    this.dialog.open(BatchHistoryDialogComponent, {
+      width: '800px',
+      data: h
     });
   }
 }

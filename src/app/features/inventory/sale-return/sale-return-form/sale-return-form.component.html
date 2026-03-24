@@ -46,8 +46,8 @@
                 <div class="form-grid">
                     <mat-form-field appearance="outline">
                         <mat-label>Return Date*</mat-label>
-                        <input matInput [matDatepicker]="picker" formControlName="returnDate" [min]="minDate">
-                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                        <input matInput [matDatepicker]="picker" formControlName="returnDate" [min]="minDate" [disabled]="isFromDashboard">
+                        <mat-datepicker-toggle matIconSuffix [for]="picker" [disabled]="isFromDashboard"></mat-datepicker-toggle>
                         <mat-datepicker #picker></mat-datepicker>
                         <mat-error *ngIf="returnForm.get('returnDate')?.hasError('required')">
                             Date is required
@@ -56,7 +56,7 @@
 
                     <mat-form-field appearance="outline" class="w-full">
                         <mat-label>Customer</mat-label>
-                        <mat-select formControlName="customerId" (selectionChange)="onCustomerChange($event.value)">
+                        <mat-select formControlName="customerId" (selectionChange)="onCustomerChange($event.value)" [disabled]="isFromDashboard">
                             <mat-option *ngFor="let cust of customers" [value]="cust.id">
                                 {{ cust.name }}
                             </mat-option>
@@ -71,7 +71,7 @@
 
                     <mat-form-field appearance="outline">
                         <mat-label>Sale Order / Invoice</mat-label>
-                        <mat-select formControlName="saleOrderId" (selectionChange)="onSOChange($event.value)">
+                        <mat-select formControlName="saleOrderId" (selectionChange)="onSOChange($event.value)" [disabled]="isFromDashboard">
                             <mat-option *ngFor="let so of saleOrders" [value]="so.saleOrderId || so.id">
                                 {{so.soNumber}}
                             </mat-option>

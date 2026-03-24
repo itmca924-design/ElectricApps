@@ -241,4 +241,21 @@ export class InventoryService {
         };
         return this.api.get(`stock/disposed-stock?${this.api.toQueryString(request)}`);
     }
+
+    getBatchHistory(
+        productId: string,
+        warehouseId: string | null,
+        rackId: string | null,
+        mfgDate?: string | null,
+        expDate?: string | null
+    ): Observable<any[]> {
+        const request = {
+            productId,
+            warehouseId,
+            rackId,
+            mfgDate,
+            expDate
+        };
+        return this.api.get<any[]>(`stock/batch-history?${this.api.toQueryString(request)}`);
+    }
 }

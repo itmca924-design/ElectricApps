@@ -305,10 +305,10 @@
                       <td>{{ $any(element).isExpiryRequired ? (($any(h).manufacturingDate | date:'dd MMM yyyy') ?? 'NA') : 'NA' }}</td>
                       <td>
                         <span
-                          [class.text-danger]="isExpired($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0"
-                          [class.text-warning]="!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0"
-                          [style.font-weight]="((isExpired($any(h).expiryDate) || isNearExpiry($any(h).expiryDate)) && ($any(h).receivedQty - $any(h).rejectedQty) > 0) ? '700' : 'normal'"
-                          [matTooltip]="(isExpired($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0) ? '⚠️ Expired Batch!' : (!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate) && ($any(h).receivedQty - $any(h).rejectedQty) > 0) ? '⏰ Expiring within 15 days!' : ''"
+                          [class.text-danger]="isExpired($any(h).expiryDate) && $any(h).availableQty > 0"
+                          [class.text-warning]="!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate) && $any(h).availableQty > 0"
+                          [style.font-weight]="((isExpired($any(h).expiryDate) || isNearExpiry($any(h).expiryDate)) && $any(h).availableQty > 0) ? '700' : 'normal'"
+                          [matTooltip]="(isExpired($any(h).expiryDate) && $any(h).availableQty > 0) ? '⚠️ Expired Batch!' : (!isExpired($any(h).expiryDate) && isNearExpiry($any(h).expiryDate) && $any(h).availableQty > 0) ? '⏰ Expiring within 15 days!' : ''"
                           matTooltipPosition="above">
                           {{ $any(element).isExpiryRequired ? (($any(h).expiryDate | date:'dd MMM yyyy') ?? 'NA') : 'NA' }}
                         </span>
@@ -325,6 +325,11 @@
                         </span>
                       </td>
                       <td>
+                        <button mat-icon-button (click)="openBatchHistory(h); $event.stopPropagation()" 
+                                matTooltip="View Detailed Transaction History" color="accent">
+                          <mat-icon style="font-size: 18px;">history</mat-icon>
+                        </button>
+
                         <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && !$any(h).rackName.includes('Expired') && !$any(h).rackName.includes('E1')" 
                                 (click)="onMoveToExpired(h, $event)" color="primary" matTooltip="Move to Expired Rack">
                           <mat-icon style="font-size: 18px;">move_to_inbox</mat-icon>

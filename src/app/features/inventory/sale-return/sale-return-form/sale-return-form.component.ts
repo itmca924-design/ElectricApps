@@ -62,6 +62,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     summaryStats: SummaryStat[] = [];
     minDate: Date = new Date();
     isQuick: boolean = false;
+    isFromDashboard: boolean = false;
 
     warehouses: any[] = [];
     racks: any[] = [];
@@ -100,10 +101,14 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
         // Handle Auto-fill from Query Params (Standard return via SO List)
         this.route.queryParams.subscribe(params => {
             const customerId = params['customerId'];
-            const soId = params['soId'];
-            if (customerId && soId && !this.isEditMode) {
+            const saleOrderId = params['soId'] || params['sold']; // Handle both soId and sold (from dashboard)
+            if (customerId && saleOrderId && !this.isEditMode) {
+                this.isFromDashboard = true;
+                this.returnForm.get('returnDate')?.disable();
+                this.returnForm.get('customerId')?.disable();
+                this.returnForm.get('saleOrderId')?.disable();
                 this.returnForm.patchValue({ customerId: Number(customerId) });
-                this.onCustomerChange(Number(customerId), Number(soId));
+                this.onCustomerChange(Number(customerId), Number(saleOrderId));
             }
         });
     }

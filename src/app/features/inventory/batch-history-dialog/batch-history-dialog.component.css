@@ -1,0 +1,123 @@
+.batch-history-dialog {
+    padding: 20px;
+    max-width: 900px;
+}
+
+.dialog-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.title-group h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.batch-info-banner {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.info-item .label {
+    font-weight: 600;
+    color: #6c757d;
+    margin-right: 5px;
+    font-size: 0.85rem;
+}
+
+.info-item .value {
+    font-weight: 700;
+    color: #212529;
+    font-size: 0.9rem;
+}
+
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.type-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: #e9ecef;
+    color: #495057;
+}
+
+.purchase, .quickgrn, .grn {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.sale, .salereturn {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.return, .disposed, .expired {
+    background: #f8d7da;
+    color: #842029;
+}
+
+.qty-text {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.move-badge {
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.in-badge {
+    background: #198754;
+    color: white;
+}
+
+.out-badge {
+    background: #dc3545;
+    color: white;
+}
+
+.text-success { color: #198754 !important; }
+.text-danger { color: #dc3545 !important; }
+
+.loading-shade {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #666;
+}
+
+.no-data-msg {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    color: #999;
+}
+
+.no-data-msg mat-icon { font-size: 48px; width: 48px; height: 48px; }
