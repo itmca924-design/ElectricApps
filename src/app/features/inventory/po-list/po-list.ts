@@ -690,6 +690,9 @@ export class PoList implements OnInit {
       case 'PROCESS_RETURN':
         this.redirectToPurchaseReturn(row);
         break;
+      case 'PURCHASE_RETURN':
+        this.onPurchaseReturn(row);
+        break;
       case 'DELETE':
         this.onDeleteSingleParentRecord(row);
         break;
@@ -735,6 +738,23 @@ export class PoList implements OnInit {
       queryParams: {
         poId: row.id,
         supplierId: row.supplierId || row.partyId || row.vendorId || row.party_Id || row.id_Supplier || 0
+      }
+    });
+  }
+
+  onPurchaseReturn(row: any) {
+    // Check if it's already "Received" or "Partially Received"
+    const status = (row.status || '').toLowerCase();
+    if (status !== 'received' && status !== 'partially received') {
+      this.notification.showStatus(false, 'Return is only possible for Received or Partially Received orders.');
+      return;
+    }
+
+    this.router.navigate(['/app/inventory/purchase-return/add'], {
+      queryParams: {
+        poId: row.id,
+        supplierId: row.supplierId || row.partyId || row.vendorId || row.party_Id || row.id_Supplier || 0,
+        returnType: 'Standard'
       }
     });
   }

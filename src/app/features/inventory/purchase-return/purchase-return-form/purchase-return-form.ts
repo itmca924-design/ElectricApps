@@ -235,6 +235,8 @@ export class PurchaseReturnForm implements OnInit {
       item.warehouseName = item.warehouseName ?? item.WarehouseName ?? 'N/A';
       item.rackName = item.rackName ?? item.RackName ?? 'N/A';
       item.isReturnable = item.isReturnable ?? item.IsReturnable ?? true;
+      item.mfgDate = item.mfgDate || item.MfgDate || item.manufacturingDate;
+      item.expDate = item.expDate || item.ExpDate || item.expiryDate;
       
       // Front-end validation for 72-hour window [cite: 2026-03-16]
       const now = new Date();
@@ -295,7 +297,8 @@ export class PurchaseReturnForm implements OnInit {
 
     this.filteredGroupedStock.forEach(group => {
       group.items.forEach((item: any) => {
-        if (!item.selected) {
+        // Skip expired items to avoid flooding the user with popups
+        if (!item.selected && item.isReturnable) {
           item.selected = true;
           this.onItemToggle(item);
         }
@@ -376,7 +379,9 @@ export class PurchaseReturnForm implements OnInit {
       limit: [Math.min(maxQty, physicalStock)],
       itemType: [type],
       warehouseId: [item.warehouseId || item.WarehouseId || null],
-      rackId: [item.rackId || item.RackId || null]
+      rackId: [item.rackId || item.RackId || null],
+      mfgDate: [item.mfgDate],
+      expDate: [item.expDate]
     });
 
     this.items.push(group);
@@ -460,13 +465,19 @@ export class PurchaseReturnForm implements OnInit {
             gstPercent: item.gstPercent,
             taxAmount: item.taxAmount,
             totalAmount: item.total,
-            itemType: item.itemType, // Dynamic tracking: Rejected or Received
+            itemType: item.itemType, 
             isQuick: this.isQuick,
             warehouseId: item.warehouseId,
-            rackId: item.rackId
+            rackId: item.rackId,
+            mfgDate: item.mfgDate,
+            expDate: item.expDate,
+            createdBy: localStorage.getItem('email') || 'admin@admin.com',
+            modifiedBy: localStorage.getItem('email') || 'admin@admin.com'
           }))
         };
         (payload as any).isQuick = this.isQuick;
+        (payload as any).createdBy = localStorage.getItem('email') || 'admin@admin.com';
+        (payload as any).modifiedBy = localStorage.getItem('email') || 'admin@admin.com';
 
         // Use the correctly stored name or fallback
         const supplierName = this.selectedSupplierName && this.selectedSupplierName.trim() !== ''

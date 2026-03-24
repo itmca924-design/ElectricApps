@@ -452,6 +452,9 @@ export class QuickPurchaseListComponent implements OnInit {
       case 'DELETE':
         this.onDeleteSingleRecord(row);
         break;
+      case 'PURCHASE_RETURN':
+        this.onPurchaseReturn(row);
+        break;
       default:
         console.warn(`Action ${event.action} is not handled in Quick Purchase List.`);
         break;
@@ -715,6 +718,22 @@ export class QuickPurchaseListComponent implements OnInit {
         this.cdr.detectChanges();
         console.error('Print Fetch Error:', err);
         this.notification.showStatus(false, 'Failed to fetch print data.');
+      }
+    });
+  }
+  onPurchaseReturn(row: any) {
+    // Return window is only possible for received stock
+    const status = (row.status || '').toLowerCase();
+    if (status !== 'received' && status !== 'partially received') {
+      this.notification.showStatus(false, 'Return is only possible for Received or Partially Received orders.');
+      return;
+    }
+
+    this.router.navigate(['/app/quick-inventory/po-return/add'], {
+      queryParams: {
+        poId: row.id,
+        supplierId: row.supplierId || 0,
+        returnType: 'Quick'
       }
     });
   }

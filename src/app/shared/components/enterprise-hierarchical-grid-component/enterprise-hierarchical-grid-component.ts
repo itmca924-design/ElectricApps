@@ -721,11 +721,16 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   }
 
   isWithinReturnWindow(row: any): boolean {
-    if (!row.soDate && !row.SODate) return true;
-    const dateStr = row.soDate || row.SODate;
-    const saleDate = new Date(dateStr);
+    // Check various possible date fields for both PO and SO
+    const dateStr = row.soDate || row.SODate || row.poDate || row.PODate || 
+                    row.CreatedAt || row.createdAt || row.CreatedDate || row.createdDate;
+                    
+    if (!dateStr) return true;
+    
+    const orderDate = new Date(dateStr);
     const now = new Date();
-    const diffInHours = (now.getTime() - saleDate.getTime()) / (1000 * 60 * 60);
+    const diffInHours = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
+    
     return diffInHours <= 72;
   }
 }

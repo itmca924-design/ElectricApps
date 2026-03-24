@@ -609,3 +609,32 @@ input[type=number] {
     font-weight: 600;
     color: #1e293b;
 }
+
+.stock-inline-badge {
+    background: #f1f5f9;
+    color: #475569;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    margin-left: 10px;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.return-closed {
+    opacity: 0.65;
+    filter: grayscale(0.8);
+    background-color: #f1f5f9 !important;
+    pointer-events: none; // Disable all interactions inside the row
+  
+    .p-name {
+      color: #94a3b8 !important;
+      text-decoration: line-through;
+    }
+    
+    ::ng-deep .mat-mdc-form-field {
+       opacity: 0.5;
+    }
+  }

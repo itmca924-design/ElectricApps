@@ -207,7 +207,7 @@
                 *ngIf="row.status === 'Confirmed' && (entityName === 'Sale Order' || entityName === 'Sale')"
                 [disabled]="!isWithinReturnWindow(row)"
                 (click)="$event.stopPropagation(); handleAction('RETURN', row)"
-                [matTooltip]="isWithinReturnWindow(row) ? 'Initiate Sale Return' : 'Return Window Closed (72 hrs crossed)'">
+                [matTooltip]="isWithinReturnWindow(row) ? 'Initiate Sale Return' : 'Sale Return Closed (72 hrs crossed)'">
           <mat-icon [style.opacity]="isWithinReturnWindow(row) ? 1 : 0.5">assignment_return</mat-icon>
         </button>
 
@@ -299,6 +299,15 @@
                 (click)="$event.stopPropagation(); handleAction('CREATE_GRN', row)" 
                 matTooltip="Inward Replacement/Pending Items">
           <mat-icon>local_shipping</mat-icon>
+        </button>
+
+        <!-- New: Purchase Return (assignment_return icon with 72hr rule) -->
+        <button mat-icon-button color="warn"
+                *ngIf="(entityName === 'Purchase' || entityName === 'PO')"
+                [disabled]="!isWithinReturnWindow(row)"
+                (click)="$event.stopPropagation(); handleAction('PURCHASE_RETURN', row)"
+                [matTooltip]="isWithinReturnWindow(row) ? 'Initiate Purchase Return' : 'Purchase Return Closed (72 hrs crossed)'">
+          <mat-icon [style.opacity]="isWithinReturnWindow(row) ? 1 : 0.5">assignment_return</mat-icon>
         </button>
 
         <!-- Verified: Show only if nothing is pending return and nothing is missing -->

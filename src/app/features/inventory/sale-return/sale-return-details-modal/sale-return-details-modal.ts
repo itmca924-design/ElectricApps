@@ -99,8 +99,8 @@ export class SaleReturnDetailsModal implements OnInit {
         <tr>
             <td style="text-align: center;">${index + 1}</td>
             <td>${item.productName}</td>
-            <td style="text-align: center;">${this.datePipe.transform(item.manufacturingDate, 'dd/MM/yyyy') || '—'}</td>
-            <td style="text-align: center;">${this.datePipe.transform(item.expiryDate, 'dd/MM/yyyy') || '—'}</td>
+            <td style="text-align: center;">${this.datePipe.transform(item.mfgDate || item.MfgDate || item.manufacturingDate, 'dd-MM-yy') || '—'}</td>
+            <td style="text-align: center;">${this.datePipe.transform(item.expDate || item.ExpDate || item.expiryDate, 'dd-MM-yy') || '—'}</td>
             <td style="text-align: center;">${item.qty}</td>
             <td style="text-align: right;">${this.currencyPipe.transform(item.rate, 'INR')}</td>
             <td style="text-align: center;">${item.discountPercent || 0}%</td>

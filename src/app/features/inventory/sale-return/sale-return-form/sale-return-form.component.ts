@@ -111,11 +111,14 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     loadCustomersLookup() {
         this.isLoadingCustomers = true;
         this.customerService.getCustomersLookup().subscribe({
-            next: (data) => {
-                this.customers = data;
-                this.isLoadingCustomers = false;
-                this.cdr.detectChanges();
-            },
+                    next: (data) => {
+                        this.customers = data.filter((c: any) =>
+                            !c.name.includes('Proprietor') &&
+                            !c.name.includes('Company Bank Account')
+                        );
+                        this.isLoadingCustomers = false;
+                        this.cdr.detectChanges();
+                    },
             error: (err) => {
                 console.error("Customer load fail:", err);
                 this.isLoadingCustomers = false;
@@ -169,6 +172,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                         const itemGroup = this.fb.group({
                             productId: [item.productId],
                             productName: [item.productName],
+                            currentStock: [item.currentStock || 0],
                             quantity: [item.soldQty || item.quantity],
                             rate: [item.rate || item.unitPrice || 0],
                             discountPercent: [item.discountPercent || 0],
@@ -181,8 +185,8 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                             rackId: [item.rackId || null, Validators.required],
                             isReturnable: [item.isReturnable && (item.returnWindowRemainingHours > 0)],
                             remainingHours: [item.returnWindowRemainingHours || 0],
-                            manufacturingDate: [item.mfgDate],
-                            expiryDate: [item.expDate],
+                            manufacturingDate: [item.manufacturingDate || item.mfgDate],
+                            expiryDate: [item.expiryDate || item.expDate],
                             isExpiryRequired: [item.isExpiryRequired ?? true]
                         });
 
@@ -247,6 +251,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
             const itemGroup = this.fb.group({
                 productId: [item.productId],
                 productName: [item.productName],
+                currentStock: [item.currentStock || 0],
                 quantity: [item.quantity],
                 rate: [item.unitPrice || item.rate],
                 discountPercent: [item.discountPercent || 0], // Capture Discount
@@ -409,12 +414,19 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                     reason: i.reason || 'No Reason',
                     itemCondition: i.itemCondition || 'Good',
                     manufacturingDate: i.manufacturingDate,
-                    expiryDate: i.expiryDate
+                    expiryDate: i.expiryDate,
+                    mfgDate: i.manufacturingDate,
+                    expDate: i.expiryDate,
+                    createdBy: userId,
+                    modifiedBy: userId
                 };
             });
 
         if (mappedItems.length === 0) {
-            alert("Please enter return quantity for at least one item.");
+            this.dialog.open(StatusDialogComponent, {
+                width: '400px',
+                data: { isSuccess: false, message: 'Please enter return quantity for at least one item.' }
+            });
             return;
         }
 
@@ -423,7 +435,8 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
             saleOrderId: Number(rawValue.saleOrderId),
             customerId: Number(rawValue.customerId),
             remarks: rawValue.remarks,
-            createdBy: userId, // Audit fields ke liye email pass ho raha hai
+            createdBy: userId,
+            modifiedBy: userId, // Added for audit consistency
             items: mappedItems,
             isQuick: this.isQuick
         };

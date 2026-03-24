@@ -10,6 +10,10 @@ export interface SaleReturnItem {
     rackId?: number;
     manufacturingDate?: Date;
     expiryDate?: Date;
+    mfgDate?: Date;
+    expDate?: Date;
+    createdBy?: string;
+    modifiedBy?: string;
 }
 
 export interface CreateSaleReturnDto {
