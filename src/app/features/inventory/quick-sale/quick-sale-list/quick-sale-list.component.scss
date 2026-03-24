@@ -226,14 +226,17 @@ app-enterprise-hierarchical-grid {
            border-collapse: collapse;
          }
 
-         .child-footer-summary {
-           display: flex !important;
-           justify-content: flex-end;
-           min-width: 1800px !important;
-           width: max-content !important;
-           padding: 25px;
-           background-color: transparent;
-         }
+          .child-footer-summary {
+            position: sticky !important;
+            left: 0 !important;
+            width: 100% !important;
+            display: flex !important;
+            justify-content: flex-end !important;
+            padding: 25px;
+            padding-right: 40px; /* Space for scrollbar corner if any */
+            background-color: transparent;
+            z-index: 10;
+          }
        }
      }
   }
