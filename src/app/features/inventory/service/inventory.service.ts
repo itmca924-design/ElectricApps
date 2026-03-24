@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { ApiService } from '../../../shared/api.service';
 import { PurchaseOrderPayload } from '../models/purchaseorder.model';
 import { PriceListItemDto } from '../models/price-list-item.dto';
@@ -10,6 +10,13 @@ import { BulkGrnRequest } from '../models/grnbulkrequest.model';
 })
 export class InventoryService {
     private api = inject(ApiService);
+    
+    private inventoryUpdateSource = new Subject<void>();
+    inventoryUpdate$ = this.inventoryUpdateSource.asObservable();
+
+    notifyInventoryChange() {
+        this.inventoryUpdateSource.next();
+    }
 
     getNextPoNumber(): Observable<{ poNumber: string }> {
         return this.api.get<{ poNumber: string }>('purchaseorders/next-number');

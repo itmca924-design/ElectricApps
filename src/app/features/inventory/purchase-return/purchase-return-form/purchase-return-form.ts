@@ -14,6 +14,7 @@ import { CompanyService } from '../../../company/services/company.service';
 import { LoadingService } from '../../../../core/services/loading.service';
 import { POService } from '../../service/po.service';
 import { LocationService } from '../../../master/locations/services/locations.service';
+import { InventoryService } from '../../service/inventory.service';
 import { LocationTrackerDialogComponent } from '../location-tracker-dialog/location-tracker-dialog.component';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { environment } from '../../../../enviornments/environment';
@@ -57,6 +58,7 @@ export class PurchaseReturnForm implements OnInit {
 
   // CDR inject kiya taaki table bind ho sake [cite: 2026-02-03]
   private cdr = inject(ChangeDetectorRef);
+  private inventoryService = inject(InventoryService);
 
   constructor(
     private fb: FormBuilder,
@@ -475,6 +477,7 @@ export class PurchaseReturnForm implements OnInit {
 
         this.prService.savePurchaseReturn(payload).subscribe({
           next: (res) => {
+            this.inventoryService.notifyInventoryChange();
             this.handleSuccess(res, res.returnNumber, res.id, supplierName, totalQty);
           },
           error: (err) => {

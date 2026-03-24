@@ -323,6 +323,7 @@ export class QuickSaleListComponent implements OnInit {
         this.inventoryService.deleteSaleOrder(row.id).subscribe({
           next: (res) => {
             this.isLoading = false;
+            this.inventoryService.notifyInventoryChange();
             this.notification.showStatus(true, `Order: ${row.soNumber} deleted successfully!`);
             this.loadData(this.currentGridState);
             this.cdr.detectChanges();
@@ -347,6 +348,7 @@ export class QuickSaleListComponent implements OnInit {
     forkJoin(deleteTasks).subscribe({
       next: () => {
         this.isLoading = false;
+        this.inventoryService.notifyInventoryChange();
         this.notification.showStatus(true, `${selectedRows.length} Quick Sales deleted successfully!`);
         this.selection.clear();
         this.loadData(this.currentGridState);
@@ -456,6 +458,7 @@ export class QuickSaleListComponent implements OnInit {
         this.saleOrderService.updateSaleOrderStatus(order.id, 'Confirmed').subscribe({
           next: () => {
             this.isLoading = false;
+            this.inventoryService.notifyInventoryChange();
             this.notification.showStatus(true, `Order #${order.soNumber} has been confirmed.`);
             this.loadData(this.currentGridState);
           },
@@ -493,6 +496,7 @@ export class QuickSaleListComponent implements OnInit {
           const errorMsg = errors.map(e => `${e.orderNo}: ${e.message || 'Error'}`).join('\n');
           this.notification.showStatus(false, `Partial failure: ${errors.length} orders failed to confirm.`);
         } else {
+          this.inventoryService.notifyInventoryChange();
           this.notification.showStatus(true, `${selectedRows.length} Orders have been confirmed.`);
         }
         this.loadData(this.currentGridState);

@@ -180,8 +180,8 @@
                   <div class="total-badge">{{ item.get('total')?.value | currency:'INR':'symbol':'1.2-2' }}</div>
               </div>
               <div class="col-action">
-                <button mat-icon-button color="warn" (click)="removeItem(i)" matTooltip="Remove Item" type="button">
-                  <mat-icon>delete_outline</mat-icon>
+                <button mat-icon-button color="warn" (click)="removeItem(i)" matTooltip="Remove from List" type="button">
+                  <mat-icon>remove_circle_outline</mat-icon>
                 </button>
               </div>
             </div>

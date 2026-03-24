@@ -190,11 +190,35 @@ app-enterprise-hierarchical-grid {
        .child-table-scroll {
          display: block !important;
          width: 100% !important;
-         overflow-x: auto !important; /* Standard scroll behavior */
-         padding: 24px 0; /* Space for scrollbar */
-         -webkit-overflow-scrolling: touch;
-         background-color: #f8fafc;
-         border-radius: 8px;
+         max-width: calc(100vw - 320px) !important; /* Force width relative to viewport to guarantee scrollbar */
+         overflow-x: scroll !important; /* Force internal scrollbar visibility */
+         padding: 24px 0 !important; /* Space for scrollbar */
+         -webkit-overflow-scrolling: touch !important;
+         background-color: #f8fafc !important;
+         border-radius: 8px !important;
+         position: relative !important;
+          
+         /* Cross-browser scrollbar support (Firefox) */
+         scrollbar-width: thin !important;
+         scrollbar-color: #3b82f6 #e2e8f0 !important;
+
+         /* Chrome, Safari, and Edge */
+         &::-webkit-scrollbar {
+           height: 12px !important;
+           display: block !important;
+         }
+         &::-webkit-scrollbar-track {
+           background: #e2e8f0 !important;
+           border-radius: 10px !important;
+         }
+         &::-webkit-scrollbar-thumb {
+           background: #3b82f6 !important; /* Modern Blue */
+           border-radius: 10px !important;
+           border: 2px solid #e2e8f0 !important;
+           &:hover {
+             background: #2563eb !important;
+           }
+         }
 
          .inner-table {
            min-width: 1800px !important; 

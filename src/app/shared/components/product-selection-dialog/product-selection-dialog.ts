@@ -97,7 +97,7 @@ import { LoadingService } from '../../../core/services/loading.service';
               <mat-checkbox (click)="$event.stopPropagation()"
                             (change)="$event ? toggleRow(row) : null"
                             [checked]="isRowSelected(row)"
-                            [disabled]="!allowOutOfStock && row.currentStock <= 0">
+                            [disabled]="(!allowOutOfStock && row.currentStock <= 0) || isAlreadyInList(row.id)">
               </mat-checkbox>
             </td>
           </ng-container>

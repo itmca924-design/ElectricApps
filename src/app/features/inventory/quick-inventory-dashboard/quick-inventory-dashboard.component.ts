@@ -1,9 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { InventoryService } from '../service/inventory.service';
-import { forkJoin } from 'rxjs';
+import { forkJoin, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-quick-inventory-dashboard',
@@ -12,8 +13,9 @@ import { forkJoin } from 'rxjs';
   templateUrl: './quick-inventory-dashboard.component.html',
   styleUrl: './quick-inventory-dashboard.component.scss'
 })
-export class QuickInventoryDashboardComponent implements OnInit {
+export class QuickInventoryDashboardComponent implements OnInit, OnDestroy {
   private inventoryService = inject(InventoryService);
+  private destroy$ = new Subject<void>();
 
   today = new Date();
   stats = {
@@ -35,7 +37,19 @@ export class QuickInventoryDashboardComponent implements OnInit {
   ];
 
   ngOnInit() {
+    this.inventoryService.inventoryUpdate$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('🔄 Inventory updated elsewhere. Refreshing dashboard...');
+        this.loadDashboardData();
+      });
+
     this.loadDashboardData();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDashboardData() {

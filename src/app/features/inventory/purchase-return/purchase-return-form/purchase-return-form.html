@@ -249,8 +249,8 @@
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef class="text-center pe-4"> Actions </th>
             <td mat-cell *matCellDef="let element; let i = index" class="text-center pe-4">
-              <button mat-icon-button color="warn" matTooltip="Remove Item" (click)="removeItem(i)" type="button">
-                <mat-icon>delete_outline</mat-icon>
+              <button mat-icon-button color="warn" matTooltip="Remove from List" (click)="removeItem(i)" type="button">
+                <mat-icon>remove_circle_outline</mat-icon>
               </button>
             </td>
           </ng-container>

@@ -1,11 +1,11 @@
-import { Component, OnInit, inject, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, Input, Output, EventEmitter, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from '../../../shared/material/material/material-module';
 import { InventoryService } from '../service/inventory.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
 @Component({
@@ -27,9 +27,10 @@ import { Subject } from 'rxjs';
     ]),
   ],
 })
-export class StockDrawerComponent implements OnInit {
+export class StockDrawerComponent implements OnInit, OnDestroy {
   private inventoryService = inject(InventoryService);
   private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   @Input() isOpen = false;
   @Output() close = new EventEmitter<void>();
@@ -46,13 +47,26 @@ export class StockDrawerComponent implements OnInit {
   ngOnInit() {
     this.searchSubject.pipe(
       debounceTime(300),
-      distinctUntilChanged()
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
     ).subscribe(term => {
       this.searchTerm = term;
       this.loadStock();
     });
 
+    this.inventoryService.inventoryUpdate$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('🔄 Inventory updated elsewhere. Refreshing stock drawer...');
+        this.loadStock();
+      });
+
     this.loadStock();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadStock() {

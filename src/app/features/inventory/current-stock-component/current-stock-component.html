@@ -324,6 +324,12 @@
                           <mat-icon style="font-size: 18px;">move_to_inbox</mat-icon>
                         </button>
 
+                        <div *ngIf="$any(h).availableQty === 0 && $any(h).receivedQty > 0 && !isExpired($any(h).expiryDate)" 
+                             class="sold-out-badge" style="color: #f5222d; font-weight: 600; font-size: 0.7rem; border: 1px solid #ffa39e; padding: 2px 6px; border-radius: 4px; background: #fff1f0; display: inline-flex; align-items: center; margin-right: 4px;">
+                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">block</mat-icon>
+                          Sold out
+                        </div>
+
                         <div *ngIf="$any(h).receivedQty === 0 && ($any(h).rejectedQty === 0 || !$any(h).rejectedQty) && ($any(h).expiredQty === 0 || !$any(h).expiredQty)" 
                              class="purged-badge" style="color: #52c41a; font-weight: 600; font-size: 0.7rem; border: 1px solid #b7eb8f; padding: 2px 6px; border-radius: 4px; background: #f6ffed; display: inline-flex; align-items: center;">
                           <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">done_all</mat-icon>

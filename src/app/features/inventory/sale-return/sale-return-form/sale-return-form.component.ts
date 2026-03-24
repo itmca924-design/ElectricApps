@@ -8,6 +8,7 @@ import { MaterialModule } from '../../../../shared/material/material/material-mo
 import { SaleReturnService } from '../services/sale-return.service';
 import { customerService } from '../../../master/customer-component/customer.service';
 import { SaleOrderService } from '../../service/saleorder.service';
+import { InventoryService } from '../../service/inventory.service';
 import { CreateSaleReturnDto, SaleReturnItem } from '../models/create-sale-return.model';
 import { MatDialog } from '@angular/material/dialog';
 import { StatusDialogComponent } from '../../../../shared/components/status-dialog-component/status-dialog-component';
@@ -45,6 +46,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     private companyService = inject(CompanyService);
     private datePipe = inject(DatePipe);
     private currencyPipe = inject(CurrencyPipe);
+    private inventoryService = inject(InventoryService);
     private locationService = inject(LocationService);
 
     customers: any[] = [];
@@ -443,7 +445,10 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                     remarks: `Sales Return Adjustment: ${returnNo}`,
                     createdBy: userId
                 }).subscribe({
-                    next: () => this.handleSuccess(res, returnNo, returnId),
+                    next: () => {
+                        this.inventoryService.notifyInventoryChange();
+                        this.handleSuccess(res, returnNo, returnId);
+                    },
                     error: () => this.handleSuccess(res, returnNo, returnId, true)
                 });
             },

@@ -45,8 +45,8 @@
               <span class="product-sku" *ngIf="item.sku">SKU: {{item.sku}}</span>
             </div>
             <div class="item-stock-section">
-              <span class="stock-badge" [class.low-stock]="isLowStock(item)">
-                {{item.availableStock}} {{item.unit}}
+              <span class="stock-badge" [class.low-stock]="isLowStock(item) && item.availableStock > 0" [class.sold-out]="item.availableStock === 0">
+                {{item.availableStock === 0 ? 'Qty: Sold out' : item.availableStock + ' ' + item.unit}}
               </span>
               <mat-icon class="expand-icon">{{expandedProductId === item.productId ? 'expand_less' : 'expand_more'}}</mat-icon>
             </div>
@@ -60,8 +60,11 @@
             <span class="indicator near-expiry" *ngIf="!isExpired(item.expiryDate) && isNearExpiry(item.expiryDate)">
               <mat-icon>history</mat-icon> Near Expiry
             </span>
-            <span class="indicator low" *ngIf="isLowStock(item)">
+            <span class="indicator low" *ngIf="isLowStock(item) && item.availableStock > 0">
               <mat-icon>warning_amber</mat-icon> Low Stock
+            </span>
+            <span class="indicator sold-out" *ngIf="item.availableStock === 0">
+              <mat-icon>block</mat-icon> Sold out
             </span>
           </div>
         </div>

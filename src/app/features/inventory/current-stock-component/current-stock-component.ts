@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, inject, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { LocationTrackerDialogComponent } from '../purchase-return/location-tracker-dialog/location-tracker-dialog.component';
 import { MaterialModule } from '../../../shared/material/material/material-module';
@@ -8,8 +8,8 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { InventoryService } from '../service/inventory.service';
 import { Router } from '@angular/router';
-import { merge, of } from 'rxjs';
-import { startWith, switchMap, map, catchError } from 'rxjs/operators';
+import { merge, of, Subject } from 'rxjs';
+import { startWith, switchMap, map, catchError, takeUntil } from 'rxjs/operators';
 import { SelectionModel } from '@angular/cdk/collections';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -32,11 +32,12 @@ import { NotificationService } from '../../shared/notification.service';
     ]),
   ],
 })
-export class CurrentStockComponent implements OnInit, AfterViewInit {
+export class CurrentStockComponent implements OnInit, AfterViewInit, OnDestroy {
   private loadingService = inject(LoadingService);
   private dialog = inject(MatDialog);
   private notification = inject(NotificationService);
   private locationService = inject(LocationService);
+  private destroy$ = new Subject<void>();
 
   displayedColumns: string[] = ['select', 'productName', 'warehouseName', 'rackName', 'manufacturingDate', 'expiryDate', 'totalReceived', 'totalRejected', 'totalExpired', 'totalSold', 'availableStock', 'unitRate', 'actions'];
   stockDataSource = new MatTableDataSource<any>([]);
@@ -80,6 +81,19 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.loadLocations();
+
+    // Re-fetch stock data when another component broadcasts an inventory change
+    this.inventoryService.inventoryUpdate$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        console.log('🔄 Inventory updated elsewhere. Refreshing current stock...');
+        this.applyDateFilter();
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadLocations() {
@@ -288,6 +302,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
         const payload = { productId: historyItem.productId, warehouseId: historyItem.warehouseId, rackId: historyItem.rackId, quantity: targetQty, expiryDate: historyItem.expiryDate };
         this.inventoryService.adjustStock(payload).subscribe({
           next: () => {
+            this.inventoryService.notifyInventoryChange();
             this.notification.showStatus(true, 'Stock removed and history updated.');
             this.applyDateFilter();
           },
@@ -320,6 +335,7 @@ export class CurrentStockComponent implements OnInit, AfterViewInit {
         const payload = { productId: historyItem.productId, sourceWarehouseId: historyItem.warehouseId, sourceRackId: historyItem.rackId, sourceRackName: historyItem.rackName, quantity: targetQty, expiryDate: historyItem.expiryDate };
         this.inventoryService.moveStockToExpiredRack(payload).subscribe({
           next: () => {
+            this.inventoryService.notifyInventoryChange();
             this.notification.showStatus(true, 'Batch moved to Expired Products rack successfully.');
             this.applyDateFilter();
           },

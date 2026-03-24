@@ -57,6 +57,7 @@
         font-size: 1.25rem;
         font-weight: 700;
         letter-spacing: -0.5px;
+        color: white;
       }
       .subtitle {
         font-size: 0.75rem;
@@ -183,6 +184,15 @@
         color: #e53935;
         border-color: #ffccc7;
       }
+
+      &.sold-out {
+        background: #f8fafc;
+        color: #ef4444;
+        border-color: #fee2e2;
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+      }
     }
 
     .expand-icon {
@@ -224,6 +234,11 @@
       &.low {
         background: #fdf2f8;
         color: #db2777;
+      }
+
+      &.sold-out {
+        background: #fef2f2;
+        color: #ef4444;
       }
     }
   }

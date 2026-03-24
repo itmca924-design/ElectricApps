@@ -734,6 +734,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
 
                 this.inventoryService.quickSale(payload).subscribe({
                     next: (res: any) => {
+                        this.inventoryService.notifyInventoryChange();
                         this.isSaving = false;
                         const orderNo = res.soNumber || res.SONumber || 'N/A';
                         const soId = res.id || res.Id;

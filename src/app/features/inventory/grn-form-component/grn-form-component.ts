@@ -441,6 +441,7 @@ export class GrnFormComponent implements OnInit, OnDestroy {
 
         this.inventoryService.saveGRN({ Data: grnData }).subscribe({
           next: (res: any) => {
+            this.inventoryService.notifyInventoryChange();
             totalSuccessAmount += poTotal;
             if (res?.grnNumber) processedGrns.push({ number: res.grnNumber, amount: poTotal });
             index++;
@@ -494,6 +495,7 @@ export class GrnFormComponent implements OnInit, OnDestroy {
     console.log('�🚀 Saving GRN Payload:', grnData);
     this.inventoryService.saveGRN({ Data: grnData }).subscribe({
       next: (response: any) => {
+        this.inventoryService.notifyInventoryChange();
         console.log('✅ GRN Save Success:', response);
         const grnNumber = response?.grnNumber || 'AUTO-GEN';
 
