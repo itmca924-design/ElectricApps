@@ -89,6 +89,8 @@ export class PurchaseReturnView implements OnInit {
         <tr>
             <td style="text-align: center;">${index + 1}</td>
             <td>${item.productName}</td>
+            <td style="text-align: center;">${this.datePipe.transform(item.mfgDate, 'dd-MM-yy') || '—'}</td>
+            <td style="text-align: center;">${this.datePipe.transform(item.expDate, 'dd-MM-yy') || '—'}</td>
             <td style="text-align: center;">${item.returnQty}</td>
             <td style="text-align: right;">${this.currencyPipe.transform(item.rate, 'INR')}</td>
             <td style="text-align: center;">${item.discountPercent}%</td>
@@ -185,6 +187,8 @@ export class PurchaseReturnView implements OnInit {
                         <tr>
                             <th style="text-align: center; width: 30px;">#</th>
                             <th>Product Name / Description</th>
+                            <th style="text-align: center; width: 80px;">Mfg Date</th>
+                            <th style="text-align: center; width: 80px;">Exp Date</th>
                             <th style="text-align: center; width: 60px;">Qty</th>
                             <th style="text-align: right; width: 100px;">Rate</th>
                             <th style="text-align: center; width: 60px;">Disc%</th>

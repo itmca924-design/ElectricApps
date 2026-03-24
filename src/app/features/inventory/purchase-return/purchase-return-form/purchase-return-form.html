@@ -179,6 +179,12 @@
                   <mat-icon style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle; margin-right: 2px;">location_on</mat-icon>
                   {{element.value.warehouseName}} / {{element.value.rackName}}
                 </span>
+                <span class="type-badge ms-2 date-badge" *ngIf="element.value.mfgDate">
+                   Mfg: {{element.value.mfgDate | date:'dd-MM-yy'}}
+                </span>
+                <span class="type-badge ms-2 date-badge" *ngIf="element.value.expDate">
+                   Exp: {{element.value.expDate | date:'dd-MM-yy'}}
+                </span>
               </div>
             </td>
           </ng-container>

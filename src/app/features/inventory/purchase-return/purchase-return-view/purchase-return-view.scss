@@ -234,12 +234,13 @@ $border: #e5e7eb;
         .text-end { text-align: right; }
         
         // Optimized Widths to prevent cutoff
-        .col-product { width: 32%; color: #1e293b; font-weight: 600; }
-        .col-qty { width: 8%; }
-        .col-rate { width: 15%; }
-        .col-disc { width: 10%; }
-        .col-tax { width: 10%; }
-        .col-total { width: 25%; color: #0f172a; font-weight: 700; }
+        .col-product { width: 25%; color: #1e293b; font-weight: 600; }
+        .col-date { width: 12%; }
+        .col-qty { width: 7%; }
+        .col-rate { width: 12%; }
+        .col-disc { width: 7%; }
+        .col-tax { width: 7%; }
+        .col-total { width: 18%; color: #0f172a; font-weight: 700; }
     }
 }
 
