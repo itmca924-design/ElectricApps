@@ -265,6 +265,7 @@
                       <th style="width: 170px;">Date</th>
                       <th>PO Reference</th>
                       <th>GRNNumber</th>
+                      <th>Type</th>
                       <th>Product</th> 
                       <th>Supplier Source</th>
                       <th>Warehouse</th>
@@ -282,6 +283,11 @@
                       <td>{{$any(h).receivedDate | date:'dd MMM yyyy, hh:mm a'}}</td>
                       <td><span class="po-link">#{{$any(h).poNumber}}</span></td>
                       <td>{{$any(h).grnNumber}}</td>
+                      <td>
+                        <span class="type-badge" [class.quick]="$any(h).transactionType?.includes('Quick')">
+                            {{$any(h).transactionType || 'GRN'}}
+                        </span>
+                      </td>
                       <td>{{$any(h).productName}}</td> 
                       <td>{{$any(h).supplierName}}</td>
                       <td>

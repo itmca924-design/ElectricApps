@@ -67,7 +67,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     racks: any[] = [];
 
     itemsDataSource = new MatTableDataSource<AbstractControl>();
-    displayedColumns: string[] = ['productName', 'policyStatus', 'mfgDate', 'expDate', 'quantity', 'rate', 'itemCondition', 'warehouse', 'rack', 'reason', 'returnQty', 'discount', 'tax', 'total'];
+    displayedColumns: string[] = ['productName', 'grnNo', 'refNo', 'policyStatus', 'mfgDate', 'expDate', 'quantity', 'rate', 'itemCondition', 'warehouse', 'rack', 'reason', 'returnQty', 'discount', 'tax', 'total'];
 
     constructor() {
         this.returnForm = this.fb.group({
@@ -170,24 +170,28 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
 
                     items.forEach(item => {
                         const itemGroup = this.fb.group({
-                            productId: [item.productId],
-                            productName: [item.productName],
+                            productId: [item.productId, Validators.required],
+                            productName: [item.productName || item.name, Validators.required],
                             currentStock: [item.currentStock || 0],
                             quantity: [item.soldQty || item.quantity],
                             rate: [item.rate || item.unitPrice || 0],
                             discountPercent: [item.discountPercent || 0],
-                            itemCondition: ['Good', Validators.required],
+                            itemCondition: [{ value: 'Good', disabled: true }, Validators.required],
                             reason: [''],
                             returnQty: [{ value: 0, disabled: !item.isReturnable }, [Validators.required, Validators.min(0), Validators.max(item.soldQty || item.quantity)]],
                             taxRate: [item.taxPercentage || item.taxRate || 0],
                             amount: [0],
-                            warehouseId: [item.warehouseId || null, Validators.required],
-                            rackId: [item.rackId || null, Validators.required],
+                            warehouseId: [{ value: item.warehouseId || null, disabled: true }, Validators.required],
+                            rackId: [{ value: item.rackId || null, disabled: true }, Validators.required],
+                            warehouseName: [item.warehouseName || 'Main Warehouse'],
+                            rackName: [item.rackName || 'Not Assigned'],
                             isReturnable: [item.isReturnable && (item.returnWindowRemainingHours > 0)],
                             remainingHours: [item.returnWindowRemainingHours || 0],
                             manufacturingDate: [item.manufacturingDate || item.mfgDate],
                             expiryDate: [item.expiryDate || item.expDate],
-                            isExpiryRequired: [item.isExpiryRequired ?? true]
+                            isExpiryRequired: [item.isExpiryRequired ?? true],
+                            grnNo: [item.grnNumber || item.grnNo || 'N/A'],
+                            refNo: [item.refNo || item.poNumber || 'N/A']
                         });
 
                         this.calculateRowTotal(itemGroup);
@@ -255,15 +259,19 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                 quantity: [item.quantity],
                 rate: [item.unitPrice || item.rate],
                 discountPercent: [item.discountPercent || 0], // Capture Discount
-                itemCondition: ['Good', Validators.required],
+                itemCondition: [{ value: item.itemCondition || 'Good', disabled: true }, Validators.required],
                 reason: [''],
                 returnQty: [0, [Validators.required, Validators.min(0), Validators.max(item.quantity)]],
                 taxRate: [item.taxPercentage || item.taxRate || 0],
                 amount: [0],
                 warehouseId: [{ value: item.warehouseId || null, disabled: true }],
                 rackId: [{ value: item.rackId || null, disabled: true }],
+                warehouseName: [item.warehouseName || 'Main Warehouse'],
+                rackName: [item.rackName || 'Not Assigned'],
                 manufacturingDate: [item.manufacturingDate],
-                expiryDate: [item.expiryDate]
+                expiryDate: [item.expiryDate],
+                grnNo: [item.grnNumber || item.grnNo || 'N/A'],
+                refNo: [item.refNo || item.poNumber || 'N/A'],
             });
 
             itemGroup.get('returnQty')?.valueChanges.subscribe(() => {
@@ -413,6 +421,8 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                     totalAmount: i.amount,
                     reason: i.reason || 'No Reason',
                     itemCondition: i.itemCondition || 'Good',
+                    warehouseId: i.warehouseId,
+                    rackId: i.rackId,
                     manufacturingDate: i.manufacturingDate,
                     expiryDate: i.expiryDate,
                     mfgDate: i.manufacturingDate,

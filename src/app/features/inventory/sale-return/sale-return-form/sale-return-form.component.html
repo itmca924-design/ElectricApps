@@ -107,6 +107,16 @@
                         </td>
                     </ng-container>
 
+                    <ng-container matColumnDef="grnNo">
+                        <th mat-header-cell *matHeaderCellDef> GRN NO </th>
+                        <td mat-cell *matCellDef="let element"> {{element.get('grnNo').value}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="refNo">
+                        <th mat-header-cell *matHeaderCellDef> Ref No </th>
+                        <td mat-cell *matCellDef="let element"> {{element.get('refNo').value}} </td>
+                    </ng-container>
+
                     <!-- Policy Status Column -->
                     <ng-container matColumnDef="policyStatus">
                         <th mat-header-cell *matHeaderCellDef> Return Policy </th>
@@ -145,35 +155,24 @@
                     <ng-container matColumnDef="itemCondition">
                         <th mat-header-cell *matHeaderCellDef> Condition </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
-                            <mat-form-field appearance="outline" class="condition-input" subscriptSizing="dynamic">
-                                <mat-select formControlName="itemCondition">
-                                    <mat-option value="Good">Good (Restock)</mat-option>
-                                    <mat-option value="Damaged">Damaged</mat-option>
-                                    <mat-option value="Scrapped">Scrapped</mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                            <span class="condition-badge">
+                                <mat-icon>check_circle</mat-icon>
+                                {{element.get('itemCondition').value}}
+                            </span>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="warehouse">
                         <th mat-header-cell *matHeaderCellDef> Warehouse </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
-                            <mat-form-field appearance="outline" class="condition-input" subscriptSizing="dynamic">
-                                <mat-select formControlName="warehouseId" (selectionChange)="onWarehouseChange($event.value, element)">
-                                    <mat-option *ngFor="let w of warehouses" [value]="w.id">{{w.name}}</mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                            <span class="readonly-text">{{element.get('warehouseName').value}}</span>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="rack">
                         <th mat-header-cell *matHeaderCellDef> Rack </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
-                            <mat-form-field appearance="outline" class="condition-input" subscriptSizing="dynamic">
-                                <mat-select formControlName="rackId">
-                                    <mat-option *ngFor="let r of racks" [value]="r.id">{{r.name}}</mat-option>
-                                </mat-select>
-                            </mat-form-field>
+                            <span class="readonly-text">{{element.get('rackName').value}}</span>
                         </td>
                     </ng-container>
 

@@ -1022,3 +1022,22 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
   50% { transform: scale(1.2); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* Type Badge Styles for Audit Trail */
+.type-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    display: inline-block;
+
+    &.quick {
+        background: #eff6ff;
+        color: #2563eb;
+        border-color: #dbeafe;
+    }
+}

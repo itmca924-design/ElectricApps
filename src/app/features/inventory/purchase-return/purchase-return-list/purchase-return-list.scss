@@ -289,12 +289,15 @@
   }
 
   .table-responsive {
-    flex: 1;
-    overflow-x: hidden;
+    /* flex: 1; - Removed to use standard height */
+    height: 480px; /* Standardized height */
+    overflow-x: auto !important; /* Enable horizontal scroll */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    border-radius: 0 0 12px 12px;
+    
     @media (min-width: 769px) {
-      min-height: 200px;
+      min-height: 300px;
     }
     
     &::-webkit-scrollbar {
@@ -312,11 +315,12 @@
 
   table {
     width: 100%;
+    min-width: 1100px; /* Force horizontal scroll for many columns */
     border-collapse: separate;
     border-spacing: 0;
 
     @media (max-width: 768px) {
-      min-width: 800px;
+      min-width: 1100px;
     }
 
     th.mat-header-cell {
