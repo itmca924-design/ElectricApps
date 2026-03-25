@@ -72,8 +72,16 @@
         <tbody>
           <tr *ngFor="let item of data.items">
             <td>{{item.productName}}</td>
-            <td class="text-center">{{ (item.mfgDate | date:'dd-MM-yy') || '—' }}</td>
-            <td class="text-center">{{ (item.expDate | date:'dd-MM-yy') || '—' }}</td>
+            <td class="text-center">
+              <ng-container *ngIf="(item.isExpiryRequired === true || item.IsExpiryRequired === true); else notRequired">
+                {{ (item.mfgDate | date:'dd-MM-yy') || '—' }}
+              </ng-container>
+            </td>
+            <td class="text-center">
+              <ng-container *ngIf="(item.isExpiryRequired === true || item.IsExpiryRequired === true); else notRequired">
+                {{ (item.expDate | date:'dd-MM-yy') || '—' }}
+              </ng-container>
+            </td>
             <td class="text-center">{{item.returnQty}}</td>
             <td class="text-end">{{item.rate | currency:'INR':'symbol':'1.2-2'}}</td>
             <td class="text-center">{{item.discountPercent}}%</td>
@@ -99,6 +107,10 @@
             <span class="value">{{(data.grandTotal || 0) | currency:'INR':'symbol':'1.2-2'}}</span>
         </div>
     </div>
+
+  <ng-template #notRequired>
+    <span class="text-muted" style="font-weight: 600;">NA</span>
+  </ng-template>
 
   </div>
 

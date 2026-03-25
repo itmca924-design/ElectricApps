@@ -47,8 +47,16 @@
       <tbody>
         <tr *ngFor="let item of data.items">
           <td>{{item.productName}}</td>
-          <td style="text-align: center;">{{ ((item.mfgDate || item.MfgDate || item.manufacturingDate) | date:'dd-MM-yy') || '—' }}</td>
-          <td style="text-align: center;">{{ ((item.expDate || item.ExpDate || item.expiryDate) | date:'dd-MM-yy') || '—' }}</td>
+          <td style="text-align: center;">
+            <ng-container *ngIf="(item.isExpiryRequired === true || item.IsExpiryRequired === true); else notRequired">
+              {{ ((item.mfgDate || item.MfgDate || item.manufacturingDate) | date:'dd-MM-yy') || '—' }}
+            </ng-container>
+          </td>
+          <td style="text-align: center;">
+            <ng-container *ngIf="(item.isExpiryRequired === true || item.IsExpiryRequired === true); else notRequired">
+              {{ ((item.expDate || item.ExpDate || item.expiryDate) | date:'dd-MM-yy') || '—' }}
+            </ng-container>
+          </td>
           <td style="text-align: center;">{{item.qty | number:'1.2-2'}}</td>
           <td style="text-align: right;">{{item.rate | currency:'INR':'symbol':'1.2-2'}}</td>
           <td style="text-align: center;">{{item.discountPercent || 0}}%</td>
@@ -86,4 +94,8 @@
       <mat-icon>print</mat-icon> Print
     </button>
   </mat-dialog-actions>
+
+  <ng-template #notRequired>
+    <span class="text-muted" style="font-weight: 600;">NA</span>
+  </ng-template>
 </div>

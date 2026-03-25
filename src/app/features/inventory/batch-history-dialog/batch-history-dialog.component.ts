@@ -74,4 +74,10 @@ export class BatchHistoryDialogComponent implements OnInit {
   onClose(): void {
     this.dialogRef.close();
   }
+
+  formatLabel(type: string): string {
+    if (!type) return 'N/A';
+    // Separate camelCase with spaces (e.g., SaleReturn -> Sale Return)
+    return type.replace(/([A-Z])/g, ' $1').trim().replace(/Quick/g, 'Quick ');
+  }
 }

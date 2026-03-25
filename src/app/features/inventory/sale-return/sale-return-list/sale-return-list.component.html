@@ -171,23 +171,15 @@ class="export-action-btn" (click)="exportToExcel()" [disabled]="isExportLoading 
 
                         <!-- Case 3: Standard Return (Needs Gate Pass) -->
                         <ng-template #noPass>
-                            <!-- Quick Sale Return: Only show icon with info tooltip -->
-                            <ng-container *ngIf="row.soRef?.includes('-Q-'); else standardReturn">
-                                <mat-icon color="accent" 
-                                          matTooltip="Quick Return - Gatepass/Inward Not Required" 
-                                          class="pending-pass-icon" 
-                                          style="cursor: default;">
-                                    bolt
-                                </mat-icon>
-                            </ng-container>
-
-                            <!-- Standard Return: Show clickable button -->
+                            <!-- Standard Return Template -->
                             <ng-template #standardReturn>
                                 <button mat-icon-button (click)="createInwardGatePass(row)" color="primary" matTooltip="Generate Inward Pass" *ngIf="!isQuick">
                                     <mat-icon class="pending-pass-icon">local_shipping</mat-icon>
                                 </button>
                                 <span class="text-muted small" *ngIf="isQuick">Pending</span>
                             </ng-template>
+
+                            <ng-container *ngTemplateOutlet="standardReturn"></ng-container>
                         </ng-template>
                     </td>
                 </ng-container>

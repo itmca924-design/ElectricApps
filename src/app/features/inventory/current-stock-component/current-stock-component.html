@@ -342,9 +342,9 @@
                         </div>
 
                         <div *ngIf="$any(h).receivedQty === 0 && ($any(h).rejectedQty === 0 || !$any(h).rejectedQty) && ($any(h).expiredQty === 0 || !$any(h).expiredQty)" 
-                             class="purged-badge" style="color: #52c41a; font-weight: 600; font-size: 0.7rem; border: 1px solid #b7eb8f; padding: 2px 6px; border-radius: 4px; background: #f6ffed; display: inline-flex; align-items: center;">
-                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">done_all</mat-icon>
-                          PURGED / REMOVED
+                             class="voided-badge" style="color: #8c8c8c; font-weight: 600; font-size: 0.7rem; border: 1px solid #d9d9d9; padding: 2px 6px; border-radius: 4px; background: #fafafa; display: inline-flex; align-items: center;">
+                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">info</mat-icon>
+                          VOIDED / EMPTY
                         </div>
 
                         <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && ($any(h).rackName.includes('Expired') || $any(h).rackName.includes('E1'))" 

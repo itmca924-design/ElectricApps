@@ -83,7 +83,7 @@
                   <mat-icon>location_on</mat-icon>
                   {{batch.warehouseName}} - {{batch.rackName}}
                 </span>
-                <span class="batch-qty">{{batch.receivedQty - batch.rejectedQty}} {{item.unit}}</span>
+                <span class="batch-qty">{{batch.availableQty || 0}} {{item.unit}}</span>
               </div>
               <div class="batch-info-bottom">
                 <span class="batch-date" *ngIf="item.isExpiryRequired">
@@ -92,10 +92,13 @@
                   </span>
                 </span>
                 <span class="batch-po">PO: #{{batch.poNumber}}</span>
-                <span *ngIf="(batch.receivedQty - (batch.rejectedQty || 0) - (batch.expiredQty || 0)) === 0" 
-                      class="purged-text" 
-                      style="color: #f5222d; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
-                  (DELETED / PURGED)
+                <span *ngIf="(batch.receivedQty || 0) === 0" 
+                      style="color: #8c8c8c; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
+                  (VOIDED/EMPTY)
+                </span>
+                <span *ngIf="(batch.receivedQty || 0) > 0 && (batch.availableQty || 0) === 0" 
+                      style="color: #8c8c8c; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
+                  (SOLD OUT)
                 </span>
               </div>
             </div>

@@ -179,7 +179,7 @@ export class PurchaseReturnList implements OnInit {
         this.activeStatus,
         this.isQuick
       ),
-      summary: this.prService.getSummary(),
+      summary: this.prService.getSummary(this.isQuick),
       gatePasses: this.gatePassService.getGatePassesPaged({ pageSize: 150, sortField: 'CreatedAt', sortOrder: 'desc' }).pipe(catchError(() => of({ data: [] })))
     }).subscribe({
       next: (res: any) => {
@@ -457,8 +457,8 @@ export class PurchaseReturnList implements OnInit {
         <tr>
             <td style="text-align: center;">${index + 1}</td>
             <td>${item.productName}</td>
-            <td style="text-align: center;">${this.datePipe.transform(item.mfgDate, 'dd-mm-yy') || '—'}</td>
-            <td style="text-align: center;">${this.datePipe.transform(item.expDate, 'dd-mm-yy') || '—'}</td>
+            <td style="text-align: center;">${(item.isExpiryRequired === true || item.IsExpiryRequired === true) ? (this.datePipe.transform(item.mfgDate, 'dd-MM-yy') || '—') : 'NA'}</td>
+            <td style="text-align: center;">${(item.isExpiryRequired === true || item.IsExpiryRequired === true) ? (this.datePipe.transform(item.expDate, 'dd-MM-yy') || '—') : 'NA'}</td>
             <td style="text-align: center;">${item.returnQty}</td>
             <td style="text-align: right;">${this.currencyPipe.transform(item.rate, 'INR')}</td>
             <td style="text-align: center;">${item.discountPercent}%</td>

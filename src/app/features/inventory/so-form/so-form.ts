@@ -422,11 +422,25 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
         // Show batches that have stock OR are expired OR are valid but 0 stock (so they are visible)
         const selectableBatches = allBatches.filter((b: any) => b.availableStock > 0 || b.isExpired || b.manufacturingDate); 
-        const validBatches = allBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
+        
+        // 🎯 CRITICAL FIX: Re-sort combined batches from ALL racks by FEFO (First Expiry First Out)
+        selectableBatches.sort((a, b) => {
+          // 1. FEFO: First Expiry First Out
+          const dateA = a.expiryDate ? new Date(a.expiryDate).getTime() : Infinity;
+          const dateB = b.expiryDate ? new Date(b.expiryDate).getTime() : Infinity;
+          if (dateA !== dateB) return dateA - dateB;
+          
+          // 2. FIFO: First In First Out (if expiry is identical)
+          const mfgA = a.manufacturingDate ? new Date(a.manufacturingDate).getTime() : Infinity;
+          const mfgB = b.manufacturingDate ? new Date(b.manufacturingDate).getTime() : Infinity;
+          return mfgA - mfgB;
+        });
 
-        if (validBatches.length === 1 && allBatches.filter((b: any) => b.availableStock > 0).length === 1) {
+        const validBatches = selectableBatches.filter((b: any) => !b.isExpired && b.availableStock > 0);
+
+        if (validBatches.length === 1 && selectableBatches.filter((b: any) => b.availableStock > 0).length === 1) {
           this.applyBatchToForm(validBatches[0], currentItem);
-        } else if (validBatches.length > 0 || selectableBatches.length > 0) {
+        } else if (selectableBatches.length > 0) {
           const dialogRef = this.dialog.open(BatchSelectionDialogComponent, {
             width: '620px',
             disableClose: false,
@@ -911,6 +925,9 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
             // ✅ Order Number Display Fix
             const orderNo = res.soNumber || res.SONumber || 'N/A';
             const soId = res.id || res.Id;
+            
+            // ✅ Trigger real-time inventory update notification for Drawer/CurrentStock
+            this.inventoryService.notifyInventoryChange();
 
             // Find customer name for the dialog
             const selectedCust = this.customers.find((c: any) => String(c.id) == String(formValues.customerId));

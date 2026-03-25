@@ -498,10 +498,8 @@ button[color="warning"] {
   min-width: 260px !important;
   max-width: 300px !important;
   border-radius: 12px !important;
-  margin-top: 12px !important; /* Gap for the arrow */
+  margin-top: 12px !important;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
-  
-  /* Fixed: Align with icon left-edge and expand towards the right of the table */
   transform: none !important; 
   overflow: visible !important; 
 
@@ -511,12 +509,11 @@ button[color="warning"] {
     overflow: hidden !important;
   }
 
-  /* Triangle Arrow (Pointing exactly to Filter Icon center) */
   &::before {
     content: '';
     position: absolute;
     top: -6px;
-    left: 13px; /* Icon Center */
+    left: 13px;
     transform: translateX(-50%) rotate(45deg);
     width: 12px;
     height: 12px;
@@ -538,120 +535,66 @@ button[color="warning"] {
 }
 
 .compact-filter-input {
-  /* Compact Form Field */
   .mat-mdc-text-field-wrapper, .mat-mdc-form-field-flex {
     height: 40px !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    padding-right: 12px !important; /* Proper spacing for suffix */
+    padding: 0 12px 0 0 !important;
     align-items: center !important;
     background-color: white !important;
   }
   
-  .mat-mdc-form-field-outline {
-     background-color: white;
-  }
-  
   .mat-mdc-form-field-infix {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    padding: 8px 0 !important;
     min-height: 40px !important;
     border-top: 0 !important;
   }
   
   input.mat-mdc-input-element {
-    margin-top: -4px; /* Centering */
+    margin-top: -4px;
   }
   
   mat-icon {
     font-size: 20px;
     color: #9ca3af;
   }
-
-  mat-icon[matPrefix] {
-    margin-right: 8px;
-  }
-  
-  /* Fix Close Button Layout */
-  button[matSuffix] {
-    width: 24px !important;
-    height: 24px !important;
-    min-width: 24px !important;
-    padding: 0 !important;
-    line-height: 0 !important;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    
-    mat-icon {
-       font-size: 16px !important;
-       width: 16px !important;
-       height: 16px !important;
-       margin: 0 !important;
-       color: #6b7280;
-    }
-  }
 }
 
 /* --- Drag & Drop Styles --- */
-/* Drag Preview (Global for Overlay) */
 ::ng-deep .cdk-drag-preview {
   display: flex !important;
   box-sizing: border-box !important;
   border-radius: 4px;
-  box-shadow: 0 5px 5px -3px rgba(0,0,0,0.2),
-              0 8px 10px 1px rgba(0,0,0,0.14),
-              0 3px 14px 2px rgba(0,0,0,0.12);
+  box-shadow: 0 5px 5px -3px rgba(0,0,0,0.2), 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12);
   background-color: white !important;
   align-items: center;
-  padding-left: 16px;
-  padding-right: 16px;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
+  padding: 0 16px;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(0,0,0,0.87);
   z-index: 9999 !important;
   height: 56px;
-  overflow: hidden;
 }
 
-/* Placeholder (Ghost Header) Styling */
 ::ng-deep .cdk-drag-placeholder {
-  opacity: 0.3 !important; /* Visible ghost */
+  opacity: 0.3 !important;
   background-color: #e0e0e0 !important;
-  color: inherit !important; /* Show text */
   border: 1px dashed #999;
-  display: table-cell; /* Maintain layout */
-}
-/* Ensure children (text, icons) are visible */
-::ng-deep .cdk-drag-placeholder * {
-  visibility: visible !important;
-  opacity: 1 !important; 
+  display: table-cell;
 }
 
 .cdk-drag-animating {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
 }
 
-.cdk-drop-list-dragging th:not(.cdk-drag-placeholder) {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-/* Resizable Columns Defaults by CSS Variables - strict ::ng-deep */
+/* Resizable Columns Defaults */
 ::ng-deep {
-  /* General Cell Styles for overflow */
   .mat-mdc-cell, .mat-mdc-header-cell {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    padding-left: 8px !important;
-    padding-right: 8px !important;
+    padding: 0 8px !important;
     box-sizing: border-box;
   }
 
-  /* Specific Column Widths */
   .mat-column-select { width: 48px; min-width: 48px; max-width: 48px; }
-  
   .mat-column-soNumber { width: var(--col-soNumber-width, 150px); min-width: var(--col-soNumber-width, 150px); max-width: var(--col-soNumber-width, 150px); }
   .mat-column-gatePassNo { width: var(--col-gatePassNo-width, 180px); min-width: var(--col-gatePassNo-width, 180px); max-width: var(--col-gatePassNo-width, 180px); }
   .mat-column-soDate { width: var(--col-soDate-width, 170px); min-width: var(--col-soDate-width, 170px); max-width: var(--col-soDate-width, 170px); }
@@ -660,12 +603,9 @@ button[color="warning"] {
   .mat-column-grandTotal { width: var(--col-grandTotal-width, 150px); min-width: var(--col-grandTotal-width, 150px); max-width: var(--col-grandTotal-width, 150px); }
   .mat-column-status { width: var(--col-status-width, 180px); min-width: var(--col-status-width, 180px); max-width: var(--col-status-width, 180px); }
   .mat-column-paymentStatus { width: var(--col-paymentStatus-width, 180px); min-width: var(--col-paymentStatus-width, 180px); max-width: var(--col-paymentStatus-width, 180px); }
-  
-  .mat-column-createdBy { width: var(--col-createdBy-width, 180px); min-width: var(--col-createdBy-width, 180px); max-width: var(--col-createdBy-width, 180px); }
-  .mat-column-remarks { width: var(--col-remarks-width, 250px); min-width: var(--col-remarks-width, 250px); max-width: var(--col-remarks-width, 250px); }
-  
   .mat-column-actions { width: 120px; min-width: 120px; }
 }
+
 /* --- Empty State Styling --- */
 .empty-state-container {
   display: flex;
@@ -673,7 +613,6 @@ button[color="warning"] {
   align-items: center;
   justify-content: center;
   padding: 48px 24px;
-  text-align: center;
   background-color: #f9fafb;
   min-height: 300px;
 }
@@ -683,28 +622,10 @@ button[color="warning"] {
   flex-direction: column;
   align-items: center;
   max-width: 400px;
-}
-
-.empty-icon {
-  font-size: 64px;
-  width: 64px;
-  height: 64px;
-  color: #9ca3af;
-  margin-bottom: 16px;
-}
-
-.empty-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.empty-subtitle {
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin: 0 0 24px 0;
-  line-height: 1.5;
+  
+  .empty-icon { font-size: 64px; width: 64px; height: 64px; color: #9ca3af; margin-bottom: 16px; }
+  .empty-title { font-size: 1.25rem; font-weight: 600; color: #1f2937; margin: 0 0 8px 0; }
+  .empty-subtitle { font-size: 0.875rem; color: #6b7280; margin: 0 0 24px 0; line-height: 1.5; }
 }
 
 .gate-pass-badge {
@@ -720,46 +641,27 @@ button[color="warning"] {
 .pending-label {
     color: #9e9e9e;
     font-size: 11px;
-    font-style: italic;
 }
 
-/* FORCED: SPECIFIC FIX FOR SALE ORDER LIST ONLY - DON'T TOUCH PO */
+/* SURGICAL FIX: SALE ORDER CHILD TABLE SCROLLBAR */
 ::ng-deep {
-  .detail-panel {
-    display: block !important;
-    width: 0 !important;
-    min-width: 100% !important; /* Forces scrollbar for cell */
-    max-height: none !important;
-    opacity: 1 !important;
+  .detail-panel.is-expanded {
+    max-width: calc(100vw - 420px) !important;
     overflow: hidden !important; 
-    padding: 0 !important;
+    border-left: 4px solid #3b82f6 !important;
+    background: #f8fafc !important;
+  }
 
-    .child-table-scroll {
-      display: block !important;
-      width: 100% !important;
-      overflow-x: auto !important; /* Forced scrollbar */
-      padding: 24px 0;
-      -webkit-overflow-scrolling: touch;
-      background-color: #f8fafc;
-      border-radius: 8px;
-
-      .inner-table {
-        min-width: 1800px !important; /* Triggers overflow on all screens */
-        width: max-content !important;
-        border-collapse: collapse;
-      }
-
-      .child-footer-summary {
-        position: sticky !important;
-        left: 0 !important;
-        width: 100% !important;
-        display: flex !important;
-        justify-content: flex-end !important;
-        padding: 25px;
-        padding-right: 40px; /* Space for scrollbar corner if any */
-        box-sizing: border-box;
-        z-index: 10;
-      }
+  .child-table-scroll {
+    overflow-x: auto !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-bottom: 12px !important; /* Visual room for scrollbar */
+    
+    .inner-table {
+      min-width: 1500px !important;
+      width: max-content !important;
     }
   }
 }

@@ -121,7 +121,7 @@ export class SaleReturnListComponent implements OnInit {
     }
 
     loadDashboardSummary() {
-        this.srService.getDashboardSummary().subscribe({
+        this.srService.getDashboardSummary(this.isQuick).subscribe({
             next: (data) => {
                 this.summaryData = data;
                 this.cdr.detectChanges();

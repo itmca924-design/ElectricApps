@@ -63,17 +63,17 @@
     color: #495057;
 }
 
-.purchase, .quickgrn, .grn {
+.purchase, .quickgrn, .grn, .quickpurchase {
     background: #d1e7dd;
     color: #0f5132;
 }
 
-.sale, .salereturn {
+.sale, .salereturn, .quicksale, .quicksalereturn {
     background: #fff3cd;
     color: #856404;
 }
 
-.return, .disposed, .expired {
+.return, .disposed, .expired, .purchasereturn, .quickpurchasereturn {
     background: #f8d7da;
     color: #842029;
 }

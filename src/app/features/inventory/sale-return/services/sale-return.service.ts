@@ -79,8 +79,8 @@ export class SaleReturnService {
         return this.api.getBlob(`SaleReturn/print/${id}`);
     }
 
-    getDashboardSummary(): Observable<any> {
-        return this.api.get('SaleReturn/summary');
+    getDashboardSummary(isQuick: boolean = false): Observable<any> {
+        return this.api.get(`SaleReturn/summary?isQuick=${isQuick}`);
     }
 
     getPendingSaleReturns(): Observable<any[]> {

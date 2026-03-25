@@ -75,7 +75,7 @@ export class PurchaseReturnService {
         return this.api.post('PurchaseReturn/bulk-outward', ids);
     }
 
-    getSummary(): Observable<any> {
-        return this.api.get('PurchaseReturn/summary');
+    getSummary(isQuick: boolean = false): Observable<any> {
+        return this.api.get(`PurchaseReturn/summary?isQuick=${isQuick}`);
     }
 }
