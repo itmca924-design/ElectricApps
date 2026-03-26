@@ -28,6 +28,7 @@ $theme-colors: (
 
   // Apply theme to the root element for this theme class
   html.theme-#{$name} {
+    --dg-primary-theme: #{$hex-color}; /* NEW: Exposed for dynamic components */
     
     // Set icon color to white for better visibility on colored toolbars
     .toolbar .nav-icon .mat-icon {

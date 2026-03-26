@@ -117,7 +117,8 @@
     </div>
   </div>
 
-  <div [style.display]="(!isLoadingResults && stockDataSource.data.length > 0) ? 'block' : 'none'" class="table-scroll-wrapper">
+  <div [style.display]="(!isLoadingResults && stockDataSource.data.length > 0) ? 'block' : 'none'" 
+       class="table-scroll-wrapper" #scrollWrapper>
     <table mat-table [dataSource]="stockDataSource" matSort multiTemplateDataRows aria-label="Current Stock Table">
       
       <ng-container matColumnDef="select">
@@ -138,7 +139,21 @@
       </ng-container>
 
       <ng-container matColumnDef="productName">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Product </th>
+        <th mat-header-cell *matHeaderCellDef appResizableColumn>
+           <div class="product-header-content">
+              <span mat-sort-header>Product</span>
+              <div class="scroll-controls">
+                <button type="button" mat-icon-button (click)="$event.stopPropagation(); scrollTable('left')" 
+                        class="scroll-btn left" matTooltip="Scroll Left">
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
+                <button type="button" mat-icon-button (click)="$event.stopPropagation(); scrollTable('right')" 
+                        class="scroll-btn right" matTooltip="Scroll Right">
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+              </div>
+           </div>
+        </th>
         <td mat-cell *matCellDef="let element"> 
           <div class="product-info-cell">
             <span class="product-name-text">{{element.productName}}</span>
@@ -234,7 +249,7 @@
       </ng-container>
 
       <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef> </th>
+        <th mat-header-cell *matHeaderCellDef> Action </th>
         <td mat-cell *matCellDef="let element">
           <div class="action-cell-container">
             <!-- Refill Action -->

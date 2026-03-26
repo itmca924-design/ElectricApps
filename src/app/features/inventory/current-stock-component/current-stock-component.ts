@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, AfterViewInit, ChangeDetectorRef, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, AfterViewInit, ChangeDetectorRef, inject, OnDestroy } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { LocationTrackerDialogComponent } from '../purchase-return/location-tracker-dialog/location-tracker-dialog.component';
 import { MaterialModule } from '../../../shared/material/material/material-module';
@@ -50,6 +50,18 @@ export class CurrentStockComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
+  @ViewChild('scrollWrapper') scrollWrapper!: ElementRef;
+
+  scrollTable(direction: 'left' | 'right') {
+    if (!this.scrollWrapper) return;
+    const scrollAmount = 300;
+    const element = this.scrollWrapper.nativeElement;
+    if (direction === 'left') {
+      element.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+    } else {
+      element.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  }
 
   resultsLength = 0;
   isLoadingResults = true;
