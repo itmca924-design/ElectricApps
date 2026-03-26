@@ -130,20 +130,40 @@ export class InventoryService {
         startDate: Date | null = null,
         endDate: Date | null = null,
         warehouseId: string | null = null,
-        rackId: string | null = null
+        rackId: string | null = null,
+        showPurged: boolean = false
     ): Observable<any> {
-        const request = {
+        const request: any = {
             sortField,
             sortOrder,
             pageIndex,
             pageSize,
             search,
-            startDate: startDate?.toISOString(),
-            endDate: endDate?.toISOString(),
             warehouseId,
-            rackId
+            rackId,
+            showPurged
         };
+
+        if (startDate) {
+            request.startDate = this.formatDate(startDate);
+        }
+        if (endDate) {
+            request.endDate = this.formatDate(endDate);
+        }
+
         return this.api.get(`stock/current-stock?${this.api.toQueryString(request)}`);
+    }
+
+    private formatDate(date: Date): string {
+        const d = new Date(date);
+        let month = '' + (d.getMonth() + 1);
+        let day = '' + d.getDate();
+        const year = d.getFullYear();
+
+        if (month.length < 2) month = '0' + month;
+        if (day.length < 2) day = '0' + day;
+
+        return [year, month, day].join('-');
     }
 
     getGRNPagedList(

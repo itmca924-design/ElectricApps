@@ -97,7 +97,7 @@ import { LoadingService } from '../../../core/services/loading.service';
               <mat-checkbox (click)="$event.stopPropagation()"
                             (change)="$event ? toggleRow(row) : null"
                             [checked]="isRowSelected(row)"
-                            [disabled]="(!allowOutOfStock && row.currentStock <= 0) || isAlreadyInList(row.id)">
+                            [disabled]="(!allowOutOfStock && row.currentStock <= 0) || isAlreadyInList(row.id) || isExpired(row.expiryDate)">
               </mat-checkbox>
             </td>
           </ng-container>
@@ -167,6 +167,8 @@ import { LoadingService } from '../../../core/services/loading.service';
             <td mat-cell *matCellDef="let row">
               @if (isAlreadyInList(row.id)) {
                 <span class="status-badge added">Already Added</span>
+              } @else if (isExpired(row.expiryDate)) {
+                <span class="status-badge expired">EXPIRED</span>
               } @else if (row.currentStock <= 0) {
                 <span class="status-badge na">N/A</span>
               } @else {
@@ -418,9 +420,10 @@ import { LoadingService } from '../../../core/services/loading.service';
       padding: 2px 8px;
       border-radius: 12px;
       font-weight: 600;
-      &.added     { background: #fee2e2; color: #b91c1c; }
-      &.available { background: #d1fae5; color: #065f46; }
-      &.na        { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; }
+    &.added     { background: #fee2e2; color: #b91c1c; }
+    &.expired   { background: #fff1f0; color: #ff4d4f; border: 1px solid #ffccc7; text-transform: uppercase; font-size: 10px; }
+    &.available { background: #d1fae5; color: #065f46; }
+    &.na        { background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; }
     }
 
     .unit-badge {
@@ -884,6 +887,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
 
   toggleRow(row: any) {
     if (this.isAlreadyInList(row.id)) return;
+    if (this.isExpired(row.expiryDate)) return; // Prevent selection of expired items
     if (!this.allowOutOfStock && row.currentStock <= 0) return;
     const found = this.selection.selected.find(item => item.id === row.id);
     if (found) {
@@ -983,6 +987,14 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
 
   addSelected() {
     this.dialogRef.close(this.selection.selected);
+  }
+
+  isExpired(date: any): boolean {
+    if (!date || date === 'NA') return false;
+    const expDate = new Date(date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return expDate <= today;
   }
 
   close() {

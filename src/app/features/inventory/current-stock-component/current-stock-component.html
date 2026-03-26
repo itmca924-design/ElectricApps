@@ -80,7 +80,11 @@
       </mat-select>
     </mat-form-field>
     
-    <div class="filter-actions">
+    <div class="filter-actions" style="display: flex; align-items: center; gap: 15px;">
+      <mat-slide-toggle [(ngModel)]="showPurgedHistory" (change)="applyDateFilter()" color="warn" style="font-size: 0.8rem; font-weight: 500;">
+      Removed Batches
+      </mat-slide-toggle>
+      
       <button mat-raised-button color="primary" class="filter-btn" (click)="applyDateFilter()" [disabled]="isLoadingResults">
         <mat-icon>filter_alt</mat-icon>
         Apply
@@ -134,7 +138,7 @@
       </ng-container>
 
       <ng-container matColumnDef="productName">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Product </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Product </th>
         <td mat-cell *matCellDef="let element"> 
           <div class="product-info-cell">
             <span class="product-name-text">{{element.productName}}</span>
@@ -143,7 +147,7 @@
       </ng-container>
 
       <ng-container matColumnDef="warehouseName">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Warehouse </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Warehouse </th>
         <td mat-cell *matCellDef="let element" class="py-3"> 
           <span class="location-badge live" (click)="$event.stopPropagation(); viewLiveLocation(element)" 
                 matTooltip="Click to track live location">
@@ -154,7 +158,7 @@
       </ng-container>
 
       <ng-container matColumnDef="rackName">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Rack </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Rack </th>
         <td mat-cell *matCellDef="let element" class="py-3"> 
            <span class="rack-badge" (click)="$event.stopPropagation(); viewLiveLocation(element)">
              {{element.rackName}} 
@@ -163,12 +167,12 @@
       </ng-container>
       
       <ng-container matColumnDef="manufacturingDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Mfg Date </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Mfg Date </th>
         <td mat-cell *matCellDef="let element"> {{ element.isExpiryRequired ? ((element.manufacturingDate | date:'dd MMM yyyy') ?? 'NA') : 'NA' }} </td>
       </ng-container>
       
       <ng-container matColumnDef="expiryDate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Exp Date </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Exp Date </th>
         <td mat-cell *matCellDef="let element"> 
           <span [class.text-danger]="isExpired(element.expiryDate)" [class.text-warning]="isNearExpiry(element.expiryDate)">
             {{ element.isExpiryRequired ? ((element.expiryDate | date:'dd MMM yyyy') ?? 'NA') : 'NA' }}
@@ -177,12 +181,12 @@
       </ng-container>
 
       <ng-container matColumnDef="totalReceived">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Inward Qty </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Inward Qty </th>
         <td mat-cell *matCellDef="let element"> {{element.totalReceived | number}} </td>
       </ng-container>
 
       <ng-container matColumnDef="totalRejected">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Rejected </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Rejected </th>
         <td mat-cell *matCellDef="let element"> 
           <span class="rejected-badge" *ngIf="element.totalRejected > 0">
             {{element.totalRejected}}
@@ -192,7 +196,7 @@
       </ng-container>
 
       <ng-container matColumnDef="totalExpired">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Expired </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Expired </th>
         <td mat-cell *matCellDef="let element"> 
           <span class="expired-badge" *ngIf="element.totalExpired > 0">
             {{element.totalExpired}}
@@ -202,7 +206,7 @@
       </ng-container>
 
       <ng-container matColumnDef="totalSold">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Total Sold </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Total Sold </th>
         <td mat-cell *matCellDef="let element"> 
           <span [class.text-danger]="element.totalSold > 0" class="font-600">
             {{element.totalSold | number}}
@@ -211,7 +215,7 @@
       </ng-container>
 
       <ng-container matColumnDef="availableStock">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Current Stock </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Current Stock </th>
         <td mat-cell *matCellDef="let element">
           <span class="stock-badge" 
                 [class.low-stock]="isLowStock(element)"
@@ -223,7 +227,7 @@
       </ng-container>
 
       <ng-container matColumnDef="unitRate">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header> Unit Rate </th>
+        <th mat-header-cell *matHeaderCellDef mat-sort-header appResizableColumn> Unit Rate </th>
         <td mat-cell *matCellDef="let element"> 
           <span class="currency-text">{{element.lastRate | currency:'INR':'symbol-narrow':'1.2-2'}}</span>
         </td>
@@ -253,29 +257,26 @@
                   <mat-icon style="margin-right: 8px;">analytics</mat-icon>
                   <span style="font-weight: 600;">Audit Trail | Transaction & Rejection History</span>
                 </div>
-                <mat-slide-toggle [(ngModel)]="showPurgedHistory" (change)="cdr.detectChanges()" color="primary" labelPosition="before" style="font-size: 0.8rem;" class="purged-toggle">
-                   Show Purged/Removed Batches
-                </mat-slide-toggle>
               </div>
               
               <div class="history-scroll-container">
                 <table class="child-table">
                   <thead>
                     <tr>
-                      <th style="width: 170px;">Date</th>
-                      <th>PO Reference</th>
-                      <th>GRNNumber</th>
-                      <th>Type</th>
-                      <th>Product</th> 
-                      <th>Supplier Source</th>
-                      <th>Warehouse</th>
-                      <th>Rack</th>
-                      <th>Mfg Date</th>
-                      <th>Exp Date</th>
-                      <th>Received</th>
-                      <th>Rejected</th>
-                      <th>Expired</th>
-                      <th>Action</th>
+                      <th style="width: 170px;" appResizableColumn>Date</th>
+                      <th appResizableColumn>PO Reference</th>
+                      <th appResizableColumn>GRNNumber</th>
+                      <th appResizableColumn>Type</th>
+                      <th appResizableColumn>Product</th> 
+                      <th appResizableColumn>Supplier Source</th>
+                      <th appResizableColumn>Warehouse</th>
+                      <th appResizableColumn>Rack</th>
+                      <th appResizableColumn>Mfg Date</th>
+                      <th appResizableColumn>Exp Date</th>
+                      <th appResizableColumn>Received</th>
+                      <th appResizableColumn>Rejected</th>
+                      <th appResizableColumn>Expired</th>
+                      <th appResizableColumn>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -341,10 +342,15 @@
                           Sold out
                         </div>
 
+                        <!-- Enhanced Purged/Voided Status -->
                         <div *ngIf="$any(h).receivedQty === 0 && ($any(h).rejectedQty === 0 || !$any(h).rejectedQty) && ($any(h).expiredQty === 0 || !$any(h).expiredQty)" 
-                             class="voided-badge" style="color: #8c8c8c; font-weight: 600; font-size: 0.7rem; border: 1px solid #d9d9d9; padding: 2px 6px; border-radius: 4px; background: #fafafa; display: inline-flex; align-items: center;">
-                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">info</mat-icon>
-                          VOIDED / EMPTY
+                             class="voided-badge" 
+                             [style.color]="($any(h).rackName?.includes('Expired') || $any(h).rackName?.includes('E1')) ? '#722ed1' : '#8c8c8c'"
+                             [style.border-color]="($any(h).rackName?.includes('Expired') || $any(h).rackName?.includes('E1')) ? '#d3adf7' : '#d9d9d9'"
+                             [style.background]="($any(h).rackName?.includes('Expired') || $any(h).rackName?.includes('E1')) ? '#f9f0ff' : '#fafafa'"
+                             style="font-weight: 600; font-size: 0.7rem; border: 1px solid; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center;">
+                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">{{($any(h).rackName?.includes('Expired') || $any(h).rackName?.includes('E1')) ? 'auto_delete' : 'info'}}</mat-icon>
+                          {{($any(h).rackName?.includes('Expired') || $any(h).rackName?.includes('E1')) ? 'PURGED' : 'VOIDED / EMPTY'}}
                         </div>
 
                         <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && ($any(h).rackName.includes('Expired') || $any(h).rackName.includes('E1'))" 

@@ -227,24 +227,27 @@ th.mat-mdc-header-cell {
 }
 
 table[mat-table] {
-  width: 100%;
+  width: auto;
+  min-width: 100%;
   border-collapse: collapse;
-  table-layout: fixed; /* Force fixed layout to prevent overflow */
 }
 
 /* Column Width Definitions for Current Stock */
-.mat-column-select { width: 45px !important; }
-.mat-column-productName { width: 160px !important; min-width: 160px !important; }
-.mat-column-warehouseName { width: 145px !important; }
-.mat-column-rackName { width: 105px !important; }
-.mat-column-totalReceived { width: 90px !important; text-align: center !important; }
-.mat-column-totalRejected { width: 75px !important; text-align: center !important; }
-.mat-column-totalExpired { width: 75px !important; text-align: center !important; }
-.mat-column-totalSold { width: 85px !important; text-align: center !important; }
-.mat-column-availableStock { width: 115px !important; text-align: center !important; }
+.mat-column-select { width: 45px; }
+.mat-column-productName { min-width: 160px; }
+.mat-column-warehouseName { min-width: 145px; }
+.mat-column-rackName { min-width: 105px; }
+.mat-column-manufacturingDate { min-width: 110px; }
+.mat-column-expiryDate { min-width: 110px; }
+.mat-column-totalReceived { min-width: 90px; text-align: center; }
+.mat-column-totalRejected { min-width: 75px; text-align: center; }
+.mat-column-totalExpired { min-width: 75px; text-align: center; }
+.mat-column-totalSold { min-width: 85px; text-align: center; }
+.mat-column-availableStock { min-width: 115px; text-align: center; }
+.mat-column-unitRate { min-width: 100px; text-align: right; }
 .mat-column-actions { 
-  width: 95px !important; 
-  text-align: center !important; 
+  width: 95px; 
+  text-align: center; 
 }
 
 /* Force alignment for cells in specific columns */

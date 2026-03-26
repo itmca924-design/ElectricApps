@@ -45,8 +45,10 @@
               <span class="product-sku" *ngIf="item.sku">SKU: {{item.sku}}</span>
             </div>
             <div class="item-stock-section">
-              <span class="stock-badge" [class.low-stock]="isLowStock(item) && item.availableStock > 0" [class.sold-out]="item.availableStock === 0">
-                {{item.availableStock === 0 ? 'Qty: Sold out' : item.availableStock + ' ' + item.unit}}
+              <span class="stock-badge" [class.low-stock]="isLowStock(item) && item.availableStock > 0" 
+                    [class.sold-out]="item.availableStock === 0 && (item.totalExpired || 0) === 0"
+                    [class.expired-only]="item.availableStock === 0 && (item.totalExpired || 0) > 0">
+                {{ item.availableStock > 0 ? (item.availableStock + ' ' + (item.unit || '')) : ((item.totalExpired || 0) > 0 ? 'Qty: Expired' : 'Qty: Sold out') }}
               </span>
               <mat-icon class="expand-icon">{{expandedProductId === item.productId ? 'expand_less' : 'expand_more'}}</mat-icon>
             </div>
@@ -54,17 +56,20 @@
 
           <!-- Quick Indicators -->
           <div class="item-indicators">
-            <span class="indicator expiry" *ngIf="isExpired(item.expiryDate)">
+            <span class="indicator expiry" *ngIf="item.availableStock > 0 && isExpired(item.expiryDate)">
               <mat-icon>error_outline</mat-icon> Expired
             </span>
-            <span class="indicator near-expiry" *ngIf="!isExpired(item.expiryDate) && isNearExpiry(item.expiryDate)">
+            <span class="indicator near-expiry" *ngIf="item.availableStock > 0 && !isExpired(item.expiryDate) && isNearExpiry(item.expiryDate)">
               <mat-icon>history</mat-icon> Near Expiry
             </span>
             <span class="indicator low" *ngIf="isLowStock(item) && item.availableStock > 0">
               <mat-icon>warning_amber</mat-icon> Low Stock
             </span>
-            <span class="indicator sold-out" *ngIf="item.availableStock === 0">
+            <span class="indicator sold-out" *ngIf="item.availableStock === 0 && (item.totalExpired || 0) === 0">
               <mat-icon>block</mat-icon> Sold out
+            </span>
+            <span class="indicator expiry" *ngIf="item.availableStock === 0 && (item.totalExpired || 0) > 0">
+              <mat-icon>timer_off</mat-icon> Expired Stock
             </span>
           </div>
         </div>
@@ -98,7 +103,7 @@
                 </span>
                 <span *ngIf="(batch.receivedQty || 0) > 0 && (batch.availableQty || 0) === 0" 
                       style="color: #8c8c8c; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
-                  (SOLD OUT)
+                  ({{ isExpired(batch.expiryDate) ? 'EXPIRED' : 'SOLD OUT' }})
                 </span>
               </div>
             </div>

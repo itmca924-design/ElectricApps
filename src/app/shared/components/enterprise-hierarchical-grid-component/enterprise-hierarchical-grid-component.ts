@@ -14,6 +14,8 @@ import { NotificationService } from '../../../features/shared/notification.servi
 import { ConfirmDialogComponent } from '../confirm-dialog-component/confirm-dialog-component';
 import { MatDialog } from '@angular/material/dialog';
 
+import { ResizableColumnDirective } from '../../../shared/directives/resizable-column.directive';
+
 @Component({
   selector: 'app-enterprise-hierarchical-grid',
   standalone: true,
@@ -22,6 +24,7 @@ import { MatDialog } from '@angular/material/dialog';
     ReactiveFormsModule,
     AppSearchInput,
     MatPaginatorModule,
+    ResizableColumnDirective,
     FormsModule],
   templateUrl: './enterprise-hierarchical-grid-component.html',
   styleUrl: './enterprise-hierarchical-grid-component.scss'
@@ -406,34 +409,6 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
     this.cdr.detectChanges();
   }
 
-  onResize(column: GridColumn, event: MouseEvent) {
-    if (!column.isResizable) return;
-    event.preventDefault();
-    event.stopPropagation();
-
-    const startX = event.pageX;
-    const startWidth = column.width || 150;
-
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-
-    const move = (e: MouseEvent) => {
-      const newWidth = Math.max(80, startWidth + (e.pageX - startX));
-      column.width = newWidth;
-      this.cdr.detectChanges();
-    };
-
-    const up = () => {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', move);
-      document.removeEventListener('mouseup', up);
-    };
-
-    document.addEventListener('mousemove', move);
-    document.addEventListener('mouseup', up);
-  }
-
   toggleColumn(column: GridColumn) { column.visible = !column.visible; this.cdr.detectChanges(); }
 
   applyChildFilter(element: any, column: any) {
@@ -450,34 +425,6 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
       const valA = a[field]; const valB = b[field];
       return this.sortChildDir ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
     });
-  }
-
-  onResizeChild(col: any, event: MouseEvent) {
-    if (!col.isResizable || event.button !== 0) return; // Only if resizable and left click
-    event.preventDefault();
-    event.stopPropagation();
-
-    const startX = event.pageX;
-    const startWidth = col.width || 120;
-
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-
-    const onMouseMove = (e: MouseEvent) => {
-      const newWidth = Math.max(60, startWidth + (e.pageX - startX));
-      col.width = newWidth;
-      this.cdr.detectChanges(); // Trigger Change Detection to reflect new width
-    };
-
-    const onMouseUp = () => {
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
   }
 
   onAddNewClick() { if (this.addNewRoute) this.router.navigate([this.addNewRoute]); }

@@ -673,7 +673,30 @@ $my-palettes: (
 }
 
 /* =====================================================
-   17. PREMIUM NOTIFICATION MODAL/POPUP
+   17. COLUMN RESIZER
+===================================================== */
+.column-resizer {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  cursor: col-resize;
+  z-index: 10;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(63, 81, 181, 0.5); /* Primary color with transparency */
+  }
+}
+
+.resizing-active {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* =====================================================
+   18. PREMIUM NOTIFICATION MODAL/POPUP
 ===================================================== */
 .notification-menu-panel.mat-mdc-menu-panel {
   max-width: 520px !important;

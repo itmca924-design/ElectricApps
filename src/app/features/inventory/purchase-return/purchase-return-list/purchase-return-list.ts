@@ -19,11 +19,12 @@ import { GatePassService } from '../../gate-pass/services/gate-pass.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PermissionService } from '../../../../core/services/permission.service';
+import { ResizableColumnDirective } from '../../../../shared/directives/resizable-column.directive';
 
 @Component({
   selector: 'app-purchase-return-list',
   standalone: true,
-  imports: [CommonModule, MaterialModule, FormsModule],
+  imports: [CommonModule, MaterialModule, FormsModule, ResizableColumnDirective],
   providers: [DatePipe, CurrencyPipe],
   templateUrl: './purchase-return-list.html',
   styleUrl: './purchase-return-list.scss',

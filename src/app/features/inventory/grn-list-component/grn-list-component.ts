@@ -17,6 +17,7 @@ import { ActivatedRoute } from '@angular/router';
 import { GrnPrintDialogComponent } from '../grn-print-dialog/grn-print-dialog.component';
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { PermissionService } from '../../../core/services/permission.service';
+import { ResizableColumnDirective } from '../../../shared/directives/resizable-column.directive';
 
 export interface GRNItem {
   productName: string;
@@ -53,7 +54,7 @@ export interface GRNListRow {
 @Component({
   selector: 'app-grn-list-component',
   standalone: true,
-  imports: [CommonModule, MaterialModule, ReactiveFormsModule],
+  imports: [CommonModule, MaterialModule, ReactiveFormsModule, ResizableColumnDirective],
   templateUrl: './grn-list-component.html',
   styleUrl: './grn-list-component.scss',
 

@@ -7,9 +7,10 @@
 
 @media (min-width: 769px) {
   :host {
-    height: calc(100vh - 145px); /* Strict height to remove outer scroll */
+    height: calc(100vh - 210px); /* Standard offset to perfectly fit stats + grid */
     overflow: hidden;
     box-sizing: border-box;
+    padding: 10px 15px;
   }
 }
 
@@ -643,25 +644,3 @@ button[color="warning"] {
     font-size: 11px;
 }
 
-/* SURGICAL FIX: SALE ORDER CHILD TABLE SCROLLBAR */
-::ng-deep {
-  .detail-panel.is-expanded {
-    max-width: calc(100vw - 420px) !important;
-    overflow: hidden !important; 
-    border-left: 4px solid #3b82f6 !important;
-    background: #f8fafc !important;
-  }
-
-  .child-table-scroll {
-    overflow-x: auto !important;
-    display: block !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-bottom: 12px !important; /* Visual room for scrollbar */
-    
-    .inner-table {
-      min-width: 1500px !important;
-      width: max-content !important;
-    }
-  }
-}

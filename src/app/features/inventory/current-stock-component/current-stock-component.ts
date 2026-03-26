@@ -19,10 +19,12 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { NotificationService } from '../../shared/notification.service';
 import { BatchHistoryDialogComponent } from '../batch-history-dialog/batch-history-dialog.component';
 
+import { ResizableColumnDirective } from '../../../shared/directives/resizable-column.directive';
+
 @Component({
   selector: 'app-current-stock-component',
   standalone: true,
-  imports: [MaterialModule, CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [MaterialModule, CommonModule, ReactiveFormsModule, FormsModule, ResizableColumnDirective],
   templateUrl: './current-stock-component.html',
   styleUrl: './current-stock-component.scss',
   animations: [
@@ -180,7 +182,8 @@ export class CurrentStockComponent implements OnInit, AfterViewInit, OnDestroy {
       this.startDate,
       this.endDate,
       this.selectedWarehouseId,
-      this.selectedRackId
+      this.selectedRackId,
+      this.showPurgedHistory
     );
   }
 

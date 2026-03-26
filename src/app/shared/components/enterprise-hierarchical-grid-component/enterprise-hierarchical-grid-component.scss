@@ -281,23 +281,6 @@ table {
   color: #3b82f6;
 }
 
-.resizer-bar {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 8px; /* Wider hit area */
-  cursor: col-resize;
-  z-index: 101;
-  background: transparent;
-  transition: all 0.2s;
-  
-  &:hover, &:active {
-    background: rgba(59, 130, 246, 0.4);
-    border-right: 2px solid #3b82f6;
-  }
-}
-
 .header-right-side {
   display: flex;
   align-items: center;
@@ -352,14 +335,20 @@ table {
 
 /* CHILD TABLE SECTION */
 .child-table-scroll {
+  display: block !important;
   width: 100% !important;
-  max-width: 100vw;
-  overflow-x: auto !important; /* Force scroll for long item lists */
+  max-width: 100% !important; 
+  overflow-x: auto !important;
   overflow-y: hidden;
-  padding-bottom: 5px; /* Added padding for scrollbar visibility */
+  padding: 0 0 60px 0 !important; /* Increased padding to definitely clear scrollbar below footer */
+  margin-bottom: 20px;
   position: relative;
-  display: block;
+  background: white;
   -webkit-overflow-scrolling: touch;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: #cbd5e1 transparent;
   
   /* Scrollbar for child table - ensure it's visible and premium */
   &::-webkit-scrollbar {
@@ -381,7 +370,8 @@ table {
 }
 
 .inner-table {
-  width: 100%;
+  width: max-content !important;
+  min-width: 100%;
   border-collapse: collapse;
 
   .child-th,
@@ -462,12 +452,13 @@ th.child-th {
 }
 
 .detail-panel.is-expanded {
-  max-height: 5000px;
+  max-height: none;
   opacity: 1;
   border-left: 4px solid #3b82f6;
-  padding: 15px 25px; 
-  overflow: visible; /* Return to visible for standard use */
+  padding: 15px 15px; 
+  overflow: hidden; 
   display: block;
+  width: 100%;
 }
 
 .active-filter {
@@ -723,16 +714,6 @@ th.child-th {
   }
 }
 
-.child-table-scroll {
-  width: 100% !important;
-  max-width: 100%;
-  overflow-x: auto !important; /* Enable horizontal scrolling */
-  overflow-y: hidden;
-  padding: 10px 0;
-  display: block !important;
-  -webkit-overflow-scrolling: touch;
-  border-bottom: 2px solid #f1f5f9; /* Visual anchor for scrollbar */
-}
 
 .child-header {
   display: flex;
@@ -781,10 +762,11 @@ th.child-th {
     overflow: visible;
 
     .inner-table {
-      min-width: 1000px !important; /* Reverted to 1000px to avoid affecting PO List */
+      min-width: 1300px !important; /* Force overflow to show scrollbar */
       width: max-content !important; 
-      border-collapse: collapse;
-      table-layout: fixed !important; /* Required for programmatic resizing to work reliably */
+      border-collapse: collapse !important;
+      display: table !important; 
+      table-layout: fixed !important; 
 
       th.child-th,
       td {
@@ -850,18 +832,24 @@ th.child-th {
 }
 
 .child-footer-summary {
+  position: sticky;
+  left: 0; /* Keep the container pinned to the visible viewport left to allow its contents to align right */
   display: flex;
   justify-content: flex-end;
-  padding: 20px 0;
-  border-top: 1px solid #f1f5f9;
+  padding: 24px 0;
   width: 100%;
-  min-width: max-content; /* Ensure it spans the full width of the scrolled content */
+  max-width: calc(100vw - 100px); /* Cap to current visible area to keep it fixed in view */
+  border-top: 1px solid #f1f5f9;
+  z-index: 5;
+  background: transparent;
+  pointer-events: none; /* Allow clicks to pass through to the scrollbar if needed, but the box below is opaque */
 }
 
 .summary-box {
+  pointer-events: auto; /* Re-enable for the actual box */
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border: 1px solid rgba(226, 232, 240, 0.8);
-  border-radius: 20px; /* Slightly rounder for premium feel */
+  border-radius: 20px; 
   padding: 24px;
   display: flex;
   flex-direction: column;
