@@ -15,10 +15,18 @@ $app-themes: (
 
 $theme-colors: (
   "azure-blue": #007fff,  // Match standard Azure/Blue
-  "rose-red": #e91e63,    // Standard Pink 500
-  "green-orange": #4caf50,// Standard Green 500
-  "magenta-violet": #9c27b0, // Standard Purple 500
-  "cyan-orange": #00bcd4  // Standard Cyan 500
+  "rose-red": #e91e63,    // Pink 500
+  "green-orange": #4caf50,// Green 500
+  "magenta-violet": #9c27b0, // Purple 500
+  "cyan-orange": #00bcd4  // Cyan 500
+);
+
+$theme-colors-rgb: (
+  "azure-blue": "0, 127, 255",
+  "rose-red": "233, 30, 99",
+  "green-orange": "76, 175, 80",
+  "magenta-violet": "156, 39, 176",
+  "cyan-orange": "0, 188, 212"
 );
 
 @each $name, $config in $app-themes {
@@ -28,7 +36,8 @@ $theme-colors: (
 
   // Apply theme to the root element for this theme class
   html.theme-#{$name} {
-    --dg-primary-theme: #{$hex-color}; /* NEW: Exposed for dynamic components */
+    --dg-primary-theme: #{$hex-color}; /* Exposed for dynamic components */
+    --dg-primary-theme-rgb: #{map.get($theme-colors-rgb, $name)}; /* For semi-transparent shades */
     
     // Set icon color to white for better visibility on colored toolbars
     .toolbar .nav-icon .mat-icon {

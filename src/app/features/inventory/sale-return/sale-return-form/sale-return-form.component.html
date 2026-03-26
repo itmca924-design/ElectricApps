@@ -27,18 +27,20 @@
         </button>
     </div>
 
-    <app-summary-stats [stats]="summaryStats" [isLoading]="isLoading"></app-summary-stats>
-
-    <!-- 72h Policy Alert Banner -->
-    <div class="policy-alert-banner" *ngIf="isPolicyViolated">
+    <!-- 72h Policy Alert Banner (Persistent Reminder) -->
+    <div class="policy-alert-banner" *ngIf="returnForm.get('saleOrderId')?.value">
         <div class="alert-content">
-            <mat-icon>warning_amber</mat-icon>
+            <mat-icon>assignment_late</mat-icon>
             <div class="text-group">
-                <strong>72-Hour Return Policy Warning</strong>
-                <span>Items older than 3 days cannot be returned as per company policy.</span>
+                <strong>72-Hour Return Policy Window</strong>
+                <span>Items sold/received more than 3 days ago are blocked for return as per company policy.</span>
             </div>
         </div>
     </div>
+
+    <app-summary-stats [stats]="summaryStats" [isLoading]="isLoading"></app-summary-stats>
+
+
 
     <form [formGroup]="returnForm" (ngSubmit)="onSubmit()" id="saleReturnForm">
         <mat-card>
@@ -94,66 +96,73 @@
 
         <div class="items-section mat-elevation-z4">
             <h3>Items to Return</h3>
-            <div class="table-container">
+            <div class="table-container" #tableContainer>
                 <table mat-table [dataSource]="itemsDataSource" *ngIf="!noItemsFound">
 
                     <ng-container matColumnDef="productName">
-                        <th mat-header-cell *matHeaderCellDef> Product </th>
-                        <td mat-cell *matCellDef="let element"> 
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn sticky> 
+                            <div class="product-header-content">
+                                <span>Product</span>
+                                <div class="scroll-controls">
+                                    <button type="button" mat-icon-button (click)="scrollTable('left')" matTooltip="Scroll Left">
+                                        <mat-icon>chevron_left</mat-icon>
+                                    </button>
+                                    <button type="button" mat-icon-button (click)="scrollTable('right')" matTooltip="Scroll Right">
+                                        <mat-icon>chevron_right</mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </th>
+                        <td mat-cell *matCellDef="let element" sticky> 
                             <div class="p-name">
-                                {{element.get('productName').value}}
+                                <span class="p-text">{{element.get('productName').value}}</span>
                                 <span class="stock-inline-badge">Stock: {{element.get('currentStock').value}}</span>
+                                <div class="policy-badge-mini" [ngClass]="element.get('isReturnable').value ? 'active' : 'expired'" [matTooltip]="element.get('isReturnable').value ? 'Return Window: ' + formatRemainingTime(element.get('remainingHours').value) : 'Policy Expired'">
+                                    <mat-icon>{{element.get('isReturnable').value ? 'timer' : 'block'}}</mat-icon>
+                                    <span>{{ element.get('isReturnable').value ? formatRemainingTime(element.get('remainingHours').value) + ' left' : 'Window Closed' }}</span>
+                                </div>
                             </div>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="grnNo">
-                        <th mat-header-cell *matHeaderCellDef> GRN NO </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> GRN NO </th>
                         <td mat-cell *matCellDef="let element"> {{element.get('grnNo').value}} </td>
                     </ng-container>
 
                     <ng-container matColumnDef="refNo">
-                        <th mat-header-cell *matHeaderCellDef> Ref No </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Ref No </th>
                         <td mat-cell *matCellDef="let element"> {{element.get('refNo').value}} </td>
                     </ng-container>
 
-                    <!-- Policy Status Column -->
-                    <ng-container matColumnDef="policyStatus">
-                        <th mat-header-cell *matHeaderCellDef> Return Policy </th>
-                        <td mat-cell *matCellDef="let element">
-                            <div class="policy-badge" [ngClass]="element.get('isReturnable').value ? 'active' : 'expired'">
-                                <mat-icon>{{element.get('isReturnable').value ? 'timer' : 'block'}}</mat-icon>
-                                <span>{{ element.get('isReturnable').value ? formatRemainingTime(element.get('remainingHours').value) + ' left' : 'Window Closed' }}</span>
-                            </div>
-                        </td>
-                    </ng-container>
+
 
                     <ng-container matColumnDef="mfgDate">
-                        <th mat-header-cell *matHeaderCellDef> Mfg Date </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Mfg Date </th>
                         <td mat-cell *matCellDef="let element"> 
                             {{ (element.get('isExpiryRequired').value && element.get('manufacturingDate').value) ? (element.get('manufacturingDate').value | date:'dd/MM/yyyy') : 'NA' }} 
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="expDate">
-                        <th mat-header-cell *matHeaderCellDef> Exp Date </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Exp Date </th>
                         <td mat-cell *matCellDef="let element"> 
                             {{ (element.get('isExpiryRequired').value && element.get('expiryDate').value) ? (element.get('expiryDate').value | date:'dd/MM/yyyy') : 'NA' }} 
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="quantity">
-                        <th mat-header-cell *matHeaderCellDef> Sold Qty </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Sold Qty </th>
                         <td mat-cell *matCellDef="let element"> {{element.get('quantity').value}} </td>
                     </ng-container>
 
                     <ng-container matColumnDef="rate">
-                        <th mat-header-cell *matHeaderCellDef> Rate </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Rate </th>
                         <td mat-cell *matCellDef="let element"> {{element.get('rate').value | currency:'INR'}} </td>
                     </ng-container>
 
                     <ng-container matColumnDef="itemCondition">
-                        <th mat-header-cell *matHeaderCellDef> Condition </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Condition </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
                             <span class="condition-badge">
                                 <mat-icon>check_circle</mat-icon>
@@ -163,53 +172,54 @@
                     </ng-container>
 
                     <ng-container matColumnDef="warehouse">
-                        <th mat-header-cell *matHeaderCellDef> Warehouse </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Warehouse </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
                             <span class="readonly-text">{{element.get('warehouseName').value}}</span>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="rack">
-                        <th mat-header-cell *matHeaderCellDef> Rack </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Rack </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
                             <span class="readonly-text">{{element.get('rackName').value}}</span>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="reason">
-                        <th mat-header-cell *matHeaderCellDef> Reason </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Reason </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
                             <mat-form-field appearance="outline" class="reason-input" subscriptSizing="dynamic">
-                                <input matInput formControlName="reason" placeholder="Reason">
+                                <input matInput formControlName="reason" placeholder="Reason" [disabled]="!element.get('isReturnable').value">
                             </mat-form-field>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="returnQty">
-                        <th mat-header-cell *matHeaderCellDef> Return Qty </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Return Qty </th>
                         <td mat-cell *matCellDef="let element" [formGroup]="element">
-                            <mat-form-field appearance="outline" class="small-input" subscriptSizing="dynamic">
+                            <mat-form-field appearance="outline" class="small-input" subscriptSizing="dynamic" [matTooltip]="!element.get('isReturnable').value ? 'Return Window Closed (72h Policy)' : ''">
                                 <input matInput type="number" formControlName="returnQty"
                                     (input)="element.get('returnQty').markAsTouched()"
-                                    [matTooltip]="element.get('returnQty')?.hasError('max') ? 'Max allowed: ' + element.get('quantity').value : ''"
+                                    [matTooltip]="element.get('returnQty')?.hasError('max') ? 'Max allowed: ' + element.get('quantity').value : (element.get('returnQty')?.hasError('required') ? 'Qty required' : '')"
                                     matTooltipPosition="above"
-                                    matTooltipClass="error-tooltip">
+                                    matTooltipClass="error-tooltip"
+                                    [disabled]="!element.get('isReturnable').value">
                             </mat-form-field>
                         </td>
                     </ng-container>
 
                     <ng-container matColumnDef="discount">
-                        <th mat-header-cell *matHeaderCellDef> Disc % </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Disc % </th>
                         <td mat-cell *matCellDef="let element"> {{element.get('discountPercent').value}}% </td>
                     </ng-container>
 
                     <ng-container matColumnDef="tax">
-                        <th mat-header-cell *matHeaderCellDef> Tax % </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Tax % </th>
                         <td mat-cell *matCellDef="let element"> {{element.get('taxRate').value}}% </td>
                     </ng-container>
 
                     <ng-container matColumnDef="total">
-                        <th mat-header-cell *matHeaderCellDef> Total </th>
+                        <th mat-header-cell *matHeaderCellDef appResizableColumn> Total </th>
                         <td mat-cell *matCellDef="let element"> {{element.get('amount').value | currency:'INR'}} </td>
                     </ng-container>
 

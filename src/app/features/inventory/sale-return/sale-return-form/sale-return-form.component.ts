@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, inject, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, ViewChild, AfterViewInit, ElementRef } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -19,13 +19,14 @@ import { CompanyService } from '../../../company/services/company.service';
 import { LocationService } from '../../../master/locations/services/locations.service';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { SummaryStat, SummaryStatsComponent } from '../../../../shared/components/summary-stats-component/summary-stats-component';
+import { ResizableColumnDirective } from '../../../../shared/directives/resizable-column.directive';
 
 import { environment } from '../../../../enviornments/environment';
 
 @Component({
     selector: 'app-sale-return-form',
     standalone: true,
-    imports: [CommonModule, MaterialModule, ReactiveFormsModule, SummaryStatsComponent, MatPaginatorModule],
+    imports: [CommonModule, MaterialModule, ReactiveFormsModule, SummaryStatsComponent, MatPaginatorModule, ResizableColumnDirective],
     providers: [DatePipe, CurrencyPipe],
     templateUrl: './sale-return-form.component.html',
     styleUrl: './sale-return-form.component.scss',
@@ -33,6 +34,7 @@ import { environment } from '../../../../enviornments/environment';
 export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     private fb = inject(FormBuilder);
     @ViewChild(MatPaginator) paginator!: MatPaginator;
+    @ViewChild('tableContainer') tableContainer!: ElementRef;
     private srService = inject(SaleReturnService);
     private router = inject(Router);
     private route = inject(ActivatedRoute);
@@ -48,6 +50,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     private currencyPipe = inject(CurrencyPipe);
     private inventoryService = inject(InventoryService);
     private locationService = inject(LocationService);
+    private el = inject(ElementRef);
 
     customers: any[] = [];
     saleOrders: any[] = [];
@@ -68,7 +71,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     racks: any[] = [];
 
     itemsDataSource = new MatTableDataSource<AbstractControl>();
-    displayedColumns: string[] = ['productName', 'grnNo', 'refNo', 'policyStatus', 'mfgDate', 'expDate', 'quantity', 'rate', 'itemCondition', 'warehouse', 'rack', 'reason', 'returnQty', 'discount', 'tax', 'total'];
+    displayedColumns: string[] = ['productName', 'grnNo', 'refNo', 'mfgDate', 'expDate', 'quantity', 'rate', 'itemCondition', 'warehouse', 'rack', 'reason', 'returnQty', 'discount', 'tax', 'total'];
 
     constructor() {
         this.returnForm = this.fb.group({
@@ -182,7 +185,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                             rate: [item.rate || item.unitPrice || 0],
                             discountPercent: [item.discountPercent || 0],
                             itemCondition: [{ value: 'Good', disabled: true }, Validators.required],
-                            reason: [''],
+                            reason: [{ value: '', disabled: !item.isReturnable }],
                             returnQty: [{ value: 0, disabled: !item.isReturnable }, [Validators.required, Validators.min(0), Validators.max(item.soldQty || item.quantity)]],
                             taxRate: [item.taxPercentage || item.taxRate || 0],
                             amount: [0],
@@ -248,6 +251,14 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
         return this.returnForm.get('items') as FormArray;
     }
 
+    scrollTable(direction: 'left' | 'right') {
+        if (this.tableContainer) {
+            const container = this.tableContainer.nativeElement;
+            const target = direction === 'right' ? container.scrollWidth : 0;
+            container.scrollTo({ left: target, behavior: 'smooth' });
+        }
+    }
+
     clearItems() {
         while (this.itemsFormArray.length !== 0) {
             this.itemsFormArray.removeAt(0);
@@ -265,8 +276,8 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
                 rate: [item.unitPrice || item.rate],
                 discountPercent: [item.discountPercent || 0], // Capture Discount
                 itemCondition: [{ value: item.itemCondition || 'Good', disabled: true }, Validators.required],
-                reason: [''],
-                returnQty: [0, [Validators.required, Validators.min(0), Validators.max(item.quantity)]],
+                reason: [{ value: item.reason || '', disabled: !item.isReturnable }],
+                returnQty: [{ value: item.returnQty || 0, disabled: !item.isReturnable }, [Validators.required, Validators.min(0), Validators.max(item.quantity)]],
                 taxRate: [item.taxPercentage || item.taxRate || 0],
                 amount: [0],
                 warehouseId: [{ value: item.warehouseId || null, disabled: true }],

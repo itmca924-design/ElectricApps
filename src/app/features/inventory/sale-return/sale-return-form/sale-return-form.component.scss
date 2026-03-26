@@ -176,30 +176,32 @@ form#saleReturnForm {
         border-collapse: collapse;
 
         th {
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
             color: #475569;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 12px 16px;
+            letter-spacing: 0.08em;
+            padding: 16px 20px;
             text-align: left;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
             white-space: nowrap;
+            position: relative; // Important for resizer positioning
         }
 
         td {
-            padding: 0 16px;
+            padding: 12px 20px; // Increased padding
             border-bottom: 1px solid #f1f5f9;
-            font-size: 13px;
+            font-size: 13.5px;
             color: #334155;
+            font-weight: 500;
         }
 
         /* Sticky Header */
         tr.mat-mdc-header-row {
             position: sticky;
             top: 0;
-            z-index: 10;
+            z-index: 200 !important; // Header z-index higher than sticky column cells
             background: #f1f5f9;
         }
 
@@ -208,7 +210,12 @@ form#saleReturnForm {
         }
 
         tr:hover {
-            background-color: #f8fafc;
+            background-color: #f1f5f9 !important;
+        }
+
+        /* Zebra Striping */
+        tr:nth-child(even) {
+            background-color: rgba(248, 250, 252, 0.5);
         }
     }
 
@@ -316,30 +323,38 @@ form#saleReturnForm {
 
     // Force table width for horizontal scroll
     .table-container table {
-        min-width: 1800px !important; // Increased to accommodate new columns
+        min-width: 1650px !important; // Reduced because a column was removed
         width: 100% !important;
         table-layout: fixed !important;
         display: table !important;
     }
 
-    /* Forced Column Widths */
+    /* Base Column Widths (Can be overridden by Resizable Directive) */
     ::ng-deep {
-        .mat-column-productName { width: 300px !important; }
-        .mat-column-grnNo { width: 140px !important; }
-        .mat-column-refNo { width: 140px !important; }
-        .mat-column-policyStatus { width: 160px !important; }
-        .mat-column-mfgDate { width: 110px !important; }
-        .mat-column-expDate { width: 110px !important; }
-        .mat-column-quantity { width: 100px !important; }
-        .mat-column-rate { width: 120px !important; }
-        .mat-column-itemCondition { width: 190px !important; }
-        .mat-column-warehouse { width: 190px !important; }
-        .mat-column-rack { width: 160px !important; }
-        .mat-column-reason { width: 280px !important; }
-        .mat-column-returnQty { width: 120px !important; }
-        .mat-column-discount { width: 100px !important; }
-        .mat-column-tax { width: 100px !important; }
-        .mat-column-total { width: 150px !important; }
+        .mat-column-productName { 
+            width: 400px; 
+            min-width: 400px;
+            position: sticky !important;
+            left: 0 !important;
+            background: #ffffff !important; // Absolute solid white
+            z-index: 501 !important; // Stay above everything including header-row during scroll
+            box-shadow: 8px 0 15px -5px rgba(0,0,0,0.12);
+            border-right: 1px solid #cbd5e1;
+        }
+        .mat-column-grnNo { width: 140px; }
+        .mat-column-refNo { width: 140px; }
+        .mat-column-mfgDate { width: 110px; }
+        .mat-column-expDate { width: 110px; }
+        .mat-column-quantity { width: 100px; }
+        .mat-column-rate { width: 120px; }
+        .mat-column-condition { width: 130px; }
+        .mat-column-warehouse { width: 180px; }
+        .mat-column-rack { width: 150px; }
+        .mat-column-reason { width: 250px; }
+        .mat-column-returnQty { width: 130px; }
+        .mat-column-discount { width: 100px; }
+        .mat-column-tax { width: 100px; }
+        .mat-column-total { width: 130px; }
     }
 
     .condition-input {
@@ -577,65 +592,99 @@ input[type=number] {
     }
 }
 
-.policy-badge {
+.policy-badge-mini {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 10px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02em;
+    margin-left: 0; 
+    vertical-align: middle;
+    white-space: nowrap;
+    height: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    transition: all 0.2s ease;
 
     mat-icon {
-        font-size: 14px;
-        width: 14px;
-        height: 14px;
+        font-size: 12px;
+        width: 12px;
+        height: 12px;
     }
 
     &.active {
-        background-color: #ecfdf5;
-        color: #059669;
-        border: 1px solid #a7f3d0;
+        background-color: #f0fdf4;
+        color: #166534;
+        border: 1px solid #dcfce7;
+        
+        &:hover { background-color: #dcfce7; }
     }
 
     &.expired {
         background-color: #fef2f2;
-        color: #dc2626;
-        border: 1px solid #fecaca;
+        color: #991b1b;
+        border: 1px solid #fee2e2;
+
+        &:hover { background-color: #fee2e2; }
     }
 }
 
 .p-name {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     font-weight: 600;
-    color: #1e293b;
+    color: #0f172a; // Darker slate
+    padding: 12px 0;
+}
+
+.p-text {
+    flex-shrink: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .stock-inline-badge {
-    background: #f1f5f9;
-    color: #475569;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-weight: 600;
-    font-size: 0.75rem;
-    margin-left: 10px;
+    background: #f8fafc;
+    color: #64748b;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
     border: 1px solid #e2e8f0;
-    display: inline-block;
-    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    
+    &::before {
+        content: '📦';
+        font-size: 10px;
+    }
 }
 
 .condition-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px;
-    background: #f0fdf4;
-    color: #166534;
-    border: 1px solid #bbf7d0;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
+    padding: 5px 14px;
+    background: rgba(34, 197, 94, 0.06);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+    border-radius: 30px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
 
     mat-icon {
         font-size: 16px;
@@ -646,13 +695,120 @@ input[type=number] {
 }
 
 .readonly-text {
-    color: #475569;
-    font-weight: 500;
-    font-size: 13px;
-    display: block;
-    padding: 4px 8px;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
     background: #f8fafc;
     border-radius: 6px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid #e2e8f0;
     width: fit-content;
+    color: #334155;
+}
+
+.return-closed {
+    background-color: #f1f5f9 !important;
+    opacity: 0.6;
+    pointer-events: none; // Block interactions
+    position: relative;
+    
+    &::after {
+        content: '(Restriction: Window Closed)';
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 11px;
+        font-weight: 700;
+        color: #dc2626;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    ::ng-deep {
+        .mat-mdc-form-field {
+            opacity: 0.5;
+        }
+        .stock-inline-badge {
+            background: #e2e8f0;
+        }
+    }
+}
+
+/* Product Header Navigation Controls */
+.product-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 12px;
+}
+
+.scroll-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: #ffffff; 
+    border-radius: 20px;
+    padding: 2px 4px;
+    border: 1px solid var(--dg-primary-theme, #e2e8f0);
+    box-shadow: 0 4px 15px rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.25); // Vibrant themed shadow
+
+    button {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important; // Remove default button padding
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0;
+
+        mat-icon {
+            font-size: 20px !important;
+            width: 20px !important;
+            height: 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: var(--dg-primary-theme, #64748b); // Dynamic theme color
+            margin: 0 !important;
+            line-height: 1 !important;
+            transition: transform 0.2s ease;
+        }
+
+        &:hover {
+            background-color: rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.12);
+            box-shadow: 0 0 10px rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.15); // Themed glow on button hover
+            
+            mat-icon {
+                color: var(--dg-primary-theme, #3b82f6);
+                transform: scale(1.1);
+            }
+        }
+    }
+}
+
+/* Column Resizer Styles */
+::ng-deep {
+    .column-resizer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 6px;
+        cursor: col-resize;
+        z-index: 500; // Always on top of sticky columns
+        transition: background-color 0.2s;
+
+        &:hover {
+            background-color: #3b82f6; 
+        }
+    }
+
+    .resizing-active {
+        cursor: col-resize !important;
+        user-select: none !important;
+    }
 }
