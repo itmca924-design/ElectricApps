@@ -76,7 +76,12 @@ export class StockDrawerComponent implements OnInit, OnDestroy {
       'asc',
       0,
       50, // Load first 50 items for quick view
-      this.searchTerm
+      this.searchTerm,
+      null, // startDate
+      null, // endDate
+      null, // warehouseId
+      null, // rackId
+      true  // showPurged
     ).subscribe({
       next: (data) => {
         this.stockItems = data.items.map((item: any) => ({

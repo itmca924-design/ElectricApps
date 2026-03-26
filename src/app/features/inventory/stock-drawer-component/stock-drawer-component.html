@@ -46,9 +46,10 @@
             </div>
             <div class="item-stock-section">
               <span class="stock-badge" [class.low-stock]="isLowStock(item) && item.availableStock > 0" 
-                    [class.sold-out]="item.availableStock === 0 && (item.totalExpired || 0) === 0"
-                    [class.expired-only]="item.availableStock === 0 && (item.totalExpired || 0) > 0">
-                {{ item.availableStock > 0 ? (item.availableStock + ' ' + (item.unit || '')) : ((item.totalExpired || 0) > 0 ? 'Qty: Expired' : 'Qty: Sold out') }}
+                    [class.sold-out]="item.availableStock === 0 && (item.totalExpired || 0) === 0 && !item.isAlreadyPurged"
+                    [class.expired-only]="item.availableStock === 0 && (item.totalExpired || 0) > 0 && !item.isAlreadyPurged"
+                    [class.purged-badge]="item.isAlreadyPurged">
+                {{ item.availableStock > 0 ? (item.availableStock + ' ' + (item.unit || '')) : (item.isAlreadyPurged ? 'PURGED (Expired)' : ((item.totalExpired || 0) > 0 ? 'Qty: Expired' : 'Qty: Sold out')) }}
               </span>
               <mat-icon class="expand-icon">{{expandedProductId === item.productId ? 'expand_less' : 'expand_more'}}</mat-icon>
             </div>
@@ -65,10 +66,13 @@
             <span class="indicator low" *ngIf="isLowStock(item) && item.availableStock > 0">
               <mat-icon>warning_amber</mat-icon> Low Stock
             </span>
-            <span class="indicator sold-out" *ngIf="item.availableStock === 0 && (item.totalExpired || 0) === 0">
+            <span class="indicator purged" *ngIf="item.isAlreadyPurged">
+              <mat-icon>auto_delete</mat-icon> PURGED (Expired)
+            </span>
+            <span class="indicator sold-out" *ngIf="!item.isAlreadyPurged && item.availableStock === 0 && (item.totalExpired || 0) === 0">
               <mat-icon>block</mat-icon> Sold out
             </span>
-            <span class="indicator expiry" *ngIf="item.availableStock === 0 && (item.totalExpired || 0) > 0">
+            <span class="indicator expiry" *ngIf="!item.isAlreadyPurged && item.availableStock === 0 && (item.totalExpired || 0) > 0">
               <mat-icon>timer_off</mat-icon> Expired Stock
             </span>
           </div>
@@ -97,11 +101,15 @@
                   </span>
                 </span>
                 <span class="batch-po">PO: #{{batch.poNumber}}</span>
-                <span *ngIf="(batch.receivedQty || 0) === 0" 
+                <span *ngIf="batch.isAlreadyPurged" 
+                      style="color: #722ed1; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
+                  (PURGED)
+                </span>
+                <span *ngIf="!batch.isAlreadyPurged && (batch.receivedQty || 0) === 0" 
                       style="color: #8c8c8c; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
                   (VOIDED/EMPTY)
                 </span>
-                <span *ngIf="(batch.receivedQty || 0) > 0 && (batch.availableQty || 0) === 0" 
+                <span *ngIf="!batch.isAlreadyPurged && (batch.receivedQty || 0) > 0 && (batch.availableQty || 0) === 0" 
                       style="color: #8c8c8c; font-weight: 600; font-size: 0.7rem; margin-left: 8px;">
                   ({{ isExpired(batch.expiryDate) ? 'EXPIRED' : 'SOLD OUT' }})
                 </span>
