@@ -324,43 +324,45 @@
                         <span [class.text-danger]="$any(h).expiredQty > 0" [class.text-muted]="$any(h).expiredQty === 0">
                           {{$any(h).expiredQty}}
                         </span>
-                      </td>
-                      <td>
-                        <button mat-icon-button (click)="openBatchHistory(h); $event.stopPropagation()" 
-                                matTooltip="View Detailed Transaction History" color="accent">
-                          <mat-icon style="font-size: 18px;">history</mat-icon>
-                        </button>
+                                           <td style="white-space: nowrap;">
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                          <button mat-icon-button (click)="openBatchHistory(h); $event.stopPropagation()" 
+                                  matTooltip="View Detailed Transaction History" color="accent">
+                            <mat-icon style="font-size: 18px;">history</mat-icon>
+                          </button>
 
-                        <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && !$any(h).rackName.includes('Expired') && !$any(h).rackName.includes('E1')" 
-                                (click)="onMoveToExpired(h, $event)" color="primary" matTooltip="Move to Expired Rack">
-                          <mat-icon style="font-size: 18px;">move_to_inbox</mat-icon>
-                        </button>
+                          <button mat-icon-button *ngIf="isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && !$any(h).rackName.includes('Expired') && !$any(h).rackName.includes('E1')" 
+                                  (click)="onMoveToExpired(h, $event)" color="primary" matTooltip="Move to Expired Rack">
+                            <mat-icon style="font-size: 18px;">move_to_inbox</mat-icon>
+                          </button>
 
-                        <div *ngIf="$any(h).availableQty === 0 && $any(h).receivedQty > 0 && !isExpired($any(h).expiryDate)" 
-                             class="sold-out-badge" style="color: #f5222d; font-weight: 600; font-size: 0.7rem; border: 1px solid #ffa39e; padding: 2px 6px; border-radius: 4px; background: #fff1f0; display: inline-flex; align-items: center; margin-right: 4px;">
-                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">block</mat-icon>
-                          Sold out
+                          <div *ngIf="$any(h).availableQty === 0 && $any(h).receivedQty > 0 && !isExpired($any(h).expiryDate)" 
+                               class="sold-out-badge" 
+                               style="color: #f5222d; font-weight: 600; font-size: 0.7rem; border: 1px solid #ffa39e; padding: 2px 6px; border-radius: 4px; background: #fff1f0; display: inline-flex; align-items: center; cursor: default;">
+                            <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">block</mat-icon>
+                            Sold out
+                          </div>
+
+                          <!-- Enhanced Purged/Voided Status -->
+                          <div *ngIf="$any(h).isAlreadyPurged" 
+                               class="voided-badge purged-badge" 
+                               style="color: #722ed1; border-color: #d3adf7; background: #f9f0ff; font-weight: 600; font-size: 0.7rem; border: 1px solid; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; cursor: default; margin-bottom: 2px;">
+                            <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">auto_delete</mat-icon>
+                            PURGED
+                          </div>
+
+                          <div *ngIf="!$any(h).isAlreadyPurged && $any(h).receivedQty === 0 && ($any(h).rejectedQty === 0 || !$any(h).rejectedQty) && ($any(h).expiredQty === 0 || !$any(h).expiredQty)" 
+                               class="voided-badge" 
+                               style="color: #8c8c8c; border-color: #d9d9d9; background: #fafafa; font-weight: 600; font-size: 0.7rem; border: 1px solid; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; cursor: default;">
+                            <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">info</mat-icon>
+                            VOIDED / EMPTY
+                          </div>
+
+                          <button mat-icon-button *ngIf="!$any(h).isAlreadyPurged && isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && ($any(h).rackName.includes('Expired') || $any(h).rackName.includes('E1'))" 
+                                  (click)="onRemoveStock(h, $event)" color="warn" matTooltip="Permanent Purge">
+                            <mat-icon style="font-size: 18px;">delete_forever</mat-icon>
+                          </button>
                         </div>
-
-                        <!-- Enhanced Purged/Voided Status -->
-                        <div *ngIf="$any(h).isAlreadyPurged" 
-                             class="voided-badge purged-badge" 
-                             style="color: #722ed1; border-color: #d3adf7; background: #f9f0ff; font-weight: 600; font-size: 0.7rem; border: 1px solid; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; margin-right: 4px;">
-                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">auto_delete</mat-icon>
-                          PURGED
-                        </div>
-
-                        <div *ngIf="!$any(h).isAlreadyPurged && $any(h).receivedQty === 0 && ($any(h).rejectedQty === 0 || !$any(h).rejectedQty) && ($any(h).expiredQty === 0 || !$any(h).expiredQty)" 
-                             class="voided-badge" 
-                             style="color: #8c8c8c; border-color: #d9d9d9; background: #fafafa; font-weight: 600; font-size: 0.7rem; border: 1px solid; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center;">
-                          <mat-icon style="font-size: 14px; height: 14px; width: 14px; margin-right: 4px;">info</mat-icon>
-                          VOIDED / EMPTY
-                        </div>
-
-                        <button mat-icon-button *ngIf="!$any(h).isAlreadyPurged && isExpired($any(h).expiryDate) && ($any(h).availableQty > 0 || $any(h).expiredQty > 0) && ($any(h).rackName.includes('Expired') || $any(h).rackName.includes('E1'))" 
-                                (click)="onRemoveStock(h, $event)" color="warn" matTooltip="Permanent Purge">
-                          <mat-icon style="font-size: 18px;">delete_forever</mat-icon>
-                        </button>
                       </td>
                     </tr>
                     <tr *ngIf="!$any(element).history || $any(element).history.length === 0">
