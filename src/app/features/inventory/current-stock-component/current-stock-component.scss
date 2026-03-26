@@ -271,28 +271,36 @@ table[mat-table] {
 
     .scroll-controls {
       display: flex;
-      gap: 2px;
-      margin-left: 8px;
+      gap: 6px;
+      margin-left: 12px;
+      align-items: center;
 
       .scroll-btn {
-        width: 26px !important;
-        height: 26px !important;
-        line-height: 26px !important;
+        width: 28px !important;
+        height: 28px !important;
+        line-height: normal !important;
         background: white !important; 
-        color: var(--dg-primary-theme, #3b82f6) !important; /* DYNAMIC theme color */
-        border: 1px solid var(--dg-primary-theme, #3b82f6) !important;
+        color: var(--dg-primary-theme, #3b82f6) !important;
+        border: 2px solid var(--dg-primary-theme, #3b82f6) !important;
         border-radius: 50% !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         padding: 0 !important;
-        transition: all 0.2s ease !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
         
         &:hover {
           background: var(--dg-primary-theme, #3b82f6) !important; 
           color: white !important;
-          transform: scale(1.1);
+          transform: translateY(-1px) scale(1.1);
+          box-shadow: 0 4px 8px rgba(0,0,0,0.15) !important;
+        }
+
+        &:active {
+          transform: scale(0.95);
         }
 
         mat-icon {
@@ -304,6 +312,7 @@ table[mat-table] {
           align-items: center !important;
           justify-content: center !important;
           margin: 0 !important;
+          font-weight: bold;
         }
       }
     }
