@@ -161,6 +161,9 @@
                 <button mat-icon-button color="primary" (click)="$event.stopPropagation(); handleAction('VIEW', row)" matTooltip="View Details">
                   <mat-icon style="opacity: 0.7;">visibility</mat-icon>
                 </button>
+                <button mat-icon-button (click)="$event.stopPropagation(); handleAction('PRINT', row)" matTooltip="Print {{entityName}}">
+                  <mat-icon style="color: #607d8b;">print</mat-icon>
+                </button>
                 <button mat-icon-button color="success" *ngIf="row.paymentStatus !== 'Paid' && row.status === 'Confirmed'" (click)="$event.stopPropagation(); handleAction('PAYMENT', row)" matTooltip="Collect Payment">
                   <mat-icon>payments</mat-icon>
                 </button>

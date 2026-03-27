@@ -1,0 +1,100 @@
+<div class="container-fluid" [class.disabled-content]="loading">
+
+  <!-- Header -->
+  <div class="header-actions">
+    <div>
+      <h1 class="page-title m-0">Print Settings</h1>
+      <p class="subtitle m-0">Manage Thermal or A4 print formats per module and role.</p>
+    </div>
+    <div class="controls-right">
+      <mat-form-field appearance="outline" class="role-select compact-select">
+        <mat-label>Select Role</mat-label>
+        <mat-select [(ngModel)]="selectedRoleId" (selectionChange)="onRoleChange()">
+          <mat-option *ngFor="let role of roles" [value]="role.id">{{ role.roleName }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <button mat-raised-button class="save-btn" (click)="saveSettings()" [disabled]="loading">
+        <mat-icon>save</mat-icon> Save Changes
+      </button>
+    </div>
+  </div>
+
+  <!-- Module Expansion Panels -->
+  <div *ngIf="selectedRoleId; else noRoleSelected" class="modules-container">
+    <mat-accordion multi>
+      <mat-expansion-panel
+        *ngFor="let module of modules"
+        class="module-panel"
+        [expanded]="true">
+
+        <!-- Panel Header -->
+        <mat-expansion-panel-header class="module-panel-header">
+          <mat-panel-title>
+            <div class="module-title">
+              <span class="module-icon-wrap" [style.background]="module.color + '22'">
+                <mat-icon [style.color]="module.color">{{ module.icon }}</mat-icon>
+              </span>
+              <span class="module-name">{{ module.name }}</span>
+              <span class="page-count-badge">{{ module.pages.length }} pages</span>
+            </div>
+          </mat-panel-title>
+          <mat-panel-description class="module-bulk-actions">
+            <span class="bulk-label">Set all:</span>
+            <button mat-stroked-button class="bulk-btn a4-btn" (click)="setAllInModule(module, 'A4'); $event.stopPropagation()">
+              <mat-icon>article</mat-icon> A4
+            </button>
+            <button mat-stroked-button class="bulk-btn thermal-btn" (click)="setAllInModule(module, 'THERMAL'); $event.stopPropagation()">
+              <mat-icon>receipt_long</mat-icon> Thermal
+            </button>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <!-- Page Cards Grid -->
+        <div class="pages-grid">
+          <div class="page-card" *ngFor="let page of module.pages">
+            <div class="page-card-header">
+              <mat-icon class="page-icon" [style.color]="module.color">description</mat-icon>
+              <span class="page-label">{{ getPageLabel(page) }}</span>
+            </div>
+            <mat-divider></mat-divider>
+            <div class="page-card-body">
+              <mat-radio-group
+                [ngModel]="getSetting(page).printFormat"
+                (ngModelChange)="setFormat(page, $event)"
+                class="format-radio-group">
+                <mat-radio-button value="A4" color="primary" class="format-option">
+                  <div class="format-label">
+                    <mat-icon>article</mat-icon>
+                    <span>A4 Full Size</span>
+                  </div>
+                </mat-radio-button>
+                <mat-radio-button value="THERMAL" color="accent" class="format-option">
+                  <div class="format-label">
+                    <mat-icon>receipt_long</mat-icon>
+                    <span>Thermal (80mm)</span>
+                  </div>
+                </mat-radio-button>
+              </mat-radio-group>
+              <!-- Active badge -->
+              <div class="active-format-badge" [class.thermal]="getSetting(page).printFormat === 'THERMAL'">
+                {{ getSetting(page).printFormat === 'THERMAL' ? '🖨️ Thermal' : '📄 A4' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
+  <!-- No role selected -->
+  <ng-template #noRoleSelected>
+    <div class="empty-state">
+      <div class="empty-content">
+        <mat-icon class="empty-icon">print</mat-icon>
+        <h3>Select a Role</h3>
+        <p>Choose a role above to manage print formatting settings.</p>
+      </div>
+    </div>
+  </ng-template>
+</div>

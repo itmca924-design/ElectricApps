@@ -23,6 +23,7 @@ import { InventoryService } from '../service/inventory.service';
 import { BatchSelectionDialogComponent } from '../../../shared/components/batch-selection-dialog/batch-selection-dialog';
 import { ActivatedRoute } from '@angular/router';
 import { ProductForm } from '../../master/product/product-form/product-form';
+import { SharedPrintService } from '../../../core/services/shared-print.service';
 
 @Component({
   selector: 'app-so-form',
@@ -87,6 +88,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   private router = inject(Router);
   private barcodeHelper = inject(BarcodeReaderHelper);
   private inventoryService = inject(InventoryService);
+  private sharedPrintService = inject(SharedPrintService);
 
   soForm!: FormGroup;
   isLoading = false;
@@ -110,8 +112,17 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   private activatedRoute = inject(ActivatedRoute);
   isEdit = false;
   orderId: number | null = null;
+  isSaving = false;
+  private soSavedKey: string = ''; // sessionStorage key for this transaction
 
   ngOnInit(): void {
+    // ⛔ Check if we just completed a sale and user refreshed
+    if (sessionStorage.getItem('standard_sale_last_status') === 'completed') {
+        sessionStorage.removeItem('standard_sale_last_status');
+        this.goBack();
+        return;
+    }
+
     this.initForm();
     this.loadCustomers();
     this.loadUnits();
@@ -128,6 +139,14 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       if (params['id']) {
         this.isEdit = true;
         this.orderId = +params['id'];
+        this.soSavedKey = `so_saved_${this.orderId}`;
+
+        // ⛔ If SO already saved/updated in this session, don't reload to avoid ghost actions
+        if (sessionStorage.getItem(this.soSavedKey)) {
+          this.goBack();
+          return;
+        }
+
         this.loadOrderForEdit(this.orderId);
       } else {
         this.addRow();
@@ -820,6 +839,18 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
+    if (this.isSaving) return;
+
+    // Validate that at least one item has qty > 0
+    const hasQty = this.items.controls.some(ctrl => Number(ctrl.get('qty')?.value) > 0);
+    if (!hasQty) {
+        this.dialog.open(StatusDialogComponent, {
+          width: '350px',
+          data: { isSuccess: false, title: 'Validation', message: 'Please enter sale quantity for at least one item.' }
+        });
+        return;
+    }
+
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
@@ -832,6 +863,9 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        if (this.isSaving) return;
+        this.isSaving = true;
+        
         const formValues = this.soForm.getRawValue();
 
         const today = new Date();
@@ -922,6 +956,14 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
 
         this.soService.saveSaleOrder(payload).subscribe({
           next: (res: any) => {
+            this.isSaving = false;
+            // Mark as transaction successfully completed for refresh protection
+            sessionStorage.setItem('standard_sale_last_status', 'completed');
+            
+            // Mark as saved for this session
+            if (this.soSavedKey) {
+                sessionStorage.setItem(this.soSavedKey, 'saved');
+            }
             // ✅ Order Number Display Fix
             const orderNo = res.soNumber || res.SONumber || 'N/A';
             const soId = res.id || res.Id;
@@ -957,13 +999,23 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
                   customerId: formValues.customerId,
                   customerName: customerName
                 });
+              } else if (result === 'print-bill') {
+                this.soService.getSaleOrderById(soId).subscribe({
+                  next: (fullOrder) => {
+                    this.sharedPrintService.printDocument('Standard Sale Order', 'SO', fullOrder);
+                    this.router.navigate(['/app/inventory/solist']);
+                  },
+                  error: () => this.router.navigate(['/app/inventory/solist'])
+                });
               } else {
                 // Navigate to SO List
+                sessionStorage.removeItem('standard_sale_last_status');
                 this.router.navigate(['/app/inventory/solist']);
               }
             });
           },
           error: (err) => {
+            this.isSaving = false;
             // Detailed error handling based on Network response
             console.error("Save Error:", err);
             this.dialog.open(StatusDialogComponent, {
@@ -1001,7 +1053,7 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       this.financeService.recordCustomerReceipt(receiptPayload).subscribe({
         next: () => {
-          this.dialog.open(StatusDialogComponent, {
+          const statusDialog = this.dialog.open(StatusDialogComponent, {
             width: '350px',
             data: {
               isSuccess: true,
@@ -1010,8 +1062,20 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
               status: 'success'
             }
           });
-          this.router.navigate(['/app/inventory/gate-pass/outward'], {
-            queryParams: { type: 'sale-order', refId: data.soId, refNo: data.soNumber, partyName: data.customerName, qty: totalQty }
+          
+          statusDialog.afterClosed().subscribe(() => {
+             // ✅ Trigger Auto-Print after Standard Sale payment acknowledgment
+             this.soService.getSaleOrderById(data.soId).subscribe({
+               next: (fullOrder) => {
+                 this.sharedPrintService.printDocument('Standard Sale Order', 'SO', fullOrder);
+                 this.router.navigate(['/app/inventory/gate-pass/outward'], {
+                    queryParams: { type: 'sale-order', refId: data.soId, refNo: data.soNumber, partyName: data.customerName, qty: totalQty }
+                 });
+               },
+               error: () => this.router.navigate(['/app/inventory/gate-pass/outward'], {
+                  queryParams: { type: 'sale-order', refId: data.soId, refNo: data.soNumber, partyName: data.customerName, qty: totalQty }
+               })
+             });
           });
         },
         error: (err) => {
@@ -1042,6 +1106,9 @@ export class SoForm implements OnInit, OnDestroy, AfterViewInit {
   }
 
   goBack() {
+    if (this.soSavedKey) {
+        sessionStorage.removeItem(this.soSavedKey);
+    }
     this.router.navigate(['/app/inventory/solist']);
   }
 }

@@ -24,6 +24,7 @@ import { catchError } from 'rxjs/operators';
 import { PermissionService } from '../../../core/services/permission.service';
 import { PermissionDirective } from '../../../core/directives/permission.directive';
 import { EnterpriseHierarchicalGridComponent } from '../../../shared/components/enterprise-hierarchical-grid-component/enterprise-hierarchical-grid-component';
+import { SharedPrintService } from '../../../core/services/shared-print.service';
 
 
 @Component({
@@ -60,6 +61,7 @@ export class SoList implements OnInit {
   public router = inject(Router);
   private authService = inject(AuthService);
   private notification = inject(NotificationService);
+  private sharedPrintService = inject(SharedPrintService);
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -131,6 +133,9 @@ export class SoList implements OnInit {
         break;
       case 'RETURN':
         this.returnOrder(row);
+        break;
+      case 'PRINT':
+        this.printOrder(row);
         break;
       default:
         console.warn('Unhandled action:', event.action);
@@ -609,6 +614,26 @@ export class SoList implements OnInit {
     this.searchKey = "";
     this.paginator.pageIndex = 0;
     this.loadOrders();
+  }
+
+  printOrder(row: any) {
+    this.isLoading = true;
+    this.cdr.detectChanges();
+    this.saleOrderService.getSaleOrderById(row.id).subscribe({
+      next: (fullOrder) => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        this.sharedPrintService.printDocument('Standard Sale Order', 'SO', fullOrder);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        this.dialog.open(StatusDialogComponent, {
+          width: '350px',
+          data: { type: 'error', title: 'Print Failed', message: err.error?.message || "Failed to fetch order details for printing." }
+        });
+      }
+    });
   }
 
   confirmOrder(order: any) {

@@ -18,6 +18,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { PermissionService } from '../../../../core/services/permission.service';
 import { ResizableColumnDirective } from '../../../../shared/directives/resizable-column.directive';
+import { SharedPrintService } from '../../../../core/services/shared-print.service';
 
 @Component({
     selector: 'app-sale-return-list',
@@ -34,6 +35,7 @@ export class SaleReturnListComponent implements OnInit {
     private dialog = inject(MatDialog);
     private permissionService = inject(PermissionService);
     private route = inject(ActivatedRoute);
+    private sharedPrintService = inject(SharedPrintService);
 
     canAdd: boolean = true;
     isQuick: boolean = false;
@@ -428,20 +430,22 @@ export class SaleReturnListComponent implements OnInit {
     }
 
     printCreditNote(row: any) {
-        const returnId = row.saleReturnHeaderId;
+        const returnId = row.saleReturnHeaderId || row.id;
         if (!returnId) return;
 
         this.isTableLoading = true;
-        this.srService.printCreditNote(returnId).subscribe({
-            next: (blob: Blob) => {
-                const fileURL = URL.createObjectURL(blob);
-                window.open(fileURL, '_blank');
-                setTimeout(() => URL.revokeObjectURL(fileURL), 100);
+        this.srService.getPrintData(returnId).subscribe({
+            next: (fullOrder) => {
                 this.isTableLoading = false;
                 this.cdr.detectChanges();
+                this.sharedPrintService.printDocument(
+                  this.isQuick ? 'Quick Sale Return' : 'Standard Sale Return', 
+                  'SR', 
+                  fullOrder
+                );
             },
             error: (err) => {
-                console.error("PDF generation failed", err);
+                console.error("Popup data fetch failed", err);
                 this.isTableLoading = false;
                 this.cdr.detectChanges();
             }

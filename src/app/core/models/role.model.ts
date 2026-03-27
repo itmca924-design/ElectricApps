@@ -13,3 +13,10 @@ export interface RolePermission {
     canDelete: boolean;
     additionalActions?: string; // New: comma separated keys
 }
+
+export interface RolePrintSetting {
+    id?: number;
+    roleId: number;
+    pageName: string;
+    printFormat: string; // 'A4' | 'THERMAL'
+}

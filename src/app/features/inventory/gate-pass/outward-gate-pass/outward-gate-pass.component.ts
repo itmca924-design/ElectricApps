@@ -14,6 +14,7 @@ import { PurchaseReturnService } from '../../purchase-return/services/purchase-r
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { Subject, Subscription, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+import { SharedPrintService } from '../../../../core/services/shared-print.service';
 
 @Component({
     selector: 'app-outward-gate-pass',
@@ -33,6 +34,7 @@ export class OutwardGatePassComponent implements OnInit, OnDestroy {
     private authService = inject(AuthService);
     private loadingService = inject(LoadingService);
     private cdr = inject(ChangeDetectorRef);
+    private sharedPrintService = inject(SharedPrintService);
 
     gatePassForm!: FormGroup;
     isSaving = false;
@@ -266,10 +268,30 @@ export class OutwardGatePassComponent implements OnInit, OnDestroy {
                 this.dialog.open(StatusDialogComponent, {
                     data: { title: 'Success', message: msg, status: 'success', isSuccess: true }
                 }).afterClosed().subscribe(() => {
-                    if (formValue.referenceType === GatePassReferenceType.PurchaseReturn) {
-                        this.router.navigate(['/app/inventory/purchase-return']);
+                    // Auto-print associated Invoice / Credit Note logic
+                    if (formValue.referenceType === GatePassReferenceType.SaleOrder && formValue.referenceId) {
+                        this.soService.getSaleOrderById(formValue.referenceId).subscribe({
+                            next: (fullOrder) => {
+                                this.sharedPrintService.printDocument('Standard Sale Order', 'SO', fullOrder);
+                                this.router.navigate(['/app/inventory/gate-pass']);
+                            },
+                            error: () => this.router.navigate(['/app/inventory/gate-pass'])
+                        });
+                    } else if (formValue.referenceType === GatePassReferenceType.PurchaseReturn && formValue.referenceId) {
+                        this.prService.getPurchaseReturnById(formValue.referenceId).subscribe({
+                            next: (fullData) => {
+                                this.sharedPrintService.printDocument('Standard Purchase Return', 'PR', fullData);
+                                this.router.navigate(['/app/inventory/purchase-return']);
+                            },
+                            error: () => this.router.navigate(['/app/inventory/purchase-return'])
+                        });
                     } else {
-                        this.router.navigate(['/app/inventory/gate-pass']);
+                        // Default Fallback
+                        if (formValue.referenceType === GatePassReferenceType.PurchaseReturn) {
+                            this.router.navigate(['/app/inventory/purchase-return']);
+                        } else {
+                            this.router.navigate(['/app/inventory/gate-pass']);
+                        }
                     }
                 });
             },

@@ -17,6 +17,7 @@ import { NotificationService } from '../../shared/notification.service';
 import { ProductSelectionDialogComponent } from '../../../shared/components/product-selection-dialog/product-selection-dialog';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
+import { SharedPrintService } from '../../../core/services/shared-print.service';
 
 import { trigger, transition, style, animate } from '@angular/animations';
 import { ProductForm } from '../../master/product/product-form/product-form';
@@ -44,6 +45,7 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
   today = new Date();
   private scrollContainer: HTMLElement | null = null;
   private scrollListener: any;
+  private sharedPrintService = inject(SharedPrintService);
 
   onScroll() {
     if (this.scrollContainer) {
@@ -788,7 +790,17 @@ export class PoForm implements OnInit, OnDestroy, AfterViewInit {
             console.log('✅ PO Save Success. Backend Response:', res);
             this.isLoading = false;
             this.notification.showStatus(true, `PO ${this.isEditMode ? 'Updated' : 'Saved'} Successfully`);
-            this.router.navigate(['/app/inventory/polist']);
+            
+            // Auto Print 
+            const savedPoId = res.id || res.Id;
+            if (savedPoId) {
+                this.poService.getById(savedPoId).subscribe(fullData => {
+                    this.sharedPrintService.printDocument('Standard Purchase Order', 'PO', fullData);
+                    this.router.navigate(['/app/inventory/polist']);
+                });
+            } else {
+                this.router.navigate(['/app/inventory/polist']);
+            }
           },
           error: (err) => {
             console.group('❌ PO Save Failed');

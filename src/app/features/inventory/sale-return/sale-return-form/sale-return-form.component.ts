@@ -22,6 +22,7 @@ import { SummaryStat, SummaryStatsComponent } from '../../../../shared/component
 import { ResizableColumnDirective } from '../../../../shared/directives/resizable-column.directive';
 
 import { environment } from '../../../../enviornments/environment';
+import { SharedPrintService } from '../../../../core/services/shared-print.service';
 
 @Component({
     selector: 'app-sale-return-form',
@@ -51,6 +52,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
     private inventoryService = inject(InventoryService);
     private locationService = inject(LocationService);
     private el = inject(ElementRef);
+    private sharedPrintService = inject(SharedPrintService);
 
     customers: any[] = [];
     saleOrders: any[] = [];
@@ -508,6 +510,7 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
 
         const dialogRef = this.dialog.open(StatusDialogComponent, {
             width: '450px',
+            disableClose: true,
             data: {
                 isSuccess: !isFail,
                 title: 'Sale Return Saved!',
@@ -523,8 +526,18 @@ export class SaleReturnFormComponent implements OnInit, AfterViewInit {
         });
 
         dialogRef.afterClosed().subscribe(() => {
-            const target = this.isQuick ? '/app/quick-inventory/so-return' : '/app/inventory/sale-return';
-            this.router.navigate([target]);
+            if (!isFail && returnId) {
+                this.srService.getSaleReturnById(returnId).subscribe((fullData) => {
+                    const docType = this.isQuick ? 'Quick Sale Return' : 'Standard Sale Return';
+                    this.sharedPrintService.printDocument(docType, 'SR', fullData);
+                    
+                    const target = this.isQuick ? '/app/quick-inventory/so-return' : '/app/inventory/sale-return';
+                    this.router.navigate([target]);
+                });
+            } else {
+                const target = this.isQuick ? '/app/quick-inventory/so-return' : '/app/inventory/sale-return';
+                this.router.navigate([target]);
+            }
         });
     }
 

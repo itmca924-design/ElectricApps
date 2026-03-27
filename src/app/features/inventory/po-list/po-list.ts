@@ -20,6 +20,7 @@ import { ReasonRejectDialog } from '../../../shared/components/reason-reject-dia
 import { PoPrintModalComponent } from './po-print-modal/po-print-modal.component';
 import { LoadingService } from '../../../core/services/loading.service';
 import { PermissionService } from '../../../core/services/permission.service';
+import { SharedPrintService } from '../../../core/services/shared-print.service';
 
 @Component({
   selector: 'app-po-list',
@@ -38,6 +39,7 @@ import { PermissionService } from '../../../core/services/permission.service';
 export class PoList implements OnInit {
   private loadingService = inject(LoadingService);
   private permissionService = inject(PermissionService);
+  private sharedPrintService = inject(SharedPrintService);
 
   public dataSource = new MatTableDataSource<any>([]);
   public totalRecords: number = 0;
@@ -760,25 +762,23 @@ export class PoList implements OnInit {
   }
 
   // 2. Print logic
-  // 2. Print logic
   onPrintPO(row: any, mode: string = 'PRINT') {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    this.poActionService.getPrintDetails(row.id).subscribe({
-      next: (res) => {
+    this.poActionService.getById(row.id).subscribe({
+      next: (fullOrder) => {
         this.isLoading = false;
         this.cdr.detectChanges();
-
-        if (res) {
-          this.dialog.open(PoPrintModalComponent, {
-            width: '850px',
-            maxWidth: '95vw',
-            data: { ...res, mode: mode, id: row.id, status: row.status }, // Pass status for conditional buttons
-            autoFocus: false
-          });
+        
+        if (mode === 'VIEW') {
+          // If viewing details inline (as per old design), maybe keep the PoPrintModalComponent?
+          // If not, we just print anyway for now or leave as VIEW mode
+          // ACTUALLY, the UI passes 'VIEW' for the eye icon but handles it identically as Print internally earlier. 
+          // Let's open the document properly:
+          this.sharedPrintService.printDocument('Purchase Order', 'PO', fullOrder);
         } else {
-          this.notification.showStatus(false, 'No print details found.');
+          this.sharedPrintService.printDocument('Purchase Order', 'PO', fullOrder);
         }
       },
       error: (err) => {

@@ -19,6 +19,7 @@ import { CustomerComponent } from '../../master/customer-component/customer-comp
 import { customerService } from '../../master/customer-component/customer.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog-component/confirm-dialog-component';
 import { SoSuccessDialogComponent } from '../so-success-dialog/so-success-dialog.component';
+import { SharedPrintService } from '../../../core/services/shared-print.service';
 import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { ProductForm } from '../../master/product/product-form/product-form';
@@ -60,10 +61,12 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
     private barcodeHelper = inject(BarcodeReaderHelper);
     private cdr = inject(ChangeDetectorRef);
     private financeService = inject(FinanceService);
+    private sharedPrintService = inject(SharedPrintService);
     private destroy$ = new Subject<void>();
 
     saleOrderId: number | null = null;
     isEdit = false;
+    private saleSavedKey: string = ''; // sessionStorage key for this transaction
     saleForm!: FormGroup;
     isSaving = false;
     isLoadingCustomers = false;
@@ -130,6 +133,13 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     ngOnInit() {
+        // ⛔ Check if we just completed a sale and user refreshed
+        if (sessionStorage.getItem('quick_sale_last_status') === 'completed') {
+            sessionStorage.removeItem('quick_sale_last_status');
+            this.router.navigate(['/app/quick-inventory/sale/list']);
+            return;
+        }
+
         this.loadCustomers();
         this.loadUnits();
         this.loadWarehouses();
@@ -142,6 +152,14 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.isEdit = true;
                 this.minDate = null; // Important: Disable past date restriction for editing
                 this.isSaving = false; // Ensure not stuck
+
+                this.saleSavedKey = `sale_saved_${this.saleOrderId}`;
+                // ⛔ If already saved in this session, don't reload to avoid ghost actions
+                if (sessionStorage.getItem(this.saleSavedKey)) {
+                    this.router.navigate(['/app/quick-inventory/sale/list']);
+                    return;
+                }
+
                 this.loadSaleOrder(this.saleOrderId);
             }
         });
@@ -684,6 +702,18 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             return;
         }
 
+        // Validate that at least one item has qty > 0
+        const hasQty = this.items.controls.some(ctrl => Number(ctrl.get('qty')?.value) > 0);
+        if (!hasQty) {
+            this.dialog.open(StatusDialogComponent, {
+              width: '350px',
+              data: { isSuccess: false, title: 'Validation', message: 'Please enter sale quantity for at least one item.' }
+            });
+            return;
+        }
+
+        if (this.isSaving) return; // ⛔ Prevent duplicate click before confirm dialog
+
         const dialogRef = this.dialog.open(ConfirmDialogComponent, {
             width: '400px',
             data: { title: 'Confirm Save', message: 'Are you sure you want to save this Sale Order?' }
@@ -691,6 +721,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
+                if (this.isSaving) return;
                 this.isSaving = true;
                 const formRaw = this.saleForm.getRawValue();
                 const payload = {
@@ -736,6 +767,14 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                     next: (res: any) => {
                         this.inventoryService.notifyInventoryChange();
                         this.isSaving = false;
+
+                        // ✅ Mark transaction as successfully completed for refresh protection
+                        sessionStorage.setItem('quick_sale_last_status', 'completed');
+
+                        // ✅ Mark as saved for this session if we have an ID (for edit mode)
+                        if (this.isEdit && this.saleSavedKey) {
+                            sessionStorage.setItem(this.saleSavedKey, 'saved');
+                        }
                         const orderNo = res.soNumber || res.SONumber || 'N/A';
                         const soId = res.id || res.Id;
                         const dialogRef = this.dialog.open(SoSuccessDialogComponent, {
@@ -759,7 +798,16 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                                     customerId: formRaw.customerId,
                                     customerName: formRaw.customerName
                                 });
+                            } else if (action === 'print-bill') {
+                                this.soService.getSaleOrderById(soId).subscribe({
+                                    next: (fullOrder) => {
+                                        this.sharedPrintService.printDocument('Quick Sale Order', 'SO', fullOrder);
+                                        this.router.navigate(['/app/quick-inventory/sale/list']);
+                                    },
+                                    error: () => this.router.navigate(['/app/quick-inventory/sale/list'])
+                                });
                             } else {
+                                sessionStorage.removeItem('quick_sale_last_status');
                                 this.router.navigate(['/app/quick-inventory/sale/list']);
                             }
                         });
@@ -865,7 +913,7 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
             this.financeService.recordCustomerReceipt(receiptPayload).subscribe({
                 next: () => {
                     this.isSaving = false;
-                    this.dialog.open(StatusDialogComponent, {
+                    const statusDialog = this.dialog.open(StatusDialogComponent, {
                         width: '350px',
                         data: {
                             isSuccess: true,
@@ -874,7 +922,17 @@ export class QuickSaleComponent implements OnInit, OnDestroy, AfterViewInit {
                             status: 'success'
                         }
                     });
-                    this.router.navigate(['/app/quick-inventory/sale/list']);
+
+                    statusDialog.afterClosed().subscribe(() => {
+                        // ✅ Trigger Auto-Print after Quick Sale payment acknowledgment
+                        this.soService.getSaleOrderById(data.id).subscribe({
+                            next: (fullOrder) => {
+                                this.sharedPrintService.printDocument('Quick Sale Order', 'SO', fullOrder);
+                                this.router.navigate(['/app/quick-inventory/sale/list']);
+                            },
+                            error: () => this.router.navigate(['/app/quick-inventory/sale/list'])
+                        });
+                    });
                 },
                 error: (err) => {
                     this.isSaving = false;

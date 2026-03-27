@@ -37,5 +37,14 @@ export class RoleService {
     updateRolePermissions(roleId: number, permissions: RolePermission[]): Observable<void> {
         return this.api.put<void>(`roles/${roleId}/permissions`, permissions, this.baseUrl);
     }
+
+    // Print Settings
+    getRolePrintSettings(roleId: number): Observable<any[]> {
+        return this.api.get<any[]>(`roles/${roleId}/print-settings`, this.baseUrl);
+    }
+
+    updateRolePrintSettings(roleId: number, settings: any[]): Observable<void> {
+        return this.api.put<void>(`roles/${roleId}/print-settings`, settings, this.baseUrl);
+    }
 }
 

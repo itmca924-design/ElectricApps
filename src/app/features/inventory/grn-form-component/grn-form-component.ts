@@ -12,6 +12,7 @@ import { LocationService } from '../../master/locations/services/locations.servi
 import { Warehouse, Rack } from '../../master/locations/models/locations.model';
 import { LoadingService } from '../../../core/services/loading.service';
 import { DateHelper } from '../../../shared/models/date-helper';
+import { GrnPrintDialogComponent } from '../grn-print-dialog/grn-print-dialog.component';
 
 @Component({
   selector: 'app-grn-form-component',
@@ -42,6 +43,8 @@ export class GrnFormComponent implements OnInit, OnDestroy {
   private countdownInterval: any = null;
   showCountdown: boolean = false;
   isQuick: boolean = false;
+  isSaving: boolean = false; // Guard against duplicate submissions
+  private grnSavedKey: string = ''; // sessionStorage key for this PO
 
   constructor(
     private fb: FormBuilder,
@@ -91,8 +94,18 @@ export class GrnFormComponent implements OnInit, OnDestroy {
 
     this.route.queryParams.subscribe(params => {
       if (params['poId']) {
+        const poId = params['poId'].toString();
+        this.grnSavedKey = `grn_saved_${poId}`;
+
+        // ⛔ If GRN was already saved for this PO in this session, redirect back
+        if (sessionStorage.getItem(this.grnSavedKey)) {
+          console.warn('⛔ GRN already saved for poId', poId, '- redirecting to list.');
+          this.navigateBack();
+          return;
+        }
+
         this.resetFormBeforeLoad();
-        this.poId = params['poId'].toString();
+        this.poId = poId;
         this.isFromPopup = true;
         // Check query params as fallback (for backward compatibility)
         if (params['isQuick']) {
@@ -337,6 +350,18 @@ export class GrnFormComponent implements OnInit, OnDestroy {
 
   saveGRN() {
     if (this.grnForm.invalid || this.items.length === 0 || this.isViewMode) return;
+    if (this.isSaving) return; // ⛔ Prevent duplicate save
+
+    // Validate that at least one item has qty > 0
+    const hasQty = this.items.some(i => Number(i.receivedQty) > 0);
+    if (!hasQty) {
+      this.dialog.open(StatusDialogComponent, {
+        width: '350px',
+        data: { title: 'Validation', message: 'Please enter received quantity for at least one item.', isSuccess: false }
+      });
+      return;
+    }
+
     this.clearCountdown(); // Cancel auto-save — user is saving manually
 
     const confirmDialog = this.dialog.open(StatusDialogComponent, {
@@ -357,6 +382,19 @@ export class GrnFormComponent implements OnInit, OnDestroy {
   }
 
   performGRNSave() {
+    if (this.isSaving) {
+      console.warn('⛔ GRN Save already in progress. Ignoring duplicate call.');
+      return;
+    }
+
+    // ⛔ Zero-qty guard: never save a ₹0 GRN from auto-countdown or refresh
+    const totalQtyEntered = this.items.reduce((sum, i) => sum + Number(i.receivedQty || 0), 0);
+    if (totalQtyEntered <= 0) {
+      console.warn('⛔ performGRNSave blocked: all receivedQty are 0.');
+      return;
+    }
+
+    this.isSaving = true;
     console.log('🚀 GRN Save Initiated - isQuick:', this.isQuick);
     
     const currentUserId = localStorage.getItem('email') || 'Admin';
@@ -495,6 +533,11 @@ export class GrnFormComponent implements OnInit, OnDestroy {
     console.log('�🚀 Saving GRN Payload:', grnData);
     this.inventoryService.saveGRN({ Data: grnData }).subscribe({
       next: (response: any) => {
+        this.isSaving = false;
+        // ✅ Mark this PO as done in sessionStorage so refresh won't re-save
+        if (this.grnSavedKey) {
+          sessionStorage.setItem(this.grnSavedKey, 'saved');
+        }
         this.inventoryService.notifyInventoryChange();
         console.log('✅ GRN Save Success:', response);
         const grnNumber = response?.grnNumber || 'AUTO-GEN';
@@ -523,6 +566,7 @@ export class GrnFormComponent implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
+        this.isSaving = false;
         console.group('❌ GRN Save Failure');
         console.error('Error Details:', err);
         console.error('Status:', err.status);
@@ -590,7 +634,15 @@ export class GrnFormComponent implements OnInit, OnDestroy {
           });
 
           statusDialog.afterClosed().subscribe(() => {
-            this.navigateBack();
+            // Auto-print GRN bill after payment OK click
+            this.dialog.open(GrnPrintDialogComponent, {
+              width: '900px',
+              maxWidth: '95vw',
+              data: { grnNo: data.grnNumber },
+              panelClass: 'grn-print-dialog'
+            }).afterClosed().subscribe(() => {
+              this.navigateBack();
+            });
           });
         },
         error: (err) => {
@@ -614,6 +666,10 @@ export class GrnFormComponent implements OnInit, OnDestroy {
   }
 
   navigateBack() {
+    // Clear the sessionStorage flag when navigating away normally
+    if (this.grnSavedKey) {
+      sessionStorage.removeItem(this.grnSavedKey);
+    }
     if (this.isQuick) {
       this.router.navigate(['/app/quick-inventory/grn-list']);
     } else {
@@ -641,9 +697,18 @@ export class GrnFormComponent implements OnInit, OnDestroy {
       });
 
       dialogRef.afterClosed().subscribe(result => {
-        if (result === 'make-payment') {
+        const bulkGrnNo = processedGrns.length === 1 ? processedGrns[0].number : `Bulk-${processedGrns.length}-GRN`;
+        if (result === 'print') {
+          // Print the first GRN or show all
+          this.dialog.open(GrnPrintDialogComponent, {
+            width: '900px',
+            maxWidth: '95vw',
+            data: { grnNo: processedGrns[0]?.number },
+            panelClass: 'grn-print-dialog'
+          });
+        } else if (result === 'make-payment') {
           this.performDirectPayment({
-            grnNumber: processedGrns.length === 1 ? processedGrns[0].number : `Bulk-${processedGrns.length}-GRN`,
+            grnNumber: bulkGrnNo,
             grandTotal: totalAmount,
             supplierId: uniqueSupplierId
           });

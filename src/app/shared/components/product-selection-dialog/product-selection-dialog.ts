@@ -97,7 +97,7 @@ import { LoadingService } from '../../../core/services/loading.service';
               <mat-checkbox (click)="$event.stopPropagation()"
                             (change)="$event ? toggleRow(row) : null"
                             [checked]="isRowSelected(row)"
-                            [disabled]="(!allowOutOfStock && row.currentStock <= 0) || isAlreadyInList(row.id) || isExpired(row.expiryDate)">
+                            [disabled]="(!allowOutOfStock && row.currentStock <= 0) || isAlreadyInList(row.id) || isExpired(row)">
               </mat-checkbox>
             </td>
           </ng-container>
@@ -167,10 +167,10 @@ import { LoadingService } from '../../../core/services/loading.service';
             <td mat-cell *matCellDef="let row">
               @if (isAlreadyInList(row.id)) {
                 <span class="status-badge added">Already Added</span>
-              } @else if (isExpired(row.expiryDate)) {
-                <span class="status-badge expired">EXPIRED</span>
               } @else if (row.currentStock <= 0) {
                 <span class="status-badge na">N/A</span>
+              } @else if (isExpired(row)) {
+                <span class="status-badge expired">EXPIRED</span>
               } @else {
                 <span class="status-badge available">Available</span>
               }
@@ -887,7 +887,7 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
 
   toggleRow(row: any) {
     if (this.isAlreadyInList(row.id)) return;
-    if (this.isExpired(row.expiryDate)) return; // Prevent selection of expired items
+    if (this.isExpired(row)) return; // Prevent selection of expired items
     if (!this.allowOutOfStock && row.currentStock <= 0) return;
     const found = this.selection.selected.find(item => item.id === row.id);
     if (found) {
@@ -989,7 +989,12 @@ export class ProductSelectionDialogComponent implements OnInit, OnDestroy {
     this.dialogRef.close(this.selection.selected);
   }
 
-  isExpired(date: any): boolean {
+  isExpired(row: any): boolean {
+    // If the product is out of stock / purged, it cannot be actively expired.
+    // This allows it to show 'N/A' and be selectable for new purchases.
+    if ((row.currentStock || 0) <= 0) return false;
+
+    const date = row.expiryDate;
     if (!date || date === 'NA') return false;
     const expDate = new Date(date);
     const today = new Date();

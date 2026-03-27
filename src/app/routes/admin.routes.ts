@@ -30,5 +30,11 @@ export const ADMIN_ROUTES: Routes = [
         canActivate: [PermissionGuard],
         loadComponent: () => import('../features/admin/menu-management/menu-management.component').then(m => m.MenuManagementComponent),
         data: { breadcrumb: 'Menus' }
+    },
+    {
+        path: 'print-settings',
+        canActivate: [PermissionGuard],
+        loadComponent: () => import('../features/admin/print-settings/print-settings').then(m => m.PrintSettings),
+        data: { breadcrumb: 'Print Settings' }
     }
 ];

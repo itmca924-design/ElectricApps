@@ -18,6 +18,7 @@ import { InventoryService } from '../../service/inventory.service';
 import { LocationTrackerDialogComponent } from '../location-tracker-dialog/location-tracker-dialog.component';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { environment } from '../../../../enviornments/environment';
+import { SharedPrintService } from '../../../../core/services/shared-print.service';
 
 @Component({
   selector: 'app-purchase-return-form',
@@ -36,6 +37,8 @@ export class PurchaseReturnForm implements OnInit {
   isQuick: boolean = false;
   isPolicyViolated: boolean = false;
   isFromDashboard: boolean = false;
+
+  private sharedPrintService = inject(SharedPrintService);
 
   viewLiveLocation(item: any) {
     if (!item) return;
@@ -523,8 +526,19 @@ export class PurchaseReturnForm implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe(() => {
-      const target = this.isQuick ? '/app/quick-inventory/purchase/list' : '/app/inventory/purchase-return';
-      this.router.navigate([target]);
+      if (returnId) {
+          // Auto Print using centralized service!
+         this.prService.getPurchaseReturnById(returnId).subscribe((fullData) => {
+             const docType = this.isQuick ? 'Quick Purchase Return' : 'Standard Purchase Return';
+             this.sharedPrintService.printDocument(docType, 'PR', fullData);
+             
+             const target = this.isQuick ? '/app/quick-inventory/purchase/list' : '/app/inventory/purchase-return';
+             this.router.navigate([target]);
+         });
+      } else {
+         const target = this.isQuick ? '/app/quick-inventory/purchase/list' : '/app/inventory/purchase-return';
+         this.router.navigate([target]);
+      }
     });
   }
 

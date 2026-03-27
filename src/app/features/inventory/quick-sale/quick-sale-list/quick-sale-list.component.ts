@@ -19,6 +19,7 @@ import { SaleOrderDetailDialog } from '../../sale-order-detail-dialog/sale-order
 import { FinanceService } from '../../../finance/service/finance.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { SharedPrintService } from '../../../../core/services/shared-print.service';
 
 @Component({
   selector: 'app-quick-sale-list',
@@ -37,6 +38,7 @@ import { catchError } from 'rxjs/operators';
 export class QuickSaleListComponent implements OnInit {
   private loadingService = inject(LoadingService);
   private permissionService = inject(PermissionService);
+  private sharedPrintService = inject(SharedPrintService);
 
   public dataSource = new MatTableDataSource<any>([]);
   public totalRecords: number = 0;
@@ -425,6 +427,9 @@ export class QuickSaleListComponent implements OnInit {
       case 'RETURN':
         this.returnOrder(row);
         break;
+      case 'PRINT':
+        this.printOrder(row);
+        break;
       default:
         break;
     }
@@ -436,6 +441,23 @@ export class QuickSaleListComponent implements OnInit {
       queryParams: {
         customerId: row.customerId,
         soId: row.id
+      }
+    });
+  }
+
+  printOrder(row: any) {
+    this.isLoading = true;
+    this.cdr.detectChanges();
+    this.saleOrderService.getSaleOrderById(row.id).subscribe({
+      next: (fullOrder) => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        this.sharedPrintService.printDocument('Quick Sale Order', 'SO', fullOrder);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+        this.notification.showStatus(false, 'Failed to fetch order details for printing.');
       }
     });
   }

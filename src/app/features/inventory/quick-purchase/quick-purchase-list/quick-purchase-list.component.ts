@@ -16,6 +16,7 @@ import { LoadingService } from '../../../../core/services/loading.service';
 import { PermissionService } from '../../../../core/services/permission.service';
 import { POService } from '../../service/po.service';
 import { PoPrintModalComponent } from '../../po-list/po-print-modal/po-print-modal.component';
+import { SharedPrintService } from '../../../../core/services/shared-print.service';
 
 @Component({
   selector: 'app-quick-purchase-list',
@@ -34,6 +35,7 @@ import { PoPrintModalComponent } from '../../po-list/po-print-modal/po-print-mod
 export class QuickPurchaseListComponent implements OnInit {
   private loadingService = inject(LoadingService);
   private permissionService = inject(PermissionService);
+  private sharedPrintService = inject(SharedPrintService);
 
   public dataSource = new MatTableDataSource<any>([]);
   public totalRecords: number = 0;
@@ -697,21 +699,11 @@ export class QuickPurchaseListComponent implements OnInit {
     this.isLoading = true;
     this.cdr.detectChanges();
 
-    this.poActionService.getPrintDetails(row.id).subscribe({
-      next: (res) => {
+    this.poActionService.getById(row.id).subscribe({
+      next: (fullOrder) => {
         this.isLoading = false;
         this.cdr.detectChanges();
-
-        if (res) {
-          this.dialog.open(PoPrintModalComponent, {
-            width: '850px',
-            maxWidth: '95vw',
-            data: { ...res, mode: mode, id: row.id, status: row.status },
-            autoFocus: false
-          });
-        } else {
-          this.notification.showStatus(false, 'No print details found.');
-        }
+        this.sharedPrintService.printDocument('Quick Purchase Order', 'PO', fullOrder);
       },
       error: (err) => {
         this.isLoading = false;

@@ -20,6 +20,7 @@ import { POService } from '../service/po.service';
 import { BarcodeReaderHelper } from '../../../shared/barcode-reader-helper/barcode-reader-helper.service';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { ProductForm } from '../../master/product/product-form/product-form';
+import { SharedPrintService } from '../../../core/services/shared-print.service';
 
 @Component({
     selector: 'app-quick-purchase',
@@ -55,6 +56,7 @@ export class QuickPurchaseComponent implements OnInit, OnDestroy, AfterViewInit 
     private route = inject(ActivatedRoute);
     private barcodeHelper = inject(BarcodeReaderHelper);
     private cdr = inject(ChangeDetectorRef);
+    private sharedPrintService = inject(SharedPrintService);
     private destroy$ = new Subject<void>();
 
     purchaseForm!: FormGroup;

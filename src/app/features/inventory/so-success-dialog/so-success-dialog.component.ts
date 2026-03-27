@@ -43,15 +43,19 @@ export interface SoSuccessData {
           <p>What would you like to do next?</p>
         </div>
       </mat-dialog-content>
-
       <mat-dialog-actions align="end">
         <button mat-button (click)="onViewList()">
           <mat-icon>list</mat-icon>
           View Sale Order List
         </button>
-        <button mat-flat-button color="primary" (click)="onMakePayment()" *ngIf="data.status.toLowerCase() !== 'draft'">
+        <button mat-flat-button color="primary" (click)="onMakePayment()" *ngIf="data.status.toLowerCase() !== 'draft' && data.status.toLowerCase() !== 'paid'">
           <mat-icon>payment</mat-icon>
           Make Payment Now
+        </button>
+        <!-- Fallback print only for Draft/Unpaid where payment is skipped -->
+        <button mat-stroked-button color="primary" (click)="onPrintBill()" *ngIf="data.status.toLowerCase() === 'draft' || data.status.toLowerCase() === 'unpaid'">
+          <mat-icon>print</mat-icon>
+          Print Bill
         </button>
       </mat-dialog-actions>
     </div>
@@ -156,5 +160,9 @@ export class SoSuccessDialogComponent {
 
     onMakePayment() {
         this.dialogRef.close('make-payment');
+    }
+
+    onPrintBill() {
+        this.dialogRef.close('print-bill');
     }
 }
