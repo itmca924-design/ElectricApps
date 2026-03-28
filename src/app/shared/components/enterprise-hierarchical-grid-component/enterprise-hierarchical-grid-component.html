@@ -80,12 +80,20 @@
   </div>
 
   <div class="main-grid-content" [style.display]="(!isLoading && dataSource && dataSource.data.length > 0) ? 'flex' : 'none'">
-    <div class="responsive-table-wrapper">
+    <!-- Floating Scroll Navigation Buttons -->
+    <button type="button" class="scroll-nav-floating btn-left" (click)="scrollTable('left')" title="Slide Left">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <button type="button" class="scroll-nav-floating btn-right" (click)="scrollTable('right')" title="Slide Right">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+
+    <div class="responsive-table-wrapper" #mainTableWrapper>
       <table mat-table [dataSource]="dataSource" multiTemplateDataRows matSort (matSortChange)="onSortChange($event)"
         cdkDropList cdkDropListOrientation="horizontal" (cdkDropListDropped)="drop($event)">
 
         <ng-container matColumnDef="select">
-          <th mat-header-cell *matHeaderCellDef>
+          <th mat-header-cell *matHeaderCellDef sticky class="select-header">
             <mat-checkbox (change)="$event ? masterToggle() : null" [checked]="selection.hasValue() && isAllSelected()"
               [indeterminate]="selection.hasValue() && !isAllSelected()">
             </mat-checkbox>

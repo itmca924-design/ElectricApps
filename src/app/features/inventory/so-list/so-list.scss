@@ -604,6 +604,8 @@ button[color="warning"] {
   .mat-column-grandTotal { width: var(--col-grandTotal-width, 150px); min-width: 120px; }
   .mat-column-status { width: var(--col-status-width, 150px); min-width: 130px; }
   .mat-column-paymentStatus { width: var(--col-paymentStatus-width, 150px); min-width: 130px; }
+  .mat-column-createdBy { width: var(--col-createdBy-width, 150px); min-width: 130px; }
+  .mat-column-remarks { width: var(--col-remarks-width, 200px); min-width: 150px; }
   .mat-column-actions { width: 140px; min-width: 140px; }
 
   /* FORCED: Horizontal Scroll Fix for Main Grid Table (Parent) */
@@ -621,7 +623,7 @@ button[color="warning"] {
       min-height: 0;
 
       table {
-        min-width: 1800px !important; /* Forces scrollbar for data density */
+        min-width: 2200px !important; /* Increased to accommodate all columns including Payment, CreatedBy, Remarks */
         width: max-content !important;
         border-collapse: collapse;
         table-layout: fixed !important; 

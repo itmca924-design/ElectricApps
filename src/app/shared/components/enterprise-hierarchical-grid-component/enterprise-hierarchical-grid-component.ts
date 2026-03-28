@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectorRef, Component, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, inject, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, PageEvent, MatPaginatorModule } from '@angular/material/paginator';
@@ -106,6 +106,8 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
   sortDirection: 'asc' | 'desc' | '' = 'desc';
   fromDate: string = '';
   toDate: string = '';
+
+  @ViewChild('mainTableWrapper') mainTableWrapper!: ElementRef;
 
   constructor(private cdr: ChangeDetectorRef, private router: Router) { }
 
@@ -679,5 +681,18 @@ export class EnterpriseHierarchicalGridComponent implements OnInit, AfterViewIni
     const diffInHours = (now.getTime() - orderDate.getTime()) / (1000 * 60 * 60);
     
     return diffInHours <= 72;
+  }
+
+  scrollTable(direction: 'left' | 'right') {
+    if (!this.mainTableWrapper) return;
+    const wrapper = this.mainTableWrapper.nativeElement;
+    const scrollAmount = 400;
+    const currentScroll = wrapper.scrollLeft;
+    const targetScroll = direction === 'left' ? currentScroll - scrollAmount : currentScroll + scrollAmount;
+    
+    wrapper.scrollTo({
+      left: targetScroll,
+      behavior: 'smooth'
+    });
   }
 }

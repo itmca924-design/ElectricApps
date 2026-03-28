@@ -687,16 +687,18 @@ $my-palettes: (
 ===================================================== */
 .column-resizer {
   position: absolute;
-  right: 0;
+  right: -5px;
   top: 0;
   bottom: 0;
-  width: 5px;
+  width: 10px;
   cursor: col-resize;
-  z-index: 10;
+  z-index: 1000 !important; /* Over everything in the header */
   transition: background-color 0.2s;
+  background-color: transparent;
 
   &:hover {
-    background-color: rgba(63, 81, 181, 0.5); /* Primary color with transparency */
+    background-color: rgba(59, 130, 246, 0.5); /* Blue highlight */
+    border-right: 2px solid #3b82f6; /* Visible vertical line while hovering */
   }
 }
 

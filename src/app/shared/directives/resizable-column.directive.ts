@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener, Input, OnInit, Renderer2, Output, EventEmitter } from '@angular/core';
+import { Directive, ElementRef, HostListener, Input, OnInit, Renderer2, Output, EventEmitter, NgZone } from '@angular/core';
 
 @Directive({
   selector: '[appResizableColumn]',
@@ -16,7 +16,10 @@ export class ResizableColumnDirective implements OnInit {
   private startWidth: number = 0;
   private resizer: HTMLElement | null = null;
 
-  constructor(private el: ElementRef, private renderer: Renderer2) {}
+  private isResizing = false;
+  private animationFrameId: number | null = null;
+
+  constructor(private el: ElementRef, private renderer: Renderer2, private ngZone: NgZone) {}
 
   ngOnInit() {
     if (!this._resizable) return;
@@ -41,31 +44,49 @@ export class ResizableColumnDirective implements OnInit {
 
     this.startX = event.pageX;
     this.startWidth = this.el.nativeElement.offsetWidth;
+    this.isResizing = true;
 
-    // Add document-level listeners for move and up
-    const mouseMoveListener = this.onMouseMove.bind(this);
-    const mouseUpListener = this.onMouseUp.bind(this, mouseMoveListener);
+    // Add document-level listeners for move and up outside NgZone
+    this.ngZone.runOutsideAngular(() => {
+      const mouseMoveListener = this.onMouseMove.bind(this);
+      const mouseUpListener = (e: MouseEvent) => {
+        this.onMouseUp(mouseMoveListener);
+      };
 
-    document.addEventListener('mousemove', mouseMoveListener);
-    document.addEventListener('mouseup', mouseUpListener, { once: true });
+      document.addEventListener('mousemove', mouseMoveListener);
+      document.addEventListener('mouseup', mouseUpListener, { once: true });
+    });
     
     this.renderer.addClass(document.body, 'resizing-active');
   }
 
   private onMouseMove(event: MouseEvent) {
-    const deltaX = event.pageX - this.startX;
-    const newWidth = Math.max(this.minWidth, this.startWidth + deltaX);
-    
-    // Apply width to the header element
-    this.renderer.setStyle(this.el.nativeElement, 'width', `${newWidth}px`);
-    this.renderer.setStyle(this.el.nativeElement, 'min-width', `${newWidth}px`);
-    this.renderer.setStyle(this.el.nativeElement, 'max-width', `${newWidth}px`);
-    
-    this.resized.emit(newWidth);
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    this.animationFrameId = requestAnimationFrame(() => {
+      const deltaX = event.pageX - this.startX;
+      const newWidth = Math.max(this.minWidth, this.startWidth + deltaX);
+      
+      // Apply width directly to native element for maximum speed
+      this.el.nativeElement.style.width = `${newWidth}px`;
+      this.el.nativeElement.style.minWidth = `${newWidth}px`;
+      this.el.nativeElement.style.maxWidth = `${newWidth}px`;
+      
+      this.resized.emit(newWidth);
+    });
   }
 
   private onMouseUp(moveListener: any) {
+    this.isResizing = false;
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+    
     document.removeEventListener('mousemove', moveListener);
-    this.renderer.removeClass(document.body, 'resizing-active');
+    this.ngZone.run(() => {
+      this.renderer.removeClass(document.body, 'resizing-active');
+    });
   }
 }
