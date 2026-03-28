@@ -11,6 +11,11 @@ $app-themes: (
   "green-orange": (primary: mat.$green-palette, tertiary: mat.$orange-palette),
   "magenta-violet": (primary: mat.$magenta-palette, tertiary: mat.$violet-palette),
   "cyan-orange": (primary: mat.$cyan-palette, tertiary: mat.$orange-palette),
+  "orange-amber": (primary: mat.$orange-palette, tertiary: mat.$yellow-palette),
+  "indigo-pink": (primary: mat.$blue-palette, tertiary: mat.$rose-palette),
+  "teal-lime": (primary: mat.$cyan-palette, tertiary: mat.$green-palette),
+  "deep-purple": (primary: mat.$magenta-palette, tertiary: mat.$violet-palette),
+  "spring-green": (primary: mat.$spring-green-palette, tertiary: mat.$azure-palette),
 );
 
 $theme-colors: (
@@ -18,7 +23,12 @@ $theme-colors: (
   "rose-red": #e91e63,    // Pink 500
   "green-orange": #4caf50,// Green 500
   "magenta-violet": #9c27b0, // Purple 500
-  "cyan-orange": #00bcd4  // Cyan 500
+  "cyan-orange": #00bcd4,  // Cyan 500
+  "orange-amber": #ff9800, // Orange 500
+  "indigo-pink": #3f51b5,  // Indigo 500
+  "teal-lime": #009688,    // Teal 500
+  "deep-purple": #673ab7,  // Deep Purple 500
+  "spring-green": #00e676  // Spring Green 500
 );
 
 $theme-colors-rgb: (
@@ -26,7 +36,12 @@ $theme-colors-rgb: (
   "rose-red": "233, 30, 99",
   "green-orange": "76, 175, 80",
   "magenta-violet": "156, 39, 176",
-  "cyan-orange": "0, 188, 212"
+  "cyan-orange": "0, 188, 212",
+  "orange-amber": "255, 152, 0",
+  "indigo-pink": "63, 81, 181",
+  "teal-lime": "0, 150, 136",
+  "deep-purple": "103, 58, 183",
+  "spring-green": "0, 230, 118"
 );
 
 @each $name, $config in $app-themes {
@@ -878,6 +893,7 @@ $my-palettes: (
       white-space: normal;
       display: -webkit-box;
       -webkit-line-clamp: 2;
+      line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
       font-weight: 500;

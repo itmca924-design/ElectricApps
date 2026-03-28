@@ -31,7 +31,8 @@
 
 .drawer-header {
   padding: 24px;
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  /* Use themed gradient for the header */
+  background: linear-gradient(135deg, var(--dg-primary-theme, #1e293b) 0%, rgba(var(--dg-primary-theme-rgb, 51, 65, 85), 0.8) 100%);
   color: white;
   display: flex;
   justify-content: space-between;
@@ -131,13 +132,13 @@
   overflow: hidden;
 
   &:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
+    border-color: var(--dg-primary-theme, #3b82f6);
+    box-shadow: 0 4px 12px rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.1);
   }
 
   &.expanded {
-    border-color: #3b82f6;
-    background: #f8faff;
+    border-color: var(--dg-primary-theme, #3b82f6);
+    background: rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.03);
   }
 
   .item-main-info {
@@ -322,7 +323,7 @@
       font-size: 14px;
       width: 14px;
       height: 14px;
-      color: #3b82f6;
+      color: var(--dg-primary-theme, #3b82f6);
     }
   }
 
@@ -377,7 +378,9 @@
     height: 48px;
     border-radius: 12px;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.3);
+    background-color: var(--dg-primary-theme, #3b82f6) !important;
+    color: white !important;
     
     mat-icon {
       margin-right: 8px;

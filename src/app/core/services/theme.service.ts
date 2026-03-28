@@ -14,11 +14,16 @@ export class ThemeService {
     activeTheme$ = this.activeTheme.asObservable();
 
     availableThemes = [
-        { name: 'azure-blue', label: 'Azure & Blue', color: '#007fff' }, // Approximate azure color
+        { name: 'azure-blue', label: 'Azure & Blue', color: '#007fff' },
         { name: 'rose-red', label: 'Rose & Red', color: '#f50057' },
         { name: 'green-orange', label: 'Green & Orange', color: '#00c853' },
         { name: 'magenta-violet', label: 'Magenta & Violet', color: '#d500f9' },
         { name: 'cyan-orange', label: 'Cyan & Orange', color: '#00bcd4' },
+        { name: 'orange-amber', label: 'Orange & Amber', color: '#ff9800' },
+        { name: 'indigo-pink', label: 'Indigo & Pink', color: '#3f51b5' },
+        { name: 'teal-lime', label: 'Teal & Lime', color: '#009688' },
+        { name: 'deep-purple', label: 'Deep Purple & Blue', color: '#673ab7' },
+        { name: 'spring-green', label: 'Spring Green & Azure', color: '#00e676' },
     ];
 
     constructor() {

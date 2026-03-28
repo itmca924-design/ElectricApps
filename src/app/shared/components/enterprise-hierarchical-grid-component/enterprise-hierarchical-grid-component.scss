@@ -601,10 +601,10 @@ th.child-th {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.2);
   background: white;
-  color: #3b82f6;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  color: var(--dg-primary-theme, #3b82f6);
+  box-shadow: 0 4px 15px rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -612,7 +612,7 @@ th.child-th {
   z-index: 1000;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 0;
-  opacity: 0.8;
+  opacity: 0.85;
 
   mat-icon {
     font-size: 28px;
@@ -623,9 +623,9 @@ th.child-th {
   &:hover {
     opacity: 1;
     transform: translateY(-2px) scale(1.1);
-    background: #3b82f6;
+    background: var(--dg-primary-theme, #3b82f6);
     color: white;
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.5);
+    box-shadow: 0 8px 20px rgba(var(--dg-primary-theme-rgb, 59, 130, 246), 0.5);
   }
 
   &:active {
