@@ -145,7 +145,7 @@
 
     // Hover effect for both normal and sticky cells
     &:hover td {
-      background-color: #f5f7f9 !important;
+      background-color: #f5f7f9;
     }
   }
 
@@ -163,7 +163,7 @@
   .sticky-right {
     position: sticky;
     z-index: 20;
-    background: white !important; // Solid color scrolling hide karne ke liye
+    background: inherit; 
     padding: 0 8px !important;
 
     // Ensure sticky cell height matches the row
@@ -356,7 +356,7 @@ th.mat-mdc-header-cell.select-col {
 
 /* Hover effect on selected row (thoda dark blue) */
 .selected-row:hover td {
-  background-color: #e3f0ff !important;
+  background-color: #e3f0ff;
 }
 
 /* ✅ 3. STICKY COLUMN FIX (FOR TABLE ROWS) */
@@ -380,7 +380,7 @@ th.mat-mdc-header-cell.select-col {
 
 /* Row hover effect selection ke bina */
 .clickable-row:hover:not(.selected-row) {
-  background-color: #f5f7f9 !important;
+  background-color: #f5f7f9;
 
   td {
     background-color: inherit !important;
@@ -433,7 +433,7 @@ th.mat-mdc-header-cell.select-col {
   cursor: pointer;
 
   &:hover {
-    background-color: #f1f8e9 !important;
+    background-color: #f1f8e9;
   }
 
   &:hover .sticky-left,
@@ -655,3 +655,181 @@ th.mat-mdc-header-cell.select-col {
     }
   }
 }
+
+/* ==========================================================================
+   GLOBAL DARK MODE SYSTEM FOR DATAGRID
+   ========================================================================== */
+:host-context(.dark-mode) {
+  .datagrid-container {
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .grid-header-actions {
+    background: #1e293b !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+
+    .search-container {
+      ::ng-deep {
+        .mat-mdc-text-field-wrapper {
+          background-color: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        .mdc-notched-outline__leading,
+        .mdc-notched-outline__notch,
+        .mdc-notched-outline__trailing { border-color: transparent !important; }
+        
+        .mat-mdc-input-element { color: #ffffff !important; }
+        .mat-mdc-form-field-icon-prefix mat-icon { color: #60a5fa !important; }
+        
+        input::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+    }
+  }
+
+  .table-wrapper {
+    background: #1e293b !important;
+    
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  ::ng-deep {
+    .mat-mdc-paginator {
+      background: #1e293b !important;
+      color: #ffffff !important;
+      border-top-color: rgba(255, 255, 255, 0.1) !important;
+
+      .mat-mdc-paginator-container { color: #ffffff !important; opacity: 1 !important; }
+      
+      .mat-mdc-paginator-navigation-next,
+      .mat-mdc-paginator-navigation-previous,
+      .mat-mdc-paginator-navigation-first,
+      .mat-mdc-paginator-navigation-last {
+        color: #ffffff !important;
+        svg { fill: #ffffff !important; }
+        &[disabled] { opacity: 0.2 !important; }
+      }
+
+      .mat-mdc-select-value { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+    }
+
+    /* Checkbox Visibility Polish */
+    mat-checkbox {
+      --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.6) !important;
+      --mdc-checkbox-unselected-hover-icon-color: #ffffff !important;
+      
+      .mdc-checkbox__native-control:enabled:not(:checked) ~ .mdc-checkbox__background {
+        border-color: rgba(255, 255, 255, 0.5) !important;
+        background-color: transparent !important;
+      }
+      
+      .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+        background-color: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+      }
+    }
+
+    .server-datagrid {
+      background: #1e293b !important;
+
+      tr.mat-mdc-header-row {
+        background-color: #1e293b !important;
+      }
+
+      .mat-mdc-header-cell {
+        background: #1e293b !important;
+        color: #f8fafc !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+        
+        .header-text { color: #f8fafc !important; }
+        .sort-icon { color: #60a5fa !important; }
+      }
+
+      .mat-mdc-cell {
+        color: rgba(248, 250, 252, 0.9) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        background: transparent !important; 
+      }
+
+      /* THE SIGNATURE DARK HOVER - Aggressive Interaction Fix */
+      tr.mat-mdc-row:hover,
+      tr.mat-mdc-row:hover .mat-mdc-cell,
+      tr:hover td,
+      .clickable-row:hover,
+      .clickable-row:hover .mat-mdc-cell,
+      .mat-mdc-row:hover td,
+      &.mat-mdc-row:hover td {
+        background-color: #2d3748 !important; /* Subtle Dark Slate for Hover */
+        color: #ffffff !important;
+      }
+
+      /* Hover Sync for Sticky Columns (Ensuring no white gaps) */
+      tr.mat-mdc-row:hover .sticky-left,
+      tr.mat-mdc-row:hover .sticky-right,
+      .clickable-row:hover .sticky-left,
+      .clickable-row:hover .sticky-right,
+      tr:hover .select-col,
+      tr:hover .actions-col {
+        background-color: #2d3748 !important;
+        color: #ffffff !important;
+      }
+
+      /* ✅ DARK MODE SELECTION FIX - Always Dark with White Font */
+      tr.mat-mdc-row.selected-row,
+      .selected-row {
+        background-color: #1e293b !important; /* Consistent Dark Background */
+        
+        td.mat-mdc-cell {
+          background-color: #1e293b !important;
+          color: #ffffff !important; /* Font White force */
+        }
+
+        .sticky-left, .sticky-right {
+          background-color: #1e293b !important;
+        }
+      }
+
+      /* Column Filters */
+      .column-filter-input {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        
+        &::placeholder { color: rgba(255, 255, 255, 0.3) !important; }
+        &:focus { border-color: #3b82f6 !important; }
+      }
+
+      /* Sticky Columns Correction */
+      .sticky-left, .sticky-right {
+        background-color: #1e293b !important;
+      }
+
+      tr.mat-mdc-row:hover .sticky-left,
+      tr.mat-mdc-row:hover .sticky-right {
+        background-color: #1e40af !important;
+      }
+
+      /* Actions Column Polishing */
+      .actions-col {
+        .action-btn-group button.mat-mdc-icon-button {
+          background-color: rgba(255, 255, 255, 0.05) !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          mat-icon { color: #cbd5e1 !important; }
+          
+          &:hover {
+            background-color: #ffffff !important;
+            mat-icon { color: #1e293b !important; }
+          }
+        }
+      }
+    }
+
+    .grid-loader {
+      background: rgba(15, 23, 42, 0.8) !important;
+    }
+  }
+}
+

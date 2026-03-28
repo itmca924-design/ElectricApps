@@ -103,3 +103,40 @@
     }
   }
 }
+
+// ==========================================================================
+// FULL PAGE DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .page-title {
+    color: #f8fafc !important; 
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .list-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+  }
+
+  /* EXECUTIVE HOVER ALIGNMENT (Matching Racks) */
+  ::ng-deep {
+    .mat-mdc-row:hover .mat-mdc-cell,
+    .mat-mdc-row:hover {
+      background-color: #2d3748 !important; /* Subtle Dark Hover */
+      color: #ffffff !important;
+    }
+
+    .mat-mdc-row.selected-row .mat-mdc-cell,
+    .mat-mdc-row.selected-row {
+      background-color: #1e293b !important; /* Main Dark Background for Selected */
+      color: #ffffff !important;
+    }
+    
+    .mat-mdc-cell {
+      color: #f8fafc !important;
+    }
+  }
+}

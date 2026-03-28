@@ -488,3 +488,50 @@
 
 .animate__fadeInDown { animation-name: fadeInDown; }
 .animate__fadeInUp { animation-name: fadeInUp; }
+
+// Global Dark Mode Enhancements for this dashboard
+:host-context(.dark-mode) {
+  .dashboard-header {
+    border-left-color: #3b82f6 !important;
+  }
+
+  .filter-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+  }
+
+  mat-form-field {
+    ::ng-deep {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.15) !important;
+      }
+
+      .mat-mdc-form-field-input-control { color: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      
+      input::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+      
+      .mat-mdc-select-value { 
+        color: #ffffff !important; 
+        font-weight: 600 !important;
+      }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      
+      .mat-mdc-form-field-icon-prefix mat-icon,
+      .mat-mdc-form-field-icon-suffix mat-icon {
+        color: #60a5fa !important; // Neon Blue for icons
+      }
+    }
+  }
+
+  .pricing-container {
+    .price-chip { color: #60a5fa !important; }
+    .original-price { 
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+    }
+  }
+}
