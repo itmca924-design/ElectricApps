@@ -595,16 +595,99 @@ button[color="warning"] {
     box-sizing: border-box;
   }
 
-  .mat-column-select { width: 48px; min-width: 48px; max-width: 48px; }
-  .mat-column-soNumber { width: var(--col-soNumber-width, 150px); min-width: var(--col-soNumber-width, 150px); max-width: var(--col-soNumber-width, 150px); }
-  .mat-column-gatePassNo { width: var(--col-gatePassNo-width, 180px); min-width: var(--col-gatePassNo-width, 180px); max-width: var(--col-gatePassNo-width, 180px); }
-  .mat-column-soDate { width: var(--col-soDate-width, 170px); min-width: var(--col-soDate-width, 170px); max-width: var(--col-soDate-width, 170px); }
-  .mat-column-customerName { width: var(--col-customerName-width, 200px); min-width: var(--col-customerName-width, 200px); max-width: var(--col-customerName-width, 200px); }
-  .mat-column-totalQty { width: var(--col-totalQty-width, 100px); min-width: var(--col-totalQty-width, 100px); max-width: var(--col-totalQty-width, 100px); }
-  .mat-column-grandTotal { width: var(--col-grandTotal-width, 150px); min-width: var(--col-grandTotal-width, 150px); max-width: var(--col-grandTotal-width, 150px); }
-  .mat-column-status { width: var(--col-status-width, 180px); min-width: var(--col-status-width, 180px); max-width: var(--col-status-width, 180px); }
-  .mat-column-paymentStatus { width: var(--col-paymentStatus-width, 180px); min-width: var(--col-paymentStatus-width, 180px); max-width: var(--col-paymentStatus-width, 180px); }
-  .mat-column-actions { width: 120px; min-width: 120px; }
+  .mat-column-select { width: 48px; min-width: 48px; }
+  .mat-column-soNumber { width: var(--col-soNumber-width, 135px); min-width: 100px; }
+  .mat-column-gatePassNo { width: var(--col-gatePassNo-width, 180px); min-width: 150px; }
+  .mat-column-soDate { width: var(--col-soDate-width, 170px); min-width: 150px; }
+  .mat-column-customerName { width: var(--col-customerName-width, 200px); min-width: 180px; }
+  .mat-column-totalQty { width: var(--col-totalQty-width, 100px); min-width: 80px; }
+  .mat-column-grandTotal { width: var(--col-grandTotal-width, 150px); min-width: 120px; }
+  .mat-column-status { width: var(--col-status-width, 150px); min-width: 130px; }
+  .mat-column-paymentStatus { width: var(--col-paymentStatus-width, 150px); min-width: 130px; }
+  .mat-column-actions { width: 140px; min-width: 140px; }
+
+  /* FORCED: Horizontal Scroll Fix for Main Grid Table (Parent) */
+  .main-grid-content {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+
+    .responsive-table-wrapper {
+      flex: 1 !important;
+      overflow-x: auto !important;
+      overflow-y: auto !important;
+      position: relative;
+      min-height: 0;
+
+      table {
+        min-width: 1800px !important; /* Forces scrollbar for data density */
+        width: max-content !important;
+        border-collapse: collapse;
+        table-layout: fixed !important; 
+      }
+    }
+  }
+
+  /* FORCED: SPECIFIC FIX FOR SALE ORDER CHILD ITEMS - MIRRORING QUICK SALE */
+  .mat-row.detail-row, .detail-row {
+    .detail-panel {
+      display: block !important;
+      width: 0 !important;
+      min-width: 100% !important; 
+      max-height: none !important; 
+      opacity: 1 !important;      
+      overflow: hidden !important; 
+      padding: 0 !important;
+      background-color: transparent !important;
+
+      .child-table-scroll {
+        display: block !important;
+        width: 100% !important;
+        max-width: calc(100vw - 350px) !important; /* Force width relative to viewport to guarantee scrollbar */
+        overflow-x: scroll !important; /* Force internal scrollbar visibility */
+        padding: 20px 0 !important; /* Space for scrollbar */
+        -webkit-overflow-scrolling: touch !important;
+        background-color: #f8fafc !important;
+        border-radius: 8px !important;
+        position: relative !important;
+        
+        /* Modern Scrollbar Styling */
+        scrollbar-width: thin !important;
+        scrollbar-color: #3b82f6 #e2e8f0 !important;
+
+        &::-webkit-scrollbar {
+          height: 10px !important;
+          display: block !important;
+        }
+        &::-webkit-scrollbar-track {
+          background: #f1f5f9 !important;
+          border-radius: 10px !important;
+        }
+        &::-webkit-scrollbar-thumb {
+          background: #3b82f6 !important;
+          border-radius: 10px !important;
+          border: 2px solid #f1f5f9 !important;
+        }
+
+        .inner-table {
+          min-width: 1600px !important; 
+          width: max-content !important;
+          border-collapse: collapse;
+        }
+
+        .child-footer-summary {
+          position: sticky !important;
+          left: 0 !important;
+          width: 100% !important;
+          display: flex !important;
+          justify-content: flex-end !important;
+          padding: 20px;
+          z-index: 10;
+        }
+      }
+    }
+  }
 }
 
 /* --- Empty State Styling --- */

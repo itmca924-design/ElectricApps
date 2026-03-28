@@ -340,7 +340,7 @@ table {
   max-width: 100% !important; 
   overflow-x: auto !important;
   overflow-y: hidden;
-  padding: 0 0 60px 0 !important; /* Increased padding to definitely clear scrollbar below footer */
+  padding: 0 !important;
   margin-bottom: 20px;
   position: relative;
   background: white;
@@ -832,17 +832,13 @@ th.child-th {
 }
 
 .child-footer-summary {
-  position: sticky;
-  left: 0; /* Keep the container pinned to the visible viewport left to allow its contents to align right */
   display: flex;
   justify-content: flex-end;
   padding: 24px 0;
   width: 100%;
-  max-width: calc(100vw - 100px); /* Cap to current visible area to keep it fixed in view */
   border-top: 1px solid #f1f5f9;
   z-index: 5;
   background: transparent;
-  pointer-events: none; /* Allow clicks to pass through to the scrollbar if needed, but the box below is opaque */
 }
 
 .summary-box {
