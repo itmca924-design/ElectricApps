@@ -79,7 +79,7 @@
   width: 100%;
   padding: 24px;
   box-sizing: border-box;
-  background-color: #f4f7fe;
+  background-color: var(--app-bg);
   transition: all 0.3s ease;
   
   // Iske andar ke content (KPIs, Charts, Table) ki purani classes yahan rahegi
@@ -112,8 +112,12 @@
       margin: 0; 
       font-size: 26px; 
       font-weight: 700; 
-      color: #1b1b1b;
+      color: var(--app-text, #1b1b1b);
       letter-spacing: -0.5px;
+      
+      [dir='rtl'] & {
+        text-align: right;
+      }
     }
 
     .live-badge {
@@ -194,6 +198,10 @@
         line-height: 1.4;
         
         &.status-online { color: #2e7d32; }
+
+        [dir='rtl'] & {
+          text-align: right;
+        }
       }
     }
   }
@@ -248,6 +256,11 @@
     justify-content: flex-start;
     padding: 0 20px;
     gap: 12px;
+    
+    [dir='rtl'] & {
+      flex-direction: row-reverse;
+      justify-content: flex-start;
+    }
     font-weight: 600;
     font-size: 14px;
     transition: all 0.3s ease;
@@ -270,6 +283,14 @@
     &.purchase { background: #e3f2fd; color: #1565c0; }
     &.receipt { background: #fff3e0; color: #ef6c00; }
     &.payment { background: #f3e5f5; color: #7b1fa2; }
+
+    [class*="dark-mode"] & {
+       border: 1px solid rgba(255, 255, 255, 0.1);
+       &.sales { background: rgba(46, 125, 50, 0.2); color: #81c784; }
+       &.purchase { background: rgba(21, 101, 192, 0.2); color: #64b5f6; }
+       &.receipt { background: rgba(239, 108, 0, 0.2); color: #ffb74d; }
+       &.payment { background: rgba(123, 31, 162, 0.2); color: #ba68c8; }
+    }
   }
 }
 
@@ -285,8 +306,9 @@
 .hover-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border-radius: 12px;
-  border: none;
-  background: #fff;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background: var(--card-bg, #ffffff);
+  color: var(--app-text, inherit);
   overflow: hidden;
 
   &:hover {
@@ -305,10 +327,15 @@
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     color: white; margin-right: 16px;
+
+    [dir='rtl'] & {
+      margin-right: 0;
+      margin-left: 16px;
+    }
   }
 
-  .card-label { color: #6c757d; font-size: 14px; margin: 0; }
-  .card-value { font-size: 24px; font-weight: 700; margin-top: 4px; color: #343a40; }
+  .card-label { color: var(--app-text, #6c757d); opacity: 0.8; font-size: 14px; margin: 0; [dir='rtl'] & { text-align: right; } }
+  .card-value { font-size: 24px; font-weight: 700; margin-top: 4px; color: var(--app-text, #343a40); [dir='rtl'] & { text-align: right; } }
 }
 
 /* Red Pulse Alert */
@@ -377,13 +404,18 @@
   padding: 0 16px;
   border-bottom: 1px solid rgba(0,0,0,0.12);
   gap: 10px;
+
+  [dir='rtl'] & {
+    direction: rtl;
+    text-align: right;
+  }
 }
 
 .table-header {
   font-weight: 500;
-  color: rgba(0,0,0,0.54);
+  color: var(--app-text, rgba(0,0,0,0.54));
   height: 56px;
-  background: white;
+  background: var(--card-bg, white);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -394,9 +426,19 @@
 .table-row {
   height: 48px;
   font-size: 14px;
-  box-sizing: border-box; 
+  box-sizing: border-box;
+  color: var(--app-text);
+  
   &:hover {
-    background-color: #f5f5f5;
+    background-color: rgba(var(--dg-primary-theme-rgb, 156, 39, 176), 0.1);
+  }
+
+  [class*="dark-mode"] & {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
   }
 }
 
@@ -434,15 +476,16 @@
   transition: all 0.3s ease;
   
   &:active {
-    transform: scale(0.95); // Click karne par thoda dabega
-    background-color: #f5f5f5;
+    transform: scale(0.95);
+    background-color: var(--card-bg, #f5f5f5);
+    filter: brightness(0.9);
   }
 }
 
 /* ======================== Customer Dues Card ======================== */
 .dues-card {
   border: 2px solid transparent;
-  background: linear-gradient(white, white) padding-box,
+  background: linear-gradient(var(--card-bg, white), var(--card-bg, white)) padding-box,
               linear-gradient(135deg, #e91e63, #ff5722) border-box !important;
   position: relative;
   overflow: visible !important;
@@ -496,7 +539,8 @@
 }
 
 .dues-modal {
-  background: #ffffff;
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, transparent);
   border-radius: 20px;
   width: 100%;
   max-width: 820px;

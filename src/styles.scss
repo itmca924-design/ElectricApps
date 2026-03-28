@@ -96,6 +96,15 @@ $theme-colors-rgb: (
   }
 }
 
+/* 🔹 Global RTL Support */
+[dir='rtl'] {
+  text-align: right !important; /* Force global alignment */
+
+  .welcome-text, .breadcrumb, .toolbar-title, .nav-actions {
+    text-align: right;
+  }
+}
+
 /* =====================================================
    2. BASE RESET
 ===================================================== */
@@ -105,8 +114,25 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Inter', Roboto, "Helvetica Neue", sans-serif;
-  background-color: #f5f7f9;
+  background-color: var(--app-bg, #f5f7f9);
+  color: var(--app-text, #1e293b);
   overflow: hidden; /* Strict lock */
+}
+
+/* Base Variable Defaults */
+:root {
+  --app-bg: #f5f7f9;
+  --app-text: #1e293b;
+  --card-bg: #ffffff;
+  --border-color: #e5e7eb;
+}
+
+/* Global Dark Mode Variables */
+html.dark-mode {
+  --app-bg: #0f172a; /* Deep slate background */
+  --app-text: #f8fafc;
+  --card-bg: #1e293b;
+  --border-color: #334155;
 }
 
 h1, h2, h3, h4, h5, h6 {

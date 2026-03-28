@@ -51,6 +51,7 @@ export class MainLayoutComponent implements OnInit {
 
   isMobile = false;
   isDarkMode = false;
+  isRtl = false;
   currentTheme = '';
   userEmail: string | null = null;
   notifications: NotificationDto[] = [];
@@ -153,6 +154,12 @@ export class MainLayoutComponent implements OnInit {
       this.cdr.detectChanges();
     });
 
+    // Direction subscription
+    this.themeService.direction$.subscribe(dir => {
+      this.isRtl = dir === 'rtl';
+      this.cdr.detectChanges();
+    });
+
     // Global loading state handled at App level for covering dialogs
     // Logic moved to app.ts
 
@@ -220,6 +227,10 @@ export class MainLayoutComponent implements OnInit {
 
   setTheme(themeName: string): void {
     this.themeService.setTheme(themeName);
+  }
+
+  toggleDirection(): void {
+    this.themeService.toggleDirection();
   }
 
   toggleSidenav(): void {

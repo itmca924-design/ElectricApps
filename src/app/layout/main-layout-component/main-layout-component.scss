@@ -10,6 +10,11 @@
   border-right: none;
   display: flex !important;
   flex-direction: column !important;
+
+  [dir='rtl'] & {
+    border-right: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+  }
 }
 
 .branding {
@@ -27,6 +32,21 @@
       font-size: 24px;
       width: 24px;
       height: 24px;
+
+      [dir='rtl'] & {
+        margin-left: 0;
+        margin-right: 0;
+      }
+    }
+
+    .logo-img {
+      height: 30px;
+      margin-right: 12px;
+
+      [dir='rtl'] & {
+        margin-right: 0;
+        margin-left: 12px;
+      }
     }
 
     .logo-text {
@@ -119,6 +139,11 @@
       bottom: 0;
       width: 4px;
       background: var(--dg-primary-theme, #9c27b0);
+
+      [dir='rtl'] & {
+        left: auto;
+        right: 0;
+      }
     }
 
     .menu-icon {
@@ -144,6 +169,11 @@
   height: 20px;
   color: #94a3b8; // Lighter icon color
   margin-right: 16px;
+
+  [dir='rtl'] & {
+    margin-right: 0;
+    margin-left: 16px;
+  }
 }
 
 ::ng-deep .mat-expansion-indicator::after {
@@ -173,6 +203,10 @@
   @media (max-width: 600px) {
     padding: 0 8px !important; /* Minimum padding for mobile */
   }
+
+  [dir='rtl'] & {
+    flex-direction: row-reverse !important; // Correctly flip toolbar layout
+  }
 }
 
 .toolbar-title {
@@ -180,6 +214,12 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   margin-left: 16px;
+  
+  [dir='rtl'] & {
+    margin-left: 0;
+    margin-right: 16px;
+  }
+  
   font-family: 'Inter', sans-serif;
   white-space: nowrap;
   overflow: hidden;
@@ -210,7 +250,7 @@
 .content {
   flex: 1;
   padding: 16px 24px 24px; // Reduced top padding to move content UP
-  background-color: #f9fafb;
+  background-color: var(--app-bg);
   overflow-y: auto;
 }
 
@@ -220,17 +260,17 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 32px;
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: var(--card-bg, rgba(255, 255, 255, 0.85)) !important;
   backdrop-filter: blur(10px);
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color, #e2e8f0);
   font-size: 0.8rem;
-  color: #64748b;
+  color: var(--app-text, #64748b);
   font-family: 'Inter', sans-serif;
   position: relative;
   z-index: 10;
 
   .footer-left {
-    strong { color: #1e293b; font-weight: 700; }
+    strong { color: var(--app-text, #1e293b); font-weight: 700; opacity: 0.9; }
   }
 
   .footer-right {
@@ -271,22 +311,36 @@
 
 .welcome-text {
   font-size: 0.825rem;
-  font-weight: 600;
-  color: #111827;
-  background: #f8fafc;
-  padding: 8px 18px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15); /* Translucent Crystal Background */
+  backdrop-filter: blur(12px); /* Premium Glass Effect */
+  padding: 8px 20px;
   border-radius: 99px;
   margin-right: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.25); /* Glowing Crystal Border */
   white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  [dir='rtl'] & {
+    margin-right: 0;
+    margin-left: 16px;
+  }
 
   @media (max-width: 900px) {
-    display: none !important; /* Force hide the email bubble on mobile/tablet */
-    width: 0;
-    height: 0;
-    padding: 0;
-    margin: 0;
-    visibility: hidden;
+    display: none !important;
   }
 }
 
@@ -395,7 +449,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
 
-.nav-icon.stock-trigger {
+.nav-icon.stock-trigger, .nav-icon.menu-trigger-btn {
   background: rgba(255, 255, 255, 0.2) !important;
   border-radius: 50% !important;
   width: 42px !important;
@@ -413,16 +467,26 @@
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2) !important;
   }
   
-  mat-icon.pulse {
-    animation: pulse-animation 2s infinite;
+  mat-icon {
     font-size: 22px;
     width: 22px;
     height: 22px;
-    margin: 0 !important; /* Force center by removing global button margins */
+    margin: 0 !important; /* Force center */
     padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+  }
+
+  mat-icon.pulse {
+    animation: pulse-animation 2s infinite;
+  }
+}
+
+/* RTL Icon Mirroring */
+[dir='rtl'] {
+  .expand-icon, .mat-expansion-indicator, .chevron-icon {
+    transform: scaleX(-1);
   }
 }
 

@@ -9,9 +9,11 @@ export class ThemeService {
     private overlayContainer = inject(OverlayContainer);
     private darkMode = new BehaviorSubject<boolean>(this.getInitialDarkMode());
     private activeTheme = new BehaviorSubject<string>(this.getInitialTheme());
+    private direction = new BehaviorSubject<'ltr' | 'rtl'>(this.getInitialDirection());
 
     darkMode$ = this.darkMode.asObservable();
     activeTheme$ = this.activeTheme.asObservable();
+    direction$ = this.direction.asObservable();
 
     availableThemes = [
         { name: 'azure-blue', label: 'Azure & Blue', color: '#007fff' },
@@ -27,14 +29,14 @@ export class ThemeService {
     ];
 
     constructor() {
-        this.applyTheme(this.activeTheme.value, this.darkMode.value);
+        this.applyTheme(this.activeTheme.value, this.darkMode.value, this.direction.value);
     }
 
     setTheme(themeName: string) {
         if (this.availableThemes.find(t => t.name === themeName)) {
             this.activeTheme.next(themeName);
             localStorage.setItem('active-theme', themeName);
-            this.applyTheme(themeName, this.darkMode.value);
+            this.applyTheme(themeName, this.darkMode.value, this.direction.value);
         }
     }
 
@@ -42,7 +44,14 @@ export class ThemeService {
         const newMode = !this.darkMode.value;
         this.darkMode.next(newMode);
         localStorage.setItem('dark-mode', newMode ? 'true' : 'false');
-        this.applyTheme(this.activeTheme.value, newMode);
+        this.applyTheme(this.activeTheme.value, newMode, this.direction.value);
+    }
+
+    toggleDirection() {
+        const newDirection = this.direction.value === 'ltr' ? 'rtl' : 'ltr';
+        this.direction.next(newDirection);
+        localStorage.setItem('app-direction', newDirection);
+        this.applyTheme(this.activeTheme.value, this.darkMode.value, newDirection);
     }
 
     private getInitialDarkMode(): boolean {
@@ -57,10 +66,16 @@ export class ThemeService {
         return localStorage.getItem('active-theme') || 'azure-blue';
     }
 
-    private applyTheme(theme: string, isDark: boolean) {
-        console.log(`Applying theme: ${theme}, Dark Mode: ${isDark}`);
+    private getInitialDirection(): 'ltr' | 'rtl' {
+        return (localStorage.getItem('app-direction') as 'ltr' | 'rtl') || 'ltr';
+    }
+
+    private applyTheme(theme: string, isDark: boolean, direction: 'ltr' | 'rtl') {
+        console.log(`Applying theme: ${theme}, Dark Mode: ${isDark}, Direction: ${direction}`);
         const root = document.documentElement;
+        root.setAttribute('dir', direction); // Critical for LTR/RTL switching
         const overlay = this.overlayContainer.getContainerElement();
+        overlay.setAttribute('dir', direction); // Ensure dialogs follow direction
 
         // Remove previous theme classes
         this.availableThemes.forEach(t => {

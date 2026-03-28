@@ -1,5 +1,5 @@
 
-<mat-sidenav-container class="sidenav-container">
+<mat-sidenav-container class="sidenav-container" [dir]="isRtl ? 'rtl' : 'ltr'">
 
   <!-- SIDE NAV -->
   <mat-sidenav #sidenav class="sidenav" [mode]="isMobile ? 'over' : 'side'" [opened]="!isMobile">
@@ -75,7 +75,7 @@
 
     <!-- TOOLBAR -->
     <mat-toolbar color="primary" class="toolbar">
-      <button mat-icon-button (click)="toggleSidenav()" aria-label="Menu">
+      <button mat-icon-button (click)="toggleSidenav()" aria-label="Menu" class="nav-icon menu-trigger-btn">
         <mat-icon>menu</mat-icon>
       </button>
 
@@ -106,9 +106,15 @@
           
           <mat-divider></mat-divider>
           
-          <div mat-menu-item (click)="$event.stopPropagation()">
+          <div mat-menu-item>
             <mat-slide-toggle [checked]="isDarkMode" (change)="toggleTheme()">
               Dark Mode
+            </mat-slide-toggle>
+          </div>
+
+          <div mat-menu-item>
+            <mat-slide-toggle [checked]="isRtl" (change)="toggleDirection()">
+              RTL Mode (Right-to-Left)
             </mat-slide-toggle>
           </div>
         </mat-menu>
