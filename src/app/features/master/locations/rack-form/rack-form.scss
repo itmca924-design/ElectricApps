@@ -13,12 +13,14 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--app-text, #1e293b);
 }
 
 .form-card {
   padding: 24px;
   border-radius: 12px;
+  background: var(--card-bg, white);
+  border: 1px solid var(--border-color, #e2e8f0);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -45,5 +47,50 @@
 
 .status-toggle {
   margin-top: 8px;
+  color: var(--app-text);
+}
+
+// Global Dark Mode Override for this component
+:host-context(.dark-mode) {
+  .page-title { color: #ffffff !important; opacity: 1; }
+  
+  .form-header {
+    button[mat-icon-button] {
+      color: #ffffff !important;
+    }
+  }
+
+  .form-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  mat-form-field {
+    ::ng-deep {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+      .mat-mdc-form-field-input-control { color: white !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      .mat-mdc-select-value { color: white !important; }
+      .mat-mdc-select-arrow svg { fill: white !important; }
+    }
+  }
+
+  .status-toggle {
+    ::ng-deep .mdc-label { color: #f8fafc !important; }
+  }
+
+  .back-btn {
+    color: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: white !important;
+    }
+  }
 }
 

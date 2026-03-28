@@ -250,6 +250,34 @@ $my-palettes: (
   }
 }
 
+/* 🔹 Material Overlay Dark Mode Global Fix */
+html.dark-mode {
+  .mat-mdc-select-panel, 
+  .mat-mdc-menu-panel,
+  .mat-mdc-autocomplete-panel,
+  .mat-datepicker-content,
+  .mat-mdc-dialog-surface,
+  .mat-mdc-option {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    
+    .mdc-list-item__primary-text {
+      color: inherit !important;
+    }
+  }
+  
+  .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+  .mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    .mdc-list-item__primary-text { color: white !important; }
+  }
+
+  // Specific fix for paginator select dropdown text
+  .mat-mdc-select-value-text {
+    color: #f8fafc !important;
+  }
+}
+
 /* =====================================================
    8. DIALOG FIXES
 ===================================================== */
@@ -570,6 +598,31 @@ $my-palettes: (
     line-height: 32px !important;
   }
 
+  /* Dark Mode specific overrides for tables */
+  html.dark-mode & {
+    .mat-mdc-header-cell {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .mat-sort-header-stem,
+    .mat-sort-header-indicator,
+    .mat-sort-header-arrow {
+      color: #ffffff !important;
+      opacity: 1 !important;
+    }
+
+    .mat-mdc-cell {
+      color: #f8fafc !important;
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .mat-mdc-row:hover {
+      background-color: rgba(255, 255, 255, 0.03) !important;
+    }
+  }
+
   /* Body Cell Styles */
   .mat-mdc-cell {
     font-size: 13px !important; /* Standard readable size */
@@ -587,6 +640,10 @@ $my-palettes: (
 
     &:hover {
       background-color: #f8fafc !important;
+      
+      html.dark-mode & {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+      }
     }
   }
 

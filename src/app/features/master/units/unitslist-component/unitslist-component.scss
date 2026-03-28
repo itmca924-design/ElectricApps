@@ -5,7 +5,8 @@
 
 .bulk-unit-container {
   padding: 0 24px;
-  background-color: #f8f9fa;
+  background-color: var(--app-bg, #f8f9fa);
+  color: var(--app-text);
   height: calc(100vh - 260px);
   display: flex;
   flex-direction: column;
@@ -49,6 +50,68 @@
     border-radius: 16px;
     font-size: 12px;
     font-weight: 500;
+  }
+}
+
+// Global Dark Mode Override for this component
+:host-context(.dark-mode) {
+  .bulk-unit-container { background: transparent !important; }
+  
+  .unit-card,
+  mat-card,
+  .table-responsive,
+  table,
+  .mat-mdc-table {
+    background: #1e293b !important;
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+  
+  ::ng-deep {
+    th.mat-mdc-header-cell {
+      background: #1e293b !important;
+      color: #f8fafc !important;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    tr.mat-mdc-row {
+      background: transparent !important;
+      &:hover { background-color: rgba(255, 255, 255, 0.03) !important; }
+    }
+    
+    td.mat-mdc-cell {
+      color: #f8fafc !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+      opacity: 0.95;
+    }
+
+    .mat-mdc-paginator {
+      background: #1e293b !important;
+      color: white !important;
+      .mat-mdc-paginator-container { color: white !important; }
+      .mat-mdc-paginator-navigation-next,
+      .mat-mdc-paginator-navigation-previous {
+        color: white !important;
+        svg { fill: currentColor !important; }
+      }
+      .mat-mdc-select-value { color: white !important; }
+      .mat-mdc-select-arrow svg { fill: white !important; }
+    }
+  }
+
+  h2 { color: #f8fafc !important; }
+
+  mat-form-field {
+    ::ng-deep {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+      .mat-mdc-form-field-input-control { color: white !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      input::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+    }
   }
 }
 

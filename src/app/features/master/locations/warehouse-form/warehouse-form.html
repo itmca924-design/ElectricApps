@@ -38,7 +38,7 @@
         </div>
   
         <div class="form-actions">
-          <button mat-stroked-button type="button" routerLink="/app/master/warehouses">CANCEL</button>
+          <button mat-raised-button type="button" routerLink="/app/master/warehouses">CANCEL</button>
           <button mat-raised-button color="primary" type="submit" [disabled]="warehouseForm.invalid || isLoading">
             <mat-icon>save</mat-icon> {{ isEditMode ? 'UPDATE' : 'SAVE' }} WAREHOUSE
           </button>

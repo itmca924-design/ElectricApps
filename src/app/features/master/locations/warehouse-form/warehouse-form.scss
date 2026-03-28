@@ -13,11 +13,16 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
+  color: var(--app-text, #1e293b);
 }
 
 .form-card {
   padding: 24px;
+  background: var(--card-bg, white);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
 }
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -31,17 +36,79 @@
 .full-width {
   grid-column: 1 / -1;
 }
+
 .form-actions {
-margin-top: 24px;
-display: flex;
-gap: 12px;
-justify-content: flex-end;
+  margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
 }
+
 .status-toggle {
-margin-top: 8px;
+  margin-top: 8px;
 }
+
 .hint-text {
-font-size: 12px;
-color: #666;
-margin-top: 4px;
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+// Global Dark Mode Override for this component
+:host-context(.dark-mode) {
+  .page-title { 
+    color: #ffffff !important; 
+    opacity: 1; 
+  }
+  
+  .form-header {
+    button[mat-icon-button] {
+      color: #ffffff !important;
+    }
+  }
+
+  .form-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  mat-form-field {
+    ::ng-deep {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+      .mat-mdc-form-field-input-control { color: white !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      textarea::placeholder, 
+      input::placeholder { 
+        color: rgba(255, 255, 255, 0.6) !important; 
+      }
+      .mat-mdc-select-value { color: white !important; }
+      .mat-mdc-select-arrow svg { fill: white !important; }
+    }
+  }
+
+  .status-toggle {
+    ::ng-deep .mdc-label { 
+      color: #f8fafc !important; 
+      opacity: 0.9; 
+    }
+  }
+
+  .hint-text {
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .back-btn {
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    opacity: 1 !important;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      color: white !important;
+    }
+  }
 }

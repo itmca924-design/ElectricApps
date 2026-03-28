@@ -1,6 +1,7 @@
 .inventory-dashboard-container {
   padding: 24px;
-  background-color: #f8fafc;
+  background-color: var(--app-bg);
+  color: var(--app-text);
   min-height: calc(100vh - 120px);
 }
 
@@ -13,11 +14,12 @@
   .title-section {
     h1 {
       margin: 0 0 4px 0;
-      color: #1e293b;
+      color: var(--app-text, #1e293b);
       font-weight: 700;
     }
     p {
       margin: 0;
+      color: var(--app-text);
       opacity: 0.7;
     }
   }
@@ -25,11 +27,12 @@
   .date-display {
     display: flex;
     align-items: center;
-    background: white;
+    background: var(--card-bg, white);
     padding: 10px 20px;
     border-radius: 12px;
-    color: #475569;
+    color: var(--app-text, #475569);
     gap: 10px;
+    border: 1px solid var(--border-color, transparent);
     
     mat-icon {
       font-size: 20px;
@@ -132,14 +135,15 @@
 
 .data-card {
   border-radius: 20px;
-  border: none;
+  border: 1px solid var(--border-color, transparent);
+  background: var(--card-bg, white);
   overflow: hidden;
 
   mat-card-header {
     padding: 16px 24px;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
 
     .header-icon-box {
       width: 40px;
@@ -159,7 +163,7 @@
       margin: 0;
       font-size: 18px;
       font-weight: 700;
-      color: #1e293b;
+      color: var(--app-text, #1e293b);
     }
 
     .spacer { flex: 1; }
@@ -175,24 +179,34 @@
   background: transparent;
 
   th.mat-mdc-header-cell {
-    background: #f8fafc;
-    color: #64748b;
+    background: var(--app-bg, #f8fafc);
+    color: var(--app-text, #64748b);
+    opacity: 1; /* Maximum visibility */
     font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.7px;
     padding: 16px 24px;
+    border-bottom: 2px solid var(--border-color, #f1f5f9);
   }
 
   td.mat-mdc-cell {
     padding: 16px 24px;
-    color: #475569;
+    color: var(--app-text, #475569); /* Fallback */
     font-size: 14px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+  }
+
+  // Force pure white text in dark mode specifically for all table rows
+  :host-context(.dark-mode) & {
+    td.mat-mdc-cell {
+      color: #f8fafc !important; 
+      opacity: 1 !important;
+    }
   }
 
   .mat-mdc-row:hover {
-    background-color: #f8fafc;
+    background-color: rgba(var(--dg-primary-theme-rgb), 0.05);
   }
 }
 
@@ -203,6 +217,10 @@
   font-weight: 700;
   display: inline-block;
   font-family: 'Roboto Mono', monospace;
+  
+  [class*="dark-mode"] & {
+    color: #f8fafc !important;
+  }
   
   &.po { background-color: #eff6ff; color: #2563eb; border: 1px solid #dbeafe; }
   &.grn { background-color: #f0fdf4; color: #16a34a; border: 1px solid #dcfce7; }
@@ -233,14 +251,19 @@
   p { margin: 0; font-size: 16px; font-weight: 500; }
 }
 
-.actions-card {
+.actions-card, .stock-alerts {
   border-radius: 20px;
-  border: none;
+  border: 1px solid var(--border-color, transparent);
+  background: var(--card-bg, white);
 
   mat-card-header {
     padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9;
-    mat-card-title { font-size: 18px; font-weight: 700; }
+    border-bottom: 1px solid var(--border-color, #f1f5f9);
+    mat-card-title { 
+      font-size: 18px; 
+      font-weight: 700; 
+      color: var(--app-text);
+    }
   }
 
   mat-card-content { padding: 20px 24px !important; }
@@ -255,18 +278,38 @@
     justify-content: flex-start;
     padding: 24px 20px;
     border-radius: 16px;
-    background: #f8fafc;
-    border-left: 5px solid #cbd5e1;
+    background: var(--app-bg, #f8fafc);
+    border-left: 5px solid var(--border-color, #cbd5e1);
     height: auto;
     transition: all 0.3s ease;
 
     mat-icon { margin-right: 16px; font-size: 24px; width: 24px; height: 24px; }
-    span { font-weight: 700; font-size: 15px; color: #334155; }
+    span { 
+      font-weight: 700; 
+      font-size: 15px; 
+      color: var(--app-text, #334155);
+      letter-spacing: 0.2px;
+    }
 
     &:hover {
-      background: white;
+      background: var(--card-bg, white);
       transform: translateX(8px);
       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    [class*="dark-mode"] & {
+       background: rgba(255, 255, 255, 0.03);
+       border-left-width: 6px;
+       span { color: #f8fafc !important; }
+       mat-icon { 
+         // Remove white override, let [style.color] from HTML win
+         opacity: 1 !important; 
+         filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.15)) brightness(1.2); /* Enhance color brightness */
+       }
+       
+       &:hover {
+         background: rgba(255, 255, 255, 0.08);
+       }
     }
   }
 }
