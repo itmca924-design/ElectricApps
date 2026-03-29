@@ -543,4 +543,37 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
   }
+
+  /* ⚡ USER MENU POPOVER POLISH (NUCLEAR FORCE) ⚡ */
+  ::ng-deep .mat-mdc-menu-panel {
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    border-radius: 12px !important;
+    
+    .mat-mdc-menu-item {
+        color: #ffffff !important;
+        mat-icon { color: #ffffff !important; opacity: 0.9; }
+        span { color: #ffffff !important; font-weight: 500; }
+        
+        &:hover { background-color: rgba(255, 255, 255, 0.05) !important; }
+        
+        /* Logout Special Highlight */
+        &[mat-menu-item]:has(mat-icon:contains("logout")), 
+        &:last-child {
+            color: #fca5a5 !important;
+            mat-icon { color: #ef4444 !important; }
+        }
+    }
+
+    .menu-user-header {
+        background: #0f172a !important;
+        padding: 12px 16px !important;
+        .menu-email-label { color: rgba(255, 255, 255, 0.5) !important; font-size: 10px; text-transform: uppercase; }
+        .menu-email-value { color: #ffffff !important; font-size: 12px; font-weight: 600; }
+    }
+
+    mat-divider { border-top-color: rgba(255, 255, 255, 0.05) !important; }
+    .mat-subheader { color: rgba(255, 255, 255, 0.4) !important; }
+  }
 }

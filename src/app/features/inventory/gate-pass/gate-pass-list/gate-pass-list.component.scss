@@ -382,12 +382,133 @@
 }
 
 :host-context(.dark-mode) {
-    .loading-overlay {
-        background: rgba(30, 30, 30, 0.7);
+    .page-container { background-color: #0f172a !important; }
+
+    .page-header {
+        .page-title { color: #ffffff !important; }
+        .subtitle { color: rgba(255, 255, 255, 0.7) !important; }
     }
 
-    .type-badge.inward { background: #1e3a5f; color: #64b5f6; }
-    .type-badge.outward { background: #4a148c33; color: #ba68c8; }
+    .stat-card {
+        background: #1e293b !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        .stat-info .label { color: rgba(255, 255, 255, 0.6) !important; }
+        .stat-info .value { color: #ffffff !important; }
+        
+        &.inward {
+            border-left-color: #0ea5e9 !important;
+            .stat-icon { background: rgba(14, 165, 233, 0.1) !important; color: #0ea5e9 !important; }
+        }
+        &.outward {
+            border-left-color: #a21caf !important;
+            .stat-icon { background: rgba(162, 28, 175, 0.1) !important; color: #a21caf !important; }
+        }
+        &.total {
+            border-left-color: #fbbf24 !important;
+            .stat-icon { background: rgba(251, 191, 36, 0.1) !important; color: #fbbf24 !important; }
+        }
+    }
+
+    .filter-toolbar {
+        background: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        
+        .search-box {
+            background: #0f172a !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            input { 
+                color: #ffffff !important; 
+                &::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+            }
+            .search-icon { color: #ffffff !important; }
+        }
+
+        .date-filters {
+            ::ng-deep {
+                .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+                .mat-mdc-input-element { color: #ffffff !important; }
+                .mat-mdc-text-field-wrapper { background-color: #0f172a !important; }
+            }
+        }
+
+        .reset-btn {
+            background: #1e293b !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #ffffff !important;
+            &:hover { background: #334155 !important; }
+        }
+    }
+
+    /* ⚡ CALENDAR ICON VISIBILITY ⚡ */
+    ::ng-deep .mat-datepicker-toggle, ::ng-deep .mat-mdc-datepicker-toggle {
+        button, mat-icon, svg { 
+            color: #ffffff !important; 
+            fill: #ffffff !important; 
+            opacity: 1 !important; 
+        }
+    }
+
+    .table-container {
+        background: #1e293b !important;
+        border-radius: 12px;
+        table, mat-table, .mat-mdc-table {
+            background: #1e293b !important;
+        }
+        th { 
+            background: #0f172a !important; 
+            color: rgba(255, 255, 255, 0.6) !important; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        td, .mat-mdc-cell { 
+            background: #1e293b !important;
+            color: #ffffff !important; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; 
+            .vehicle-number { color: #ffffff !important; }
+            .driver-info { color: rgba(255, 255, 255, 0.5) !important; }
+        }
+        tr:hover td { background-color: rgba(255, 255, 255, 0.03) !important; }
+        .no-data-cell {
+            background: #1e293b !important;
+            color: rgba(255, 255, 255, 0.4) !important;
+        }
+    }
+
+    /* ⚡ PAGINATOR POLISH (ULTRA NUCLEAR FORCE) ⚡ */
+    ::ng-deep .mat-mdc-paginator {
+        background: #1e293b !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        
+        .mat-mdc-paginator-navigation-button { 
+            color: #ffffff !important; 
+            
+            .mat-mdc-paginator-icon, svg, mat-icon, path { 
+                fill: #ffffff !important; 
+                fill: white !important;
+                color: #ffffff !important; 
+            }
+            &.mat-mdc-button-disabled { 
+                opacity: 0.2 !important; 
+                .mat-mdc-paginator-icon, svg, mat-icon, path { fill: rgba(255, 255, 255, 0.3) !important; }
+            }
+        }
+        
+        .mat-mdc-paginator-page-size-label, 
+        .mat-mdc-paginator-range-label { 
+            color: rgba(255, 255, 255, 0.7) !important; 
+        }
+        
+        .mat-mdc-select-value-text { color: #ffffff !important; }
+        .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+    }
+
+    .type-badge.inward { background: rgba(3, 105, 161, 0.2) !important; color: #38bdf8 !important; }
+    .type-badge.outward { background: rgba(162, 28, 175, 0.2) !important; color: #e879f9 !important; }
     
-    .status-chip.status-entered { background: #1b5e2033; color: #81c784; }
+    .status-chip {
+        &.status-completed { background: rgba(2, 136, 209, 0.2) !important; color: #4fc3f7 !important; }
+        &.status-dispatched { background: rgba(245, 124, 0, 0.2) !important; color: #ffb74d !important; }
+        &.status-entered { background: rgba(46, 125, 50, 0.2) !important; color: #81c784 !important; }
+    }
+
+    .loading-overlay { background: rgba(15, 23, 42, 0.7) !important; }
 }

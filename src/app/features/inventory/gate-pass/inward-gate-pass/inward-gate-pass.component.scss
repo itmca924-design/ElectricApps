@@ -207,3 +207,86 @@ mat-card-actions {
     }
 }
 
+
+// ==========================================================================
+// INWARD GATE PASS ENTRY DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+    .container { background-color: #0f172a !important; }
+    
+    .wrapper { 
+        background-color: #1e293b !important; 
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    mat-card-header {
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        .back-button { color: #ffffff !important; }
+        mat-card-title { color: #ffffff !important; }
+        mat-card-subtitle { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+
+    .section-title { 
+        color: #10b981 !important; 
+        border-left-color: #10b981 !important; 
+    }
+
+    /* ⚡ INPUT FIELDS SAPPHIRE POLISH ⚡ */
+    ::ng-deep {
+        .mat-mdc-text-field-wrapper {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            .mat-mdc-input-element { 
+                color: #ffffff !important; 
+                &::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+            }
+        }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.6) !important; }
+        .mat-mdc-select-value-text { color: #ffffff !important; }
+        .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+        .mat-mdc-form-field-icon-suffix mat-icon { color: #ffffff !important; }
+        
+        /* ⚡ RADIO BUTTONS DARK POLISH ⚡ */
+        .mat-mdc-radio-button .mdc-radio .mdc-radio__background { border-color: rgba(255, 255, 255, 0.5) !important; }
+        .mat-mdc-radio-button .mdc-label { color: #ffffff !important; }
+        .mat-mdc-radio-button.mat-mdc-radio-checked .mdc-radio__background::after { background-color: #10b981 !important; }
+    }
+
+    .radio-label { color: rgba(255, 255, 255, 0.6) !important; }
+
+    .breakdown-info {
+        background: rgba(59, 130, 246, 0.1) !important;
+        border-left-color: #3b82f6 !important;
+        color: #93c5fd !important;
+        mat-icon { color: #3b82f6 !important; }
+    }
+
+    .vehicle-suggestions {
+        background: #1e293b !important;
+        border-color: rgba(59, 130, 246, 0.3) !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .vehicle-suggestion-item {
+        &:hover { background: rgba(255, 255, 255, 0.03) !important; }
+        &:not(:last-child) { border-bottom-color: rgba(255, 255, 255, 0.05) !important; }
+        .suggestion-text {
+            .veh-no { color: #ffffff !important; }
+            .driver-info { color: rgba(255, 255, 255, 0.5) !important; }
+        }
+        .suggestion-icon { color: #10b981 !important; }
+    }
+
+    mat-card-actions {
+        border-top-color: rgba(255, 255, 255, 0.05) !important;
+        button[mat-button] { color: #ffffff !important; }
+    }
+
+    .mat-mdc-form-field-hint { color: rgba(255, 255, 255, 0.6) !important; }
+
+    .save-btn-premium {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3) !important;
+    }
+}

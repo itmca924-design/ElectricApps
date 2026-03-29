@@ -209,3 +209,84 @@ mat-card-actions {
     }
 }
 
+
+// ==========================================================================
+// OUTWARD GATE PASS ENTRY DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+    .container { background-color: #0f172a !important; }
+    
+    .wrapper { 
+        background-color: #1e293b !important; 
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    mat-card-header {
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        .back-button { color: #ffffff !important; }
+        mat-card-title { color: #ffffff !important; }
+        mat-card-subtitle { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+
+    .section-title { 
+        color: #818cf8 !important; 
+        border-left-color: #818cf8 !important; 
+    }
+
+    .checkbox-row {
+        background: rgba(79, 70, 229, 0.1) !important;
+        ::ng-deep .mat-mdc-checkbox .mdc-label { color: #ffffff !important; }
+    }
+
+    /* ⚡ INPUT FIELDS SAPPHIRE POLISH ⚡ */
+    ::ng-deep {
+        .mat-mdc-text-field-wrapper {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            .mat-mdc-input-element { 
+                color: #ffffff !important; 
+                &::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+            }
+        }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.6) !important; }
+        .mat-mdc-select-value-text { color: #ffffff !important; }
+        .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+        .mat-mdc-form-field-icon-suffix mat-icon { color: #ffffff !important; }
+    }
+
+    .breakdown-info {
+        background: rgba(79, 70, 229, 0.1) !important;
+        border-left-color: #818cf8 !important;
+        color: #c7d2fe !important;
+        mat-icon { color: #818cf8 !important; }
+    }
+
+    .vehicle-suggestions {
+        background: #1e293b !important;
+        border-color: rgba(79, 70, 229, 0.3) !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .vehicle-suggestion-item {
+        &:hover { background: rgba(255, 255, 255, 0.03) !important; }
+        &:not(:last-child) { border-bottom-color: rgba(255, 255, 255, 0.05) !important; }
+        .suggestion-text {
+            .veh-no { color: #ffffff !important; }
+            .driver-info { color: rgba(255, 255, 255, 0.5) !important; }
+        }
+        .suggestion-icon { color: #818cf8 !important; }
+    }
+
+    mat-card-actions {
+        border-top-color: rgba(255, 255, 255, 0.05) !important;
+        button[mat-button] { color: #ffffff !important; }
+    }
+
+    .mat-mdc-form-field-hint { color: rgba(255, 255, 255, 0.6) !important; }
+
+    .save-btn-premium {
+        background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%) !important;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+    }
+}
