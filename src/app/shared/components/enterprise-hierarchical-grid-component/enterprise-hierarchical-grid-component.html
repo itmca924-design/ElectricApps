@@ -19,7 +19,7 @@
         <mat-icon color="primary">view_column</mat-icon>
       </button>
 
-      <mat-menu #columnMenu="matMenu" class="custom-column-menu">
+      <mat-menu #columnMenu="matMenu" panelClass="custom-column-menu">
         <div class="menu-header">Manage Visibility</div>
         <div class="menu-actions-row" (click)="$event.stopPropagation()">
           <button mat-button color="primary" class="mini-link-btn" (click)="toggleAllColumns(true)">Select All</button>

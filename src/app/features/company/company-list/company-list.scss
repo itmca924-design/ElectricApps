@@ -40,6 +40,22 @@
     letter-spacing: -0.02em;
   }
 
+  .title-section {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    
+    .header-icon {
+      margin: 0 !important;
+    }
+    
+    h2 {
+      margin: 0 !important;
+      display: inline-block !important; /* Ensure it doesn't force a wrap */
+      white-space: nowrap !important; /* Force one line */
+    }
+  }
+
   .action-section {
     display: flex;
     align-items: center;
@@ -147,4 +163,33 @@
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
   border: 1px solid #e2e8f0;
   padding: 0; /* Let grid handle padding */
+}
+
+// ==========================================================================
+// FULL PAGE DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .page-container {
+    background-color: #0f172a !important;
+  }
+
+  .header-row {
+    h2 {
+      color: #f8fafc !important;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+  }
+
+  .header-icon {
+    color: #6366f1 !important;
+    filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.3));
+  }
+
+  .grid-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+  }
 }

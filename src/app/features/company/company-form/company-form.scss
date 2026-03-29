@@ -4,7 +4,7 @@
 }
 
 .form-container {
-  max-width: 1000px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
 }
@@ -57,7 +57,6 @@
 .btn-sm { font-size: 12px; height: 32px; line-height: 32px; }
 
 /* Flexbox Helpers */
-
 .flex-column { display: flex; flex-direction: column; }
 .flex-row { display: flex; flex-direction: row; }
 .flex-wrap { flex-wrap: wrap; }
@@ -92,22 +91,6 @@ mat-card-header {
   .min-w-200, .min-w-250, .min-w-300 {
     min-width: 100%;
   }
-}
-.page-container {
-  background: #f1f5f9;
-  min-height: calc(100vh - 80px);
-}
-
-.form-container {
-  max-width: 1000px;
-  width: 100%;
-  margin: 0 auto;
-}
-
-.section-card {
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .logo-upload-container {
@@ -239,6 +222,177 @@ mat-card-header {
   user-select: none;
   opacity: 0.5;
   filter: blur(2px);
+}
+
+// ==========================================================================
+// COMPANY FORM DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  .page-container {
+    background-color: #0f172a !important;
+  }
+
+  .header-row, 
+  .section-card,
+  .signatory-row {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+  }
+
+  .header-row {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+  }
+
+  .logo-preview-box, 
+  .sig-preview {
+    background: #0f172a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    
+    mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+    
+    &:hover {
+      border-color: #3b82f6 !important;
+      background: rgba(59, 130, 246, 0.05) !important;
+    }
+  }
+
+  h2, h3, .mat-mdc-card-title, .section-header-title {
+    color: #f8fafc !important;
+  }
+
+  .mat-card-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .border-r {
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Material Form Field Polishing */
+  ::ng-deep {
+    .mat-mdc-form-field {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .mat-mdc-form-field-input-control { color: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      input::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+      
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+  }
+
+  .text-blue-600 {
+    color: #60a5fa !important;
+  }
+
+  .empty-state {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  button[mat-stroked-button] {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #94a3b8 !important;
+    &:hover { background: rgba(255,255,255,0.05) !important; color: #fff !important; }
+  }
+}
+
+// ==========================================================================
+// COMPANY FORM DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  .page-container {
+    background-color: #0f172a !important;
+  }
+
+  .header-row, 
+  .section-card,
+  .signatory-row {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+  }
+
+  .header-row {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+  }
+
+  .logo-preview-box, 
+  .sig-preview {
+    background: #0f172a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    
+    mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+    
+    &:hover {
+      border-color: #3b82f6 !important;
+      background: rgba(59, 130, 246, 0.05) !important;
+    }
+  }
+
+  h2, h3, .mat-mdc-card-title, .section-header-title {
+    color: #f8fafc !important;
+  }
+
+  .mat-card-header {
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .border-r {
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  /* Material Form Field Polishing */
+  ::ng-deep {
+    .mat-mdc-form-field {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .mat-mdc-form-field-input-control { color: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      input::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+      
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+  }
+
+  .text-blue-600 {
+    color: #60a5fa !important;
+  }
+
+  .empty-state {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  button[mat-stroked-button] {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #94a3b8 !important;
+    &:hover { background: rgba(255,255,255,0.05) !important; color: #fff !important; }
+  }
+
+  /* ⚡ Force Visibility for remaining black texts */
+  ::ng-deep .mat-mdc-slide-toggle label,
+  .mat-mdc-slide-toggle .mdc-label,
+  mat-card-subtitle, 
+  .mat-mdc-card-subtitle,
+  .section-description,
+  p, 
+  .text-muted,
+  .mat-mdc-form-field-hint,
+  span:not(.mat-mdc-button-touch-target):not(.mdc-button__label) {
+    color: rgba(255, 255, 255, 0.7) !important;
+  }
 }
 
 

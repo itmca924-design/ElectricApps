@@ -242,6 +242,14 @@
     }
   }
 
+  [class*="dark-mode"] &,
+  :host-context(.dark-mode) & {
+    .section-header {
+      color: #ffffff !important;
+      text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+  }
+
   .actions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -284,12 +292,25 @@
     &.receipt { background: #fff3e0; color: #ef6c00; }
     &.payment { background: #f3e5f5; color: #7b1fa2; }
 
-    [class*="dark-mode"] & {
-       border: 1px solid rgba(255, 255, 255, 0.1);
-       &.sales { background: rgba(46, 125, 50, 0.2); color: #81c784; }
-       &.purchase { background: rgba(21, 101, 192, 0.2); color: #64b5f6; }
-       &.receipt { background: rgba(239, 108, 0, 0.2); color: #ffb74d; }
-       &.payment { background: rgba(123, 31, 162, 0.2); color: #ba68c8; }
+    [class*="dark-mode"] &,
+    :host-context(.dark-mode) & {
+       background: #1e293b !important;
+       border: 1px solid rgba(255, 255, 255, 0.05) !important;
+       color: #ffffff !important;
+       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+       
+       span { color: #ffffff !important; }
+       
+       &.sales { mat-icon { color: #4ade80 !important; } }
+       &.purchase { mat-icon { color: #60a5fa !important; } }
+       &.receipt { mat-icon { color: #fbbf24 !important; } }
+       &.payment { mat-icon { color: #c084fc !important; } }
+
+       &:hover {
+         background: #2d3748 !important;
+         transform: translateY(-4px) !important;
+         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+       }
     }
   }
 }

@@ -462,3 +462,122 @@
     }
   }
 }
+
+// ==========================================================================
+// ROLE PERMISSIONS DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .header-actions {
+    .page-title { color: #f8fafc !important; }
+    .subtitle { color: rgba(255, 255, 255, 0.5) !important; }
+    
+    .compact-select ::ng-deep .mat-mdc-text-field-wrapper {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+    }
+  }
+
+  .list-container {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    
+    .table-toolbar {
+      background-color: #1e293b !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      
+      .compact-input ::ng-deep .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        .mat-mdc-input-element { color: #ffffff !important; }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+        mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+    }
+  }
+
+  .custom-tree-table {
+    .tree-header {
+      background: #0f172a !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      .cell { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+
+    .tree-body {
+      .tree-row, 
+      ::ng-deep mat-tree-node,
+      ::ng-deep mat-nested-tree-node,
+      ::ng-deep mat-tree {
+        background: #1e293b !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        
+        &:hover { background-color: rgba(255, 255, 255, 0.02) !important; }
+        
+        &.parent-node {
+          background-color: rgba(255, 255, 255, 0.02) !important;
+          .node-title { color: #ffffff !important; font-weight: 700 !important; }
+        }
+
+        .cell.menu-col {
+          .menu-icon { color: #ffffff !important; }
+          .node-title { color: rgba(255, 255, 255, 0.8) !important; }
+          .toggle-btn { color: rgba(255, 255, 255, 0.3) !important; }
+        }
+
+        .cell.action-col .compact-input ::ng-deep {
+          .mat-mdc-text-field-wrapper {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+          }
+          .mat-mdc-input-element { color: #ffffff !important; }
+        }
+      }
+    }
+
+    /* ⚡ Deep Force for Permission Inputs */
+    ::ng-deep .compact-input.no-label .mat-mdc-text-field-wrapper {
+      background-color: rgba(255, 255, 255, 0.03) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  .empty-state {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    h3 { color: #ffffff !important; }
+    p { color: rgba(255, 255, 255, 0.5) !important; }
+  }
+
+  /* Material Control Polishing */
+  ::ng-deep {
+    .mat-mdc-checkbox {
+      .mdc-checkbox__native-control:enabled:not(:checked):not(:indeterminate) ~ .mdc-checkbox__background {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+      }
+      .mdc-label { color: #ffffff !important; }
+    }
+
+    .mat-mdc-chip-row {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #cbd5e1 !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .suggestions-hint .hint-badge.green-badge {
+      background-color: rgba(16, 185, 129, 0.1) !important;
+      color: #10b981 !important;
+      border-color: rgba(16, 185, 129, 0.2) !important;
+    }
+  }
+
+  .reset-action-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    &:hover { background: rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; }
+  }
+}

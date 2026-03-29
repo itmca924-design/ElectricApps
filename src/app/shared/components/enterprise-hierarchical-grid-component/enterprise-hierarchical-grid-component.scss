@@ -1476,3 +1476,238 @@ button[color="success"] {
     color: #3b82f6;
   }
 }
+
+// ==========================================================================
+// ENTERPRISE GRID DARK MODE POLISH (GLOBAL)
+// ==========================================================================
+:host-context(.dark-mode) {
+  .enterprise-grid-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .grid-toolbar {
+    background: #1e293b !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+
+    .modern-datepicker ::ng-deep {
+      .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        .mat-mdc-input-element, input { color: #ffffff !important; }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+        .mat-date-range-input-separator { color: #ffffff !important; }
+      }
+      .mat-datepicker-toggle mat-icon, 
+      .mat-datepicker-toggle svg,
+      .mat-datepicker-toggle path {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+      }
+    }
+
+    ::ng-deep app-search-input .search-wrapper {
+      background-color: rgba(255, 255, 255, 0.03) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      .mat-mdc-input-element, input { color: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+    }
+    
+    .bulk-action-btn:not(.success-btn) { 
+      background: rgba(255, 255, 255, 0.05) !important; 
+      color: #ffffff !important; 
+      border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  .mat-mdc-header-row, .mat-header-row {
+    background: #0f172a !important;
+    th { 
+      background: #0f172a !important; 
+      color: rgba(255, 255, 255, 0.5) !important; 
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  .mat-mdc-row, .mat-row {
+    background: #1e293b !important;
+    td { 
+      color: #ffffff !important; 
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important; 
+    }
+    &:hover { background-color: rgba(255, 255, 255, 0.02) !important; }
+  }
+
+  /* Sticky Actions Polishing */
+  .mat-column-actions {
+    background: #1e293b !important;
+    border-left-color: rgba(255, 255, 255, 0.1) !important;
+    &.mat-mdc-header-cell { background: #0f172a !important; }
+  }
+
+  .master-row:hover .mat-column-actions {
+    background-color: #1e293b !important;
+  }
+
+  /* Child Table Section */
+  .child-table-scroll {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    &::-webkit-scrollbar-track { background: transparent !important; }
+    &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1) !important; }
+  }
+
+  th.child-th {
+    background: #0f172a !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .child-row td {
+    color: rgba(255, 255, 255, 0.8) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+  }
+  .child-row:hover { background-color: rgba(255, 255, 255, 0.03) !important; }
+
+  .child-footer-row, .detail-panel {
+    background: #0f172a !important;
+    td { color: #ffffff !important; border-top-color: rgba(255, 255, 255, 0.1) !important; }
+  }
+
+  /* SUPREME FORCE POLISH FOR CHILD HEADER & SUMMARY */
+  .child-header {
+    background: #0f172a !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    .child-title { color: #ffffff !important; }
+  }
+
+  .summary-item {
+    color: rgba(255, 255, 255, 0.5) !important;
+    .value { color: #ffffff !important; }
+    &.grand-total, &.grand-total-section {
+      border-top-color: rgba(255, 255, 255, 0.1) !important;
+      .label { color: #ffffff !important; }
+      .value { color: #60a5fa !important; }
+    }
+  }
+
+  /* Forced Global Summary Box Polish - PERSISTENT FORCE */
+  ::ng-deep .summary-box,
+  .summary-box {
+    background-color: #1e293b !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4) !important;
+    
+    .summary-item {
+      color: rgba(255, 255, 255, 0.6) !important;
+      .value { color: #ffffff !important; }
+      &.grand-total, &.grand-total-section {
+        border-top-color: rgba(255, 255, 255, 0.1) !important;
+        .label { color: #ffffff !important; }
+        .value { color: #60a5fa !important; }
+      }
+    }
+  }
+
+  .scroll-nav-floating {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    &:hover { background: #3b82f6 !important; }
+  }
+
+  .select-header {
+    background: #0f172a !important;
+    border-right-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .items-loading-container {
+    background: #0f172a !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  .no-data-msg { color: rgba(255, 255, 255, 0.3) !important; }
+
+  /* ⚡ EXECUTIVE WHITE CHECKBOXES FORCE ⚡ */
+  ::ng-deep .mat-mdc-checkbox {
+    .mdc-checkbox__native-control:enabled:not(:checked) ~ .mdc-checkbox__background {
+      border-color: rgba(255, 255, 255, 0.5) !important;
+    }
+    .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+      border-color: #3b82f6 !important;
+      background-color: #3b82f6 !important;
+    }
+    .mdc-checkbox__checkmark {
+      color: #ffffff !important;
+    }
+  }
+
+  /* ⚡ EXECUTIVE PAGINATOR DARK POLISH ⚡ */
+  .grid-paginator {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+
+    ::ng-deep {
+      .mat-mdc-paginator-container { color: #ffffff !important; }
+      .mat-mdc-paginator-range-label { color: #ffffff !important; }
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      
+      /* Paginator Icons */
+      button.mat-mdc-icon-button {
+        color: #ffffff !important;
+        &:disabled { color: rgba(255, 255, 255, 0.3) !important; }
+        .mat-mdc-paginator-icon { fill: #ffffff !important; }
+      }
+      
+      .mat-mdc-form-field-wrapper, .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 4px;
+        .mat-mdc-form-field-flex { background: transparent !important; }
+      }
+    }
+  }
+
+  /* ⚡ CUSTOM COLUMN MENU DARK POLISH (OVERLAY) ⚡ */
+  ::ng-deep .custom-column-menu {
+    background-color: #1e293b !important;
+    background: #1e293b !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+
+    .menu-header, .mat-mdc-menu-header {
+      padding: 12px 16px !important;
+      font-size: 13px !important;
+      font-weight: 600 !important;
+      color: #ffffff !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+      background: #0f172a !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.5px !important;
+      opacity: 1 !important;
+    }
+
+    .mini-link-btn {
+      color: #60a5fa !important;
+      &.mat-warn { color: #f87171 !important; }
+    }
+
+    .v-divider { color: rgba(255, 255, 255, 0.2) !important; }
+
+    .menu-item-checkbox {
+      padding: 4px 16px !important;
+      .mat-mdc-checkbox label, 
+      .mdc-label,
+      .mat-label,
+      span { 
+        color: #ffffff !important; 
+        opacity: 1 !important; 
+      }
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+      }
+    }
+  }
+}

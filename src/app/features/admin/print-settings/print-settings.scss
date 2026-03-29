@@ -288,3 +288,86 @@
     gap: 8px;
   }
 }
+
+// ==========================================================================
+// PRINT SETTINGS DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  .container-fluid {
+    background-color: #0f172a !important;
+  }
+
+  .header-actions {
+    .page-title { color: #f8fafc !important; }
+    .subtitle { color: rgba(255, 255, 255, 0.5) !important; }
+    
+    .compact-select ::ng-deep .mat-mdc-text-field-wrapper {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+    }
+  }
+
+  .module-panel {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    
+    .module-panel-header {
+      background-color: #1e293b !important;
+      .module-name { color: #ffffff !important; }
+      .page-count-badge { background: rgba(255, 255, 255, 0.1) !important; color: rgba(255, 255, 255, 0.6) !important; }
+      .mat-expansion-indicator::after { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+
+    .module-icon-wrap {
+      background: rgba(255, 255, 255, 0.05) !important;
+      mat-icon { color: #60a5fa !important; }
+    }
+  }
+
+  .page-card {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    
+    &:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
+
+    .page-card-header .page-label { color: #ffffff !important; }
+    .page-card-header .page-icon { color: #60a5fa !important; }
+
+    .format-label { color: rgba(255, 255, 255, 0.7) !important; }
+    
+    .active-format-badge {
+      background: rgba(59, 130, 246, 0.2) !important;
+      color: #93c5fd !important;
+      &.thermal { background: rgba(245, 158, 11, 0.2) !important; color: #fcd34d !important; }
+    }
+  }
+
+  .bulk-label { color: rgba(255, 255, 255, 0.4) !important; }
+
+  .bulk-btn {
+    background: rgba(255, 255, 255, 0.03) !important;
+    &:hover { background: rgba(255, 255, 255, 0.08) !important; }
+    &.a4-btn { border-color: rgba(59, 130, 246, 0.3) !important; color: #60a5fa !important; }
+    &.thermal-btn { border-color: rgba(245, 158, 11, 0.3) !important; color: #fbbf24 !important; }
+  }
+
+  /* Material Overrides */
+  ::ng-deep {
+    .mat-mdc-radio-button {
+      .mdc-radio__native-control:enabled:not(:checked) ~ .mdc-radio__background {
+        border-color: rgba(255, 255, 255, 0.3) !important;
+      }
+      .mdc-label { color: rgba(255, 255, 255, 0.8) !important; }
+    }
+  }
+
+  .empty-state {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    h3 { color: #ffffff !important; }
+    p { color: rgba(255, 255, 255, 0.5) !important; }
+  }
+}

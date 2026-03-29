@@ -185,6 +185,48 @@ import { MatDialog } from '@angular/material/dialog';
         padding-bottom: 24px !important;
       }
     }
+
+    /* ==========================================================================
+       USER FORM DIALOG DARK MODE POLISH
+       ========================================================================== */
+    :host-context(.dark-mode) {
+      .dialog-header {
+        background-color: #1e293b !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        h2 { color: #ffffff !important; }
+        
+        .close-btn {
+          background: rgba(255, 255, 255, 0.05) !important;
+          color: rgba(255, 255, 255, 0.6) !important;
+          &:hover { background: rgba(255, 255, 255, 0.1) !important; color: #ffffff !important; }
+        }
+      }
+
+      mat-dialog-content {
+        background-color: #1e293b !important;
+      }
+
+      ::ng-deep {
+        .mat-mdc-form-field-wrapper {
+          background-color: rgba(255, 255, 255, 0.03) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          border-radius: 12px !important;
+        }
+        .mat-mdc-form-field {
+          .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.6) !important; }
+          .mat-mdc-input-element { color: #ffffff !important; }
+          mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+          .mat-mdc-select-value-text { color: #ffffff !important; }
+          .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+        }
+      }
+
+      mat-dialog-actions {
+        background-color: #1e293b !important;
+        border-top-color: rgba(255, 255, 255, 0.05) !important;
+        .cancel-btn { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+    }
   `]
 })
 export class UserFormComponent implements OnInit {

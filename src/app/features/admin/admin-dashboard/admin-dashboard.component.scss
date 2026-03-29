@@ -387,3 +387,80 @@
     }
   }
 }
+
+// ==========================================================================
+// ADMIN DASHBOARD DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .header-section {
+    .title-group {
+      h1 {
+        background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+      }
+      .subtitle { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+
+    .system-status {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: #ffffff !important;
+      
+      .uptime {
+        border-left-color: rgba(255, 255, 255, 0.1) !important;
+        color: rgba(255, 255, 255, 0.5) !important;
+      }
+    }
+  }
+
+  .kpi-card {
+    background: rgba(30, 41, 59, 0.7) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    backdrop-filter: blur(12px) !important;
+
+    .icon-wrapper {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      mat-icon { color: #ffffff !important; }
+    }
+
+    .card-info {
+      .label { color: rgba(255, 255, 255, 0.5) !important; }
+      .value { color: #ffffff !important; }
+    }
+  }
+
+  .charts-card, 
+  .action-card, 
+  .activity-card {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+
+    h2, h3 { color: #ffffff !important; }
+  }
+
+  .action-list .action-btn {
+    &:hover { background: rgba(255, 255, 255, 0.05) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+  }
+
+  /* Table Polishing */
+  .activity-card table {
+    th { border-bottom-color: rgba(255, 255, 255, 0.1) !important; color: rgba(255, 255, 255, 0.5) !important; }
+    td { border-bottom-color: rgba(255, 255, 255, 0.05) !important; color: #ffffff !important; }
+    
+    .user-info {
+      .avatar { background: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; }
+      .name-email .email { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+
+    .badge {
+      &.admin { background: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; }
+      &.user { background: rgba(255, 255, 255, 0.05) !important; color: #94a3b8 !important; }
+    }
+  }
+}

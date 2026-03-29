@@ -383,3 +383,80 @@
 .grid-header.cdk-drop-list-dragging .grid-cell:not(.cdk-drag-placeholder) {
   transition: transform 0.250s cubic-bezier(0, 0, 0.2, 1);
 }
+
+// ==========================================================================
+// MENU MANAGEMENT DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .header-actions {
+    .page-title { color: #f8fafc !important; }
+    .subtitle { color: rgba(255, 255, 255, 0.5) !important; }
+  }
+
+  .list-container, 
+  .virtual-scroll-grid {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    
+    .table-toolbar {
+      background-color: #1e293b !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      
+      .compact-input ::ng-deep .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        .mat-mdc-input-element { color: #ffffff !important; }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+        mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+    }
+  }
+
+  .virtual-scroll-grid {
+    .grid-header {
+      background: #0f172a !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+    }
+
+    .grid-row {
+      background: #1e293b !important;
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      &:hover { background-color: rgba(255, 255, 255, 0.02) !important; }
+    }
+
+    .col-id .id-badge { color: rgba(255, 255, 255, 0.4) !important; }
+
+    .col-title .menu-info {
+      .icon-box { background: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; }
+      .menu-title { color: #ffffff !important; }
+    }
+
+    .col-url {
+      .url-code { background: #0f172a !important; color: #94a3b8 !important; border: 1px solid rgba(255,255,255,0.05); }
+      .no-url { color: rgba(255, 255, 255, 0.3) !important; }
+    }
+
+    .col-parent {
+      .parent-chip { background: rgba(16, 185, 129, 0.1) !important; color: #10b981 !important; }
+      .root-chip { background: rgba(239, 68, 68, 0.1) !important; color: #f87171 !important; }
+    }
+
+    .col-order .order-badge {
+      background: #0f172a !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: #94a3b8 !important;
+    }
+
+    .edit-btn { color: #60a5fa !important; &:hover { background: rgba(59, 130, 246, 0.1) !important; } }
+    .delete-btn { color: #f87171 !important; &:hover { background: rgba(239, 68, 68, 0.1) !important; } }
+  }
+
+  .cdk-drag-preview {
+    background: #1e293b !important;
+    border-color: #3b82f6 !important;
+    color: #3b82f6 !important;
+  }
+}

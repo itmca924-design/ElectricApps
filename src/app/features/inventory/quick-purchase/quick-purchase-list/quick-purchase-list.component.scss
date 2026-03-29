@@ -256,3 +256,121 @@ app-enterprise-hierarchical-grid {
   }
 }
 
+// ==========================================================================
+// QUICK PURCHASE LIST DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .header-actions .page-title {
+    color: #ffffff !important;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.3) !important;
+  }
+
+  .list-container {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+  }
+
+  /* Analytic Card Glows */
+  .stats-grid .stat-card {
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+    &:hover { box-shadow: 0 12px 24px rgba(0,0,0,0.4) !important; }
+  }
+
+  ::ng-deep .main-grid-content {
+    .mat-mdc-header-row, .mat-header-row {
+      background: #0f172a !important;
+      th.mat-header-cell {
+        color: rgba(255, 255, 255, 0.5) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+
+    .mat-mdc-row, .mat-row {
+      background: #1e293b !important;
+      td.mat-cell {
+        color: #ffffff !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      }
+      &:hover { background-color: rgba(255, 255, 255, 0.02) !important; }
+    }
+
+    /* ⚡ NUCLEAR FORCE TOOLBAR DARK POLISH ⚡ */
+    ::ng-deep app-enterprise-hierarchical-grid,
+    ::ng-deep .grid-toolbar-wrapper,
+    ::ng-deep .filter-section,
+    ::ng-deep .grid-header-toolbar,
+    ::ng-deep .search-bar-container,
+    ::ng-deep .grid-toolbar,
+    ::ng-deep .grid-header-row,
+    ::ng-deep .table-container,
+    ::ng-deep .mat-mdc-table {
+      background-color: #1e293b !important;
+      border-color: rgba(255, 255, 255, 0.05) !important;
+      
+      .mat-mdc-form-field-wrapper,
+      .mat-mdc-text-field-wrapper,
+      .mat-form-field-flex,
+      .mat-mdc-form-field-flex,
+      ::ng-deep app-search-input input {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #ffffff !important;
+        .mat-mdc-input-element, input { color: #ffffff !important; }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.8) !important; }
+        mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+        &::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+    }
+
+    /* ⚡ NUCLEAR FORCE CHILD TABLE ⚡ */
+    ::ng-deep .detail-row-expanded,
+    ::ng-deep .child-table-row,
+    ::ng-deep .inner-table-container,
+    ::ng-deep .child-grid-wrapper {
+      background-color: #1e293b !important;
+      
+      .inner-table,
+      .mat-mdc-table,
+      .mat-table {
+        background-color: #1e293b !important;
+        
+        .mat-mdc-header-row, .mat-header-row { background-color: #0f172a !important; }
+        .mat-mdc-row, .mat-row { background-color: #1e293b !important; }
+        .mat-mdc-cell, td, th { color: #ffffff !important; border-bottom-color: rgba(255,255,255,0.05) !important; }
+        .mat-mdc-header-cell { color: rgba(255,255,255,0.5) !important; }
+        
+        .child-footer-summary {
+          background-color: #1e293b !important;
+          border-top: 1px dashed rgba(255, 255, 255, 0.1) !important;
+          color: #ffffff !important;
+          
+          /* Forced Summary Polish */
+          ::ng-deep .summary-box, 
+          ::ng-deep .footer-summary-cell {
+             background-color: #1e293b !important;
+             color: #ffffff !important;
+             * { color: #ffffff !important; }
+             .label { color: rgba(255, 255, 255, 0.5) !important; }
+             .value { color: #ffffff !important; }
+             .grand-total .value { color: #60a5fa !important; }
+          }
+        }
+      }
+    }
+
+    /* Scrollbars */
+    .responsive-table-wrapper {
+      &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+  }
+
+  .loading-shade {
+      background: rgba(15, 23, 42, 0.7) !important;
+  }
+}
+

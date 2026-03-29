@@ -248,6 +248,82 @@ import { LoadingService } from '../../../core/services/loading.service';
       display: flex;
       gap: 4px;
     }
+
+    /* ==========================================================================
+       USER LIST DARK MODE POLISH
+       ========================================================================== */
+    :host-context(.dark-mode) {
+      background-color: #0f172a !important;
+
+      .header-actions h1 {
+        color: #f8fafc !important;
+      }
+
+      .table-container-wrapper {
+        background-color: #1e293b !important;
+        border-color: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+        
+        ::ng-deep {
+          .mat-mdc-table {
+            background-color: #1e293b !important;
+          }
+          .mat-mdc-row {
+            background-color: #1e293b !important;
+            &:hover { background-color: rgba(255, 255, 255, 0.03) !important; }
+          }
+          .mat-mdc-cell {
+            color: #ffffff !important;
+            border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+          }
+        }
+      }
+
+      .grid-wrapper table {
+        th.mat-header-cell {
+          background-color: #0f172a !important;
+          color: rgba(255, 255, 255, 0.5) !important;
+          border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .username-cell {
+          color: #818cf8 !important;
+        }
+      }
+
+      .role-badge {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: rgba(255, 255, 255, 0.7) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      }
+
+      .status-text {
+        color: rgba(255, 255, 255, 0.5) !important;
+        &.active { color: #10b981 !important; }
+      }
+
+      .user-paginator {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border-top-color: rgba(255, 255, 255, 0.05) !important;
+        
+        ::ng-deep {
+          .mat-mdc-paginator-range-label,
+          .mat-mdc-paginator-navigation-next,
+          .mat-mdc-paginator-navigation-previous,
+          .mat-mdc-paginator-icon,
+          .mat-mdc-select-value-text,
+          .mat-mdc-select-arrow svg {
+            color: #ffffff !important;
+            fill: #ffffff !important;
+          }
+        }
+      }
+
+      ::ng-deep .mat-mdc-button-base .mat-mdc-button-touch-target {
+        color: #ffffff !important;
+      }
+    }
   `]
 })
 export class UserListComponent implements OnInit {
