@@ -68,7 +68,7 @@
       mat-card-content {
           display: flex;
           align-items: center;
-          padding: 12px 16px !important;
+          padding: 12px 100px 12px 16px !important; // ⚡ Safe Zone for badges ⚡
           gap: 16px;
           position: relative;
       }
@@ -91,6 +91,9 @@
       .stat-info {
           display: flex;
           flex-direction: column;
+          flex: 1 !important; // ⚡ Expand to fill space ⚡
+          min-width: 0 !important; // ⚡ Force wrapping ⚡
+          margin-right: 85px !important; // ⚡ Safety zone for absolute badges ⚡
           
           .label {
               font-size: 0.8rem;
@@ -110,13 +113,15 @@
 
       .stat-badge {
           position: absolute;
-          top: 15px;
-          right: 15px;
-          font-size: 0.7rem;
-          font-weight: 700;
-          padding: 4px 10px;
-          border-radius: 20px;
+          top: 10px;
+          right: 12px;
+          font-size: 0.65rem;
+          font-weight: 800;
+          padding: 3px 10px;
+          border-radius: 6px;
           text-transform: uppercase;
+          z-index: 5;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
 
       &.total {
@@ -491,15 +496,48 @@ app-enterprise-hierarchical-grid {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
   }
 
+  /* ⚡ DASHBOARD TITLE FORCE ⚡ */
+  .header-actions h1, 
+  h1, .mat-card-title, mat-card-title { 
+    color: #ffffff !important; 
+    font-weight: 700 !important;
+  }
+
   .stat-card {
     background: #1e293b !important;
     border-color: rgba(255, 255, 255, 0.05) !important;
     .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
-    .stat-info .value { color: #ffffff !important; }
     
-    &.total, &.active, &.inward, &.overdue {
-        background: #1e293b !important;
-        * { color: #ffffff !important; }
+    /* ⚡ STAT CARD VIBRANT FORCE ⚡ */
+    &.total {
+        border-left-color: #fbbf24 !important;
+        .stat-icon { background: rgba(251, 191, 36, 0.15) !important; color: #fbbf24 !important; mat-icon { color: #fbbf24 !important; } }
+        .stat-info .value { color: #fbbf24 !important; }
+    }
+    
+    &.inward {
+        border-left-color: #10b981 !important;
+        .stat-icon { background: rgba(16, 185, 129, 0.15) !important; color: #10b981 !important; mat-icon { color: #10b981 !important; } }
+        .stat-info .value { color: #10b981 !important; }
+        .stat-badge { background: rgba(16, 185, 129, 0.2) !important; color: #10b981 !important; border: 1px solid rgba(16, 185, 129, 0.3) !important; }
+    }
+    
+    &.overdue {
+        border-left-color: #f59e0b !important;
+        .stat-icon { background: rgba(245, 158, 11, 0.15) !important; color: #f59e0b !important; mat-icon { color: #f59e0b !important; } }
+        .stat-info .value { color: #f59e0b !important; }
+        .stat-badge { background: rgba(245, 158, 11, 0.2) !important; color: #f59e0b !important; border: 1px solid rgba(245, 158, 11, 0.3) !important; }
+    }
+    
+    &.active {
+        border-left-color: #3b82f6 !important;
+        .stat-icon { background: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; mat-icon { color: #3b82f6 !important; } }
+        .stat-info .value { color: #3b82f6 !important; }
+    }
+
+    /* ⚡ OVERLAP FIX: Relative space for badges ⚡ */
+    mat-card-content {
+        padding-right: 100px !important; // Create safe zone for absolute badges
     }
   }
 

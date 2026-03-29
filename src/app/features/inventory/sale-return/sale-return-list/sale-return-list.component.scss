@@ -2,8 +2,8 @@
     padding: 24px;
     display: flex;
     flex-direction: column;
-    /* Adjusted height to fit widgets and remove page scroll */
-    height: calc(100vh - 220px); 
+    /* Flexible height to remove empty gap [cite: 2026-03-29] */
+    height: auto; 
     overflow: hidden; 
     box-sizing: border-box;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -248,11 +248,11 @@
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 
-    /* Internal scrolling: Vertical only, hide horizontal */
-    flex: 1;
+    /* Internal scrolling: Flexible height to remove empty gap [cite: 2026-03-29] */
+    height: auto;
+    max-height: calc(100vh - 350px);
     overflow-x: hidden;
     overflow-y: auto; 
-    min-height: 0;
 
 
 
@@ -517,3 +517,144 @@
 .text-center { text-align: center; }
 .text-danger { color: #f44336; }
 .text-success { color: #4caf50; }
+
+// ==========================================================================
+// SALE RETURN DASHBOARD DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .list-container {
+    background-color: #0f172a !important;
+    .header-actions h1 { color: #ffffff !important; }
+  }
+
+  .stat-item {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    .stat-label { color: rgba(255, 255, 255, 0.5) !important; }
+    
+    &.border-primary { 
+        border-left-color: #fbbf24 !important; 
+        .stat-icon { color: #fbbf24 !important; opacity: 1 !important; filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.3)); }
+        .stat-value { color: #fbbf24 !important; }
+    }
+    &.border-danger { 
+        border-left-color: #10b981 !important; 
+        .stat-icon { color: #10b981 !important; opacity: 1 !important; filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3)); }
+        .stat-value { color: #10b981 !important; }
+    }
+    &.border-success { 
+        border-left-color: #f59e0b !important; 
+        .stat-icon { color: #f59e0b !important; opacity: 1 !important; filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.3)); }
+        .stat-value { color: #f59e0b !important; }
+    }
+    &.border-info { 
+        border-left-color: #3b82f6 !important; 
+        .stat-icon { color: #3b82f6 !important; opacity: 1 !important; filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.3)); }
+        .stat-value { color: #3b82f6 !important; }
+    }
+    
+    &.active-widget {
+        background: #1e293b !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    }
+  }
+
+  .filter-section {
+    ::ng-deep {
+      .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        .mat-mdc-input-element { 
+          color: #ffffff !important; 
+          &::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+        }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.5) !important; }
+        mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+      
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+    }
+  }
+
+  .table-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    
+    ::ng-deep {
+      .mat-mdc-table, .mat-table {
+        background: #1e293b !important;
+      }
+
+      .mat-mdc-header-row, .mat-header-row {
+        background-color: #0f172a !important;
+        th { 
+          background-color: #0f172a !important; 
+          color: rgba(255, 255, 255, 0.6) !important;
+          border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        }
+      }
+
+      .mat-mdc-row, .mat-row {
+        background: #1e293b !important;
+        td { 
+          background: #1e293b !important; 
+          color: #ffffff !important;
+          border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+          
+          &.mat-column-returnNumber .bold-text { color: #60a5fa !important; }
+        }
+
+        /* ⚡ NUCLEAR HOVER OVERRIDE ⚡ */
+        &:hover, 
+        &.element-row:hover, 
+        &.mat-mdc-row:hover,
+        &.mat-row:hover {
+          background-color: rgba(255, 255, 255, 0.04) !important;
+          td { 
+            background-color: transparent !important; 
+            color: #ffffff !important;
+          }
+        }
+      }
+
+      .mat-mdc-paginator {
+        background: #0f172a !important;
+        color: #ffffff !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        * { color: rgba(255, 255, 255, 0.7) !important; }
+        
+        .mat-mdc-icon-button {
+            color: #ffffff !important;
+            svg { fill: #ffffff !important; }
+        }
+      }
+
+      /* ⚡ LUMINOUS CHECKBOX OVERRIDE ⚡ */
+      .mat-mdc-checkbox {
+        --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.6) !important;
+        .mdc-checkbox__native-control:enabled:not(:checked) ~ .mdc-checkbox__background {
+            border-color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .mdc-checkbox__checkmark { color: #ffffff !important; }
+        .mdc-label { color: #ffffff !important; }
+      }
+
+      /* ⚡ CALENDAR ICON VISIBILITY (NUCLEAR FORCE) ⚡ */
+      .mat-datepicker-toggle, .mat-mdc-datepicker-toggle {
+        button, mat-icon, svg { 
+            color: #ffffff !important; 
+            fill: #ffffff !important; 
+            opacity: 1 !important; 
+        }
+      }
+    }
+  }
+
+  .loading-shade, .empty-state-container {
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: #ffffff !important;
+    .empty-title { color: #ffffff !important; }
+  }
+}

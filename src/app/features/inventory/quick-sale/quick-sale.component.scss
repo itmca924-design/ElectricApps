@@ -659,3 +659,124 @@
     transform: translateY(-2px) scale(0.95) !important;
   }
 }
+
+// ==========================================================================
+// QUICK SALE FORM DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .header-section {
+    .title-group {
+      h1 { color: #ffffff !important; }
+      .subtitle { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+    
+    .barcode-status {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      .status-label { color: rgba(255, 255, 255, 0.5) !important; }
+      .last-scanned { color: #ffffff !important; }
+    }
+  }
+
+  .form-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+
+    ::ng-deep {
+      .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        .mat-mdc-input-element { color: #ffffff !important; }
+        .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+        mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+      
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+
+      /* ⚡ NUCLEAR CALENDAR ICON FORCE ⚡ */
+      .mat-datepicker-toggle, 
+      .mat-datepicker-toggle mat-icon,
+      .mat-datepicker-toggle svg,
+      .mat-datepicker-toggle path {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+        opacity: 1 !important;
+      }
+    }
+    
+    .customer-field-container .add-customer-btn {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      mat-icon { color: #ffffff !important; }
+      &:hover { background-color: rgba(255, 255, 255, 0.1) !important; }
+    }
+  }
+
+  .items-section {
+    border-top-color: rgba(255, 255, 255, 0.05) !important;
+    .section-title span { color: #ffffff !important; }
+  }
+
+  .items-scroll-container {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .items-grid {
+    .item-header {
+      background-color: #0f172a !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .item-row {
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      &:hover { background-color: rgba(255, 255, 255, 0.02) !important; }
+      
+      .total-badge, .na-text-grid { color: #ffffff !important; }
+      
+      ::ng-deep .mat-mdc-text-field-wrapper {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+  }
+
+  .summary-box {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    
+    .summary-row {
+      color: rgba(255, 255, 255, 0.5) !important;
+      .value { color: #ffffff !important; }
+      &.grand-total {
+        border-top-color: rgba(255, 255, 255, 0.1) !important;
+        .value { color: #10b981 !important; text-shadow: 0 0 20px rgba(16, 185, 129, 0.3) !important; }
+      }
+    }
+  }
+
+  .tax-type-toggle {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    mat-button-toggle {
+      color: rgba(255, 255, 255, 0.5) !important;
+      border-left-color: rgba(255, 255, 255, 0.1) !important;
+      
+      &.mat-button-toggle-checked {
+        color: #ffffff !important;
+        mat-icon { color: #ffffff !important; }
+      }
+    }
+  }
+
+  .extra-tax-row .tax-input-group .small-tax-input {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+  }
+}

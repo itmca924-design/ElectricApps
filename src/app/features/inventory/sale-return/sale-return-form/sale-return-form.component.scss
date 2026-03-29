@@ -799,11 +799,12 @@ input[type=number] {
         bottom: 0;
         width: 6px;
         cursor: col-resize;
-        z-index: 500; // Always on top of sticky columns
+        z-index: 100;
         transition: background-color 0.2s;
-
-        &:hover {
-            background-color: #3b82f6; 
+        
+        &:hover, &.resizing {
+            background-color: #3b82f6 !important;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
         }
     }
 
@@ -811,4 +812,121 @@ input[type=number] {
         cursor: col-resize !important;
         user-select: none !important;
     }
-}
+}
+
+// ==========================================================================
+// SALE RETURN FORM DARK MODE POLISH (THE END)
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .form-container {
+      background-color: #0f172a !important;
+  }
+
+  .header {
+      .header-left {
+          h1 { color: #ffffff !important; }
+          .back-link {
+              background-color: #1e293b !important;
+              color: #ffffff !important;
+              border-color: rgba(255, 255, 255, 0.1) !important;
+              mat-icon { color: #ffffff !important; }
+          }
+      }
+      .close-btn { color: rgba(255, 255, 255, 0.5) !important; }
+  }
+
+  mat-card {
+      background: #1e293b !important;
+      border-color: rgba(255, 255, 255, 0.05) !important;
+      box-shadow: none !important;
+      color: #ffffff !important;
+  }
+
+  ::ng-deep .mat-mdc-form-field {
+      .mat-mdc-text-field-wrapper {
+          background-color: rgba(255, 255, 255, 0.05) !important;
+          border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          .mat-mdc-input-element { 
+              color: #ffffff !important; 
+              &::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+          }
+          .mat-mdc-floating-label, .mat-mdc-select-value { color: #ffffff !important; opacity: 0.9; }
+          .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      }
+      .mdc-notched-outline__leading, .mdc-notched-outline__notch, .mdc-notched-outline__trailing {
+          border-color: rgba(255, 255, 255, 0.1) !important;
+      }
+  }
+
+  .items-section {
+      background: #1e293b !important;
+      border-color: rgba(255, 255, 255, 0.05) !important;
+      h3 { 
+          color: #ffffff !important; 
+          &::before { background: #3b82f6 !important; }
+      }
+
+      .table-container { 
+          background: #1e293b !important; 
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          &::-webkit-scrollbar-track { background: #0f172a !important; }
+      }
+
+      table {
+          th {
+              background-color: #0f172a !important;
+              color: rgba(255, 255, 255, 0.6) !important;
+              border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+          }
+          td {
+              background-color: #1e293b !important;
+              color: #ffffff !important;
+              border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+          }
+          tr:hover { background-color: rgba(255, 255, 255, 0.03) !important; }
+          tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.01) !important; }
+      }
+
+      ::ng-deep .mat-column-productName {
+          background-color: #1e293b !important;
+          border-right-color: rgba(255, 255, 255, 0.1) !important;
+          box-shadow: 5px 0 10px rgba(0,0,0,0.3) !important;
+      }
+
+      .p-name { color: #ffffff !important; }
+      .stock-inline-badge { background: rgba(255, 255, 255, 0.05) !important; color: rgba(255, 255, 255, 0.7) !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+      .readonly-text { background: rgba(255, 255, 255, 0.05) !important; color: #ffffff !important; border-color: rgba(255, 255, 255, 0.1) !important; }
+      
+      .items-paginator {
+          background: #0f172a !important;
+          color: rgba(255, 255, 255, 0.7) !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          * { color: rgba(255, 255, 255, 0.7) !important; }
+      }
+  }
+
+  .scroll-controls {
+      background: #0f172a !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      button mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+  }
+
+  .policy-alert-banner {
+      background: rgba(245, 158, 11, 0.1) !important;
+      border-color: rgba(245, 158, 11, 0.2) !important;
+      .text-group strong { color: #f59e0b !important; }
+      .text-group span { color: rgba(245, 158, 11, 0.8) !important; }
+      mat-icon { color: #f59e0b !important; }
+  }
+
+  .footer-summary {
+      background: #0f172a !important;
+      border-top-color: rgba(255, 255, 255, 0.1) !important;
+      .total-label { color: rgba(255, 255, 255, 0.5) !important; }
+      .total-value { color: #3b82f6 !important; }
+  }
+
+  .empty-state { color: rgba(255, 255, 255, 0.3) !important; p { color: rgba(255, 255, 255, 0.5) !important; } }
+}

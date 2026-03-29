@@ -374,3 +374,80 @@
   z-index: 10;
   backdrop-filter: blur(4px);
 }
+
+// ==========================================================================
+// MAIN INVENTORY DASHBOARD DARK MODE POLISH (THE END)
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .inventory-dashboard-container {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+  }
+
+  .dashboard-header {
+    .title-section h1 { color: #ffffff !important; }
+    .title-section p { color: rgba(255, 255, 255, 0.7) !important; }
+    .date-display { 
+      background: #1e293b !important; 
+      color: #ffffff !important; 
+      border-color: rgba(255, 255, 255, 0.1) !important; 
+    }
+  }
+
+  .data-card, .actions-card, .stock-alerts {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    
+    mat-card-header {
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      mat-card-title { color: #ffffff !important; }
+      .header-icon-box.blue { background: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; }
+      .header-icon-box.green { background: rgba(16, 185, 129, 0.1) !important; color: #34d399 !important; }
+    }
+  }
+
+  .dashboard-mat-table {
+    th.mat-mdc-header-cell {
+      background: #0f172a !important;
+      color: rgba(255, 255, 255, 0.6) !important;
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    td.mat-mdc-cell {
+      color: #ffffff !important;
+      border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+    }
+
+    .mat-mdc-row:hover {
+      background-color: rgba(255, 255, 255, 0.04) !important;
+    }
+  }
+
+  .action-buttons .action-btn {
+    background: #0f172a !important;
+    border-left-color: rgba(255, 255, 255, 0.1) !important;
+    span { color: #ffffff !important; }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.05) !important;
+      transform: translateX(8px);
+    }
+  }
+
+  .alert-item {
+    border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+    .alert-info { color: #ffffff !important; }
+    .alert-badge.orange { background: rgba(245, 158, 11, 0.1) !important; color: #fbbf24 !important; }
+    .alert-badge.red { background: rgba(239, 68, 68, 0.1) !important; color: #f87171 !important; }
+    .alert-badge.blue { background: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; }
+  }
+
+  .number-badge.po { background-color: rgba(59, 130, 246, 0.1) !important; color: #60a5fa !important; border-color: #2563eb !important; }
+  .number-badge.grn { background-color: rgba(16, 185, 129, 0.1) !important; color: #34d399 !important; border-color: #059669 !important; }
+
+  .loading-overlay {
+    background: rgba(15, 23, 42, 0.8) !important;
+  }
+}

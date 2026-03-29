@@ -553,3 +553,160 @@
   margin: 0 0 24px 0;
   line-height: 1.5;
 }
+
+// ==========================================================================
+// QUICK GRN DASHBOARD DARK MODE POLISH (THE END)
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .grn-main-wrapper {
+    background-color: #0f172a !important;
+  }
+
+  .title-section {
+    h1 { color: #ffffff !important; text-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
+    .text-muted { color: rgba(255, 255, 255, 0.5) !important; }
+  }
+
+  .stats-grid .stat-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
+    .stat-info .value { color: #ffffff !important; }
+    
+    .stat-badge { display: none !important; }
+    
+    .stat-icon { 
+        background: rgba(255, 255, 255, 0.05) !important; 
+        color: #ffffff !important; 
+        mat-icon { color: #ffffff !important; opacity: 1 !important; }
+    }
+    
+    &.total, &.overdue, &.active, &.rejected {
+        background: #1e293b !important;
+        * { color: #ffffff !important; }
+    }
+  }
+
+  ::ng-deep .search-box {
+    .mat-mdc-text-field-wrapper {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      .mat-mdc-input-element { 
+        color: #ffffff !important; 
+        &::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+      mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+    .mat-mdc-floating-label, .mat-mdc-form-field-placeholder {
+      color: rgba(255, 255, 255, 0.5) !important;
+    }
+  }
+
+  .table-card {
+    background: #1e293b !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .table-responsive { background: #1e293b !important; }
+
+  ::ng-deep {
+    .mat-mdc-header-row .mat-mdc-header-cell {
+        background-color: #0f172a !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .mat-mdc-row, .mat-row {
+      background: #1e293b !important;
+      td { 
+        background: transparent !important; 
+        color: #ffffff !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      }
+      
+      &.expanded-row, &.expanded-row:hover { 
+        background-color: #0f172a !important; 
+        td { background: transparent !important; }
+      }
+    }
+
+    /* ⚡ SUPREME SAPPHIRE HOVER LOCKDOWN ⚡ */
+    tr.element-row:hover, 
+    tr.mat-mdc-row:hover, 
+    tr.mat-row:hover,
+    tr.row-hover:hover {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: inset 4px 0 0 #3b82f6 !important;
+      
+      td { 
+        background: transparent !important; 
+        background-color: transparent !important;
+        color: #ffffff !important;
+        font-weight: 500 !important;
+      }
+    }
+
+    .row-detail-container {
+      background: #0f172a !important;
+      border: none !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
+      
+      .inner-table {
+        th { 
+          background: #1e293b !important; 
+          color: rgba(255, 255, 255, 0.5) !important; 
+          border-bottom-color: rgba(255, 255, 255, 0.1) !important; 
+        }
+        td { 
+          background: #0f172a !important; 
+          color: #ffffff !important; 
+          border-bottom-color: rgba(255, 255, 255, 0.05) !important; 
+        }
+        .inner-table-footer { 
+          background: #1e293b !important; 
+          border-top-color: rgba(255, 255, 255, 0.1) !important; 
+        }
+      }
+    }
+
+    .mat-mdc-paginator {
+      background: #0f172a !important;
+      color: #ffffff !important;
+      opacity: 1 !important;
+      
+      .mat-mdc-paginator-container {
+        color: #ffffff !important;
+        opacity: 1 !important;
+      }
+      
+      /* ⚡ LUMINOUS PAGINATOR ICONS ⚡ */
+      .mat-mdc-icon-button {
+          color: #ffffff !important;
+          mat-icon, svg { 
+            fill: #ffffff !important; 
+            color: #ffffff !important; 
+            opacity: 1 !important;
+          }
+          &[disabled] { opacity: 0.3 !important; }
+      }
+      
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+    }
+  }
+
+  .loading-shade, .empty-state-container {
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: #ffffff !important;
+    .empty-title { color: #ffffff !important; }
+  }
+}

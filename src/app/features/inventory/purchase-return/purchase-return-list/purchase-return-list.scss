@@ -648,3 +648,182 @@
 }
 
 .text-center { text-align: center; }
+
+// ==========================================================================
+// PURCHASE RETURN DASHBOARD DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .container-fluid {
+    .header-actions h1.page-title {
+      color: #ffffff !important;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .stats-grid .stat-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
+    
+    &.total {
+        background: #1e293b !important;
+        border-left-color: #fbbf24 !important;
+        .stat-icon { background: rgba(251, 191, 36, 0.15) !important; color: #fbbf24 !important; }
+        .stat-info .value { color: #fbbf24 !important; }
+    }
+    
+    /* ⚡ REFUND VALUE (EMERALD) ⚡ */
+    &.border-danger {
+        background: #1e293b !important;
+        border-left: 6px solid #10b981 !important;
+        .stat-icon { background: rgba(16, 185, 129, 0.15) !important; color: #10b981 !important; }
+        .stat-info .value { color: #10b981 !important; }
+        .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+    
+    /* ⚡ STOCK REDUCED (AMBER) ⚡ */
+    &.border-success {
+        background: #1e293b !important;
+        border-right: none !important; // Clean edge
+        border-left: 6px solid #f59e0b !important;
+        .stat-icon { background: rgba(245, 158, 11, 0.15) !important; color: #f59e0b !important; }
+        .stat-info .value { color: #f59e0b !important; }
+        .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+
+    /* ⚡ PENDING OUTWARDS (BLUE) ⚡ */
+    &.border-info {
+        background: #1e293b !important;
+        border-left: 6px solid #3b82f6 !important;
+        .stat-icon { background: rgba(59, 130, 246, 0.15) !important; color: #3b82f6 !important; }
+        .stat-info .value { color: #3b82f6 !important; }
+        .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+  }
+
+  .content-card, .filter-section {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  ::ng-deep .filter-section {
+    .mat-mdc-text-field-wrapper {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      .mat-mdc-input-element { 
+        color: #ffffff !important; 
+        &::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+      }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.5) !important; }
+      mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+    
+    .mat-mdc-select-value-text { color: #ffffff !important; }
+    .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+
+    /* ⚡ CALENDAR ICON & SEPARATOR VISIBILITY (NUCLEAR FORCE) ⚡ */
+    .mat-datepicker-toggle {
+        button { color: #ffffff !important; }
+        svg { fill: #ffffff !important; color: #ffffff !important; }
+        mat-icon { color: #ffffff !important; opacity: 1 !important; }
+    }
+    
+    ::ng-deep {
+        .mat-date-range-input-separator { color: #ffffff !important; opacity: 1 !important; }
+        .mat-mdc-form-field-label { color: rgba(255, 255, 255, 0.7) !important; }
+    }
+  }
+
+  .table-responsive {
+    background: #1e293b !important;
+    &::-webkit-scrollbar-track { background: #0f172a !important; }
+  }
+
+  ::ng-deep {
+    .mat-mdc-table, .mat-table {
+      background: #1e293b !important;
+    }
+
+    .mat-mdc-header-row, .mat-header-row {
+      background-color: #0f172a !important;
+      th { 
+        background-color: #0f172a !important; 
+        color: rgba(255, 255, 255, 0.6) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+
+    .mat-mdc-row, .mat-row {
+      background: #1e293b !important;
+      td { 
+        background: #1e293b !important; 
+        color: #ffffff !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        
+        &.mat-column-returnNumber { color: #60a5fa !important; }
+      }
+
+      /* ⚡ NUCLEAR HOVER OVERRIDE ⚡ */
+      &:hover, 
+      &.hover-row:hover,
+      &.mat-mdc-row:hover,
+      &.mat-row:hover {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        td { 
+          background-color: rgba(255, 255, 255, 0.04) !important; 
+          color: #ffffff !important;
+        }
+      }
+    }
+
+    .mat-mdc-paginator {
+      background: #0f172a !important;
+      color: #ffffff !important;
+      border-top-color: rgba(255, 255, 255, 0.1) !important;
+      
+      /* ⚡ NAVIGATION ICONS VISIBILITY ⚡ */
+      ::ng-deep {
+        .mat-mdc-paginator-navigation-next, 
+        .mat-mdc-paginator-navigation-previous, 
+        .mat-mdc-paginator-navigation-first, 
+        .mat-mdc-paginator-navigation-last {
+          color: #ffffff !important;
+          svg { fill: #ffffff !important; }
+          &:disabled { opacity: 0.3 !important; }
+        }
+        .mat-mdc-paginator-range-label, 
+        .mat-mdc-paginator-page-size-label,
+        .mat-mdc-select-value {
+          color: rgba(255, 255, 255, 0.8) !important;
+        }
+      }
+    }
+
+    /* ⚡ LUMINOUS CHECKBOX OVERRIDE ⚡ */
+    .mat-mdc-checkbox {
+        --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.6) !important;
+        --mdc-checkbox-unselected-hover-icon-color: #ffffff !important;
+        
+        .mdc-checkbox__native-control:enabled:not(:checked) ~ .mdc-checkbox__background {
+            border-color: rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+            background-color: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+        }
+        
+        .mdc-checkbox__checkmark {
+            color: #ffffff !important;
+        }
+    }
+  }
+
+  .loader-overlay, .empty-state-container {
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: #ffffff !important;
+    .empty-title { color: #ffffff !important; }
+  }
+}

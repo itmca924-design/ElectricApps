@@ -1202,3 +1202,170 @@ tr.element-row:not(.expanded-row) + tr.detail-row {
         border-color: #dbeafe;
     }
 }
+
+// ==========================================================================
+// QUICK STOCK DASHBOARD DARK MODE POLISH (THE END)
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+  
+  /* Reset local variables for Dark Theme */
+  --dg-border: rgba(255, 255, 255, 0.1);
+  --dg-header-bg: #0f172a;
+  --dg-row-hover: rgba(255, 255, 255, 0.05);
+  --dg-text-main: #ffffff;
+  --dg-text-muted: rgba(255, 255, 255, 0.5);
+
+  .stats-grid .stat-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
+    .stat-info .value { color: #ffffff !important; }
+    
+    &.total, &.overdue, &.active, &.purge {
+        background: #1e293b !important;
+        * { color: #ffffff !important; }
+    }
+  }
+
+  .filter-header-row {
+    background-color: #1e293b !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  ::ng-deep .filter-header-row .mat-mdc-text-field-wrapper {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    .mat-mdc-input-element { 
+      color: #ffffff !important; 
+      &::placeholder { color: rgba(255, 255, 255, 0.5) !important; }
+    }
+    .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.5) !important; }
+    mat-icon { color: rgba(255, 255, 255, 0.5) !important; }
+  }
+
+  .table-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .table-scroll-wrapper {
+    background: #1e293b !important;
+    &::-webkit-scrollbar-track { background: #0f172a !important; }
+  }
+
+  ::ng-deep {
+    .mat-mdc-table, .mat-table {
+      background: #1e293b !important;
+    }
+
+    .mat-mdc-header-row {
+      background-color: #0f172a !important;
+      th { 
+        background-color: #0f172a !important; 
+        color: rgba(255, 255, 255, 0.6) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+
+    .mat-mdc-row, .mat-row {
+      background: #1e293b !important;
+      td { 
+        background: #1e293b !important; 
+        color: #ffffff !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+        
+        &.mat-column-select, &.mat-column-productName {
+            background-color: #1e293b !important;
+        }
+      }
+
+      /* ⚡ NUCLEAR HOVER OVERRIDE ⚡ */
+      &:hover, 
+      &.element-row:hover, 
+      &.mat-mdc-row:hover {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+        td { 
+          background-color: rgba(255, 255, 255, 0.04) !important; 
+          color: #ffffff !important;
+          &.mat-column-select, &.mat-column-productName {
+            background-color: rgba(255, 255, 255, 0.08) !important;
+          }
+        }
+      }
+
+      &.expired-row { background-color: rgba(220, 38, 38, 0.1) !important; border-left-color: #ef4444 !important; }
+      &.expiring-soon-row { background-color: rgba(245, 158, 11, 0.1) !important; border-left-color: #f59e0b !important; }
+    }
+
+    .expanded-row { background-color: #0f172a !important; }
+    .element-detail { background: #0f172a !important; }
+
+    .history-card { 
+      background: #1e293b !important; 
+      border-color: rgba(255, 255, 255, 0.1) !important; 
+    }
+    
+    .history-header { background: #0f172a !important; color: #ffffff !important; }
+    
+    .child-table {
+       th { background: #0f172a !important; color: rgba(255, 255, 255, 0.5) !important; border-bottom-color: rgba(255, 255, 255, 0.1) !important; }
+       td { 
+           background: #1e293b !important; 
+           color: #ffffff !important; 
+           border-bottom-color: rgba(255, 255, 255, 0.05) !important; 
+           &:nth-child(1), &:nth-child(2) { background: #1e293b !important; }
+       }
+       tr:hover td { 
+           background: rgba(255, 255, 255, 0.04) !important; 
+           &:nth-child(1), &:nth-child(2) { background: rgba(255, 255, 255, 0.06) !important; }
+       }
+    }
+
+    .mat-mdc-paginator {
+      background: #0f172a !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      * { color: rgba(255, 255, 255, 0.7) !important; }
+      border-top-color: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* ⚡ LUMINOUS CHECKBOX OVERRIDE ⚡ */
+    .mat-mdc-checkbox {
+        --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.6) !important;
+        --mdc-checkbox-unselected-hover-icon-color: #ffffff !important;
+        --mdc-checkbox-unselected-focus-icon-color: #ffffff !important;
+        --mdc-checkbox-unselected-pressed-icon-color: #ffffff !important;
+        
+        .mdc-checkbox__native-control:enabled:not(:checked) ~ .mdc-checkbox__background {
+            border-color: rgba(255, 255, 255, 0.6) !important;
+        }
+        
+        .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+            background-color: #3b82f6 !important;
+            border-color: #3b82f6 !important;
+        }
+        
+        .mdc-checkbox__checkmark {
+            color: #ffffff !important;
+        }
+    }
+
+    /* ⚡ TOGGLE & LABEL VISIBILITY ⚡ */
+    .mdc-label, .mat-mdc-slide-toggle .mdc-label {
+        color: #ffffff !important;
+        opacity: 0.9 !important;
+    }
+  }
+
+  .selection-action-bar {
+    background: #0f172a !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+    .selection-info { color: #ffffff !important; }
+  }
+
+  .loading-shade, .empty-state-container {
+    background: rgba(15, 23, 42, 0.8) !important;
+    color: #ffffff !important;
+    .empty-title { color: #ffffff !important; }
+  }
+}
