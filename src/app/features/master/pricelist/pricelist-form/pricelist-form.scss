@@ -180,55 +180,6 @@
     }
   }
 
-  // // Table Design Fix
-  // .table-section-card {
-  //   background: white;
-  //   border: 1px solid #e2e8f0;
-  //   border-radius: 8px;
-  //   overflow: hidden;
-
-  //   .table-responsive-box {
-  //     width: 100%;
-  //     // overflow-x: scroll; // Horizontal scroll for small screens [cite: 2026-01-22]
-  //     // -webkit-overflow-scrolling: touch;
-  //     // overflow-y: hidden;
-  //   }
-
-  //   .enterprise-table {
-  //     width: 100%;
-  //     min-width: 1100px; // Standard min-width for data integrity
-  //     border-collapse: collapse;
-
-  //     th {
-  //       background: #f1f5f9;
-  //       color: #475569;
-  //       font-size: 11px;
-  //       font-weight: 700;
-  //       text-transform: uppercase;
-  //       padding: 16px;
-  //       text-align: center; 
-  //       border-bottom: 2px solid #e2e8f0;
-
-  //       &.col-search { text-align: left; } 
-  //       &.col-price  { text-align: right; }
-  //     }
-
-  //     td {
-  //       padding: 12px 16px;
-  //       border-bottom: 1px solid #f1f5f9;
-  //       vertical-align: middle;
-  //     }
-
-  //     .col-search { width: 35%; }
-  //     .col-uom    { width: 10%; text-align: center; }
-  //     .col-min    { width: 10%; text-align: center; }
-  //     .col-max    { width: 10%; text-align: center; }
-  //     .col-disc   { width: 10%; text-align: center; }
-  //     .col-price  { width: 15%; text-align: right; }
-  //     .col-action { width: 60px; text-align: center; }
-  //   }
-  // }
-
   .table-section-card {
     margin-top: 20px;
 
@@ -403,10 +354,12 @@ textarea.table-control {
   }
 
   /* Internal wrapper ko bhi 100% karein [cite: 2026-01-22] */
-  ::ng-deep .mat-mdc-text-field-wrapper {
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
   }
 
   /* Textarea ko responsive banayein [cite: 2026-01-22] */
@@ -633,4 +586,109 @@ textarea.table-control {
   border-radius: 4px;
   width: 100%;
   padding: 0 10px;
+}
+
+// ==========================================================================
+// FULL FORM DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  .master-container {
+    background-color: #0f172a !important;
+  }
+
+  .pricelist-header, 
+  .header-form-card, 
+  .table-section-card,
+  mat-card-actions {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+  }
+
+  .page-title, h1, h2, h3, .section-title {
+    color: #f8fafc !important;
+  }
+
+  /* Material Form Field Polishing */
+  ::ng-deep {
+    .mat-mdc-form-field {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .mat-mdc-form-field-input-control { color: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      input::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+      mat-icon { color: rgba(255, 255, 255, 0.7) !important; }
+    }
+
+    .toggle-box.compact {
+        background: #0f172a !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #f8fafc !important;
+
+        span, label {
+          color: #ffffff !important;
+        }
+    }
+    
+    /* Toggle switch logic for Dark Mode */
+    .mat-mdc-slide-toggle .mdc-switch__track {
+      background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+  }
+
+  /* Premium Table Polishing (Linked Products) */
+  .enterprise-table {
+    background: #1e293b !important;
+
+    th {
+      background: #0f172a !important;
+      color: #94a3b8 !important;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    td {
+      background: transparent !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+      color: #f8fafc !important;
+    }
+
+    .table-control {
+      background-color: #0f172a !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: #ffffff !important;
+
+      &:focus {
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+      }
+    }
+  }
+
+  .field-label {
+    color: #94a3b8 !important;
+  }
+
+  .responsive-textarea {
+    background: #0f172a !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+  }
+
+  .back-btn {
+    color: #94a3b8 !important;
+    &:hover { background-color: rgba(255,255,255,0.05) !important; color: #fff !important; }
+  }
+
+  .add-item-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #60a5fa !important;
+    &:hover { background: #ffffff !important; color: #0f172a !important; }
+  }
 }

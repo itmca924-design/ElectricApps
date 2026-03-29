@@ -215,3 +215,109 @@
     transform: translateY(0);
   }
 }
+
+// ==========================================================================
+// FULL HIERARCHICAL GRID DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  .datagrid-container {
+    background: #1e293b !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+
+    .grid-loader {
+      background: rgba(15, 23, 42, 0.8) !important;
+    }
+
+    .table-wrapper {
+      table.server-datagrid {
+        background: #1e293b !important;
+
+        th {
+          background-color: #0f172a !important; /* Slightly darker for headers */
+          color: #f8fafc !important;
+          border-bottom: 2px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        th, td {
+          background: transparent !important;
+          color: rgba(248, 250, 252, 0.9) !important;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+        }
+
+        /* Sticky Columns Correction */
+        th.select-col, td.select-col,
+        th.actions-col, td.actions-col {
+          background-color: #0f172a !important;
+        }
+
+        .element-row {
+          background: transparent !important;
+          
+          &:hover td {
+            background: #2d3748 !important; /* Matches Category Hover */
+            color: #ffffff !important;
+          }
+          
+          &.expanded-row {
+            background: #1e293b !important; /* Signature Midnight Selection */
+            td { background: #1e293b !important; }
+          }
+        }
+
+        tr.detail-row td {
+          background: #0f172a !important; /* Midnight for detail rows */
+        }
+
+        .detail-inner {
+          background: #0f172a !important;
+          border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+
+          &::before { background: #2d3748 !important; } /* Dark Connector */
+
+          .child-table {
+            background: #1e293b !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            
+            th {
+              background: #2d3748 !important;
+              color: #cbd5e1 !important;
+              border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+            }
+            
+            td {
+              background: #1e293b !important;
+              color: #f8fafc !important;
+              border-bottom-color: rgba(255, 255, 255, 0.03) !important;
+            }
+
+            tr:hover td { background: #2d3748 !important; } /* Matches Category Pattern */
+          }
+          
+          .no-child-data {
+            background: #1e293b !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            color: #94a3b8;
+          }
+        }
+      }
+    }
+
+    /* Checkbox Visibility Polish - Matching Subcategories */
+    ::ng-deep {
+      mat-checkbox {
+        --mdc-checkbox-unselected-icon-color: rgba(255, 255, 255, 0.6) !important;
+        --mdc-checkbox-unselected-hover-icon-color: #ffffff !important;
+        
+        .mdc-checkbox__native-control:enabled:not(:checked) ~ .mdc-checkbox__background {
+          border-color: rgba(255, 255, 255, 0.5) !important;
+          background-color: transparent !important;
+        }
+        
+        .mdc-checkbox__native-control:enabled:checked ~ .mdc-checkbox__background {
+          background-color: #3b82f6 !important;
+          border-color: #3b82f6 !important;
+        }
+      }
+    }
+  }
+}

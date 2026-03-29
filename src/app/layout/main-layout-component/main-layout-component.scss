@@ -495,3 +495,52 @@
   50% { transform: scale(1.05); opacity: 1; }
   100% { transform: scale(0.95); opacity: 0.8; }
 }
+
+// ==========================================================================
+// MAIN LAYOUT DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  ::ng-deep .mat-sidenav-content {
+    background-color: #0f172a !important;
+  }
+
+  /* Breadcrumb Wrapper Polish */
+  .breadcrumb {
+    background: #1e293b !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    padding: 0 !important; /* Let the component handle padding */
+  }
+
+  .content {
+      background-color: #0f172a !important;
+  }
+
+  /* Elite Dark Glass Footer */
+  .footer {
+    background: rgba(15, 23, 42, 0.85) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+
+    .footer-left strong {
+      color: #ffffff !important;
+    }
+
+    .footer-link {
+      color: rgba(255, 255, 255, 0.5) !important;
+      &:hover { color: #ffffff !important; }
+    }
+
+    .version-badge {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border-color: rgba(255, 255, 255, 0.1) !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+
+  /* Toolbar specific adjustments */
+  .toolbar {
+    background-color: #1e293b !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+  }
+}

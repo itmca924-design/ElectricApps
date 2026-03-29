@@ -155,3 +155,29 @@ mat-card-actions {
     }
   }
 }
+
+// ==========================================================================
+// FULL PAGE DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .page-title, .drawer-header h2 {
+    color: #f8fafc !important; 
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .list-container, .side-drawer, .drawer-header, mat-card-actions {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    color: #ffffff !important;
+  }
+
+  .side-drawer {
+    box-shadow: -10px 0 30px rgba(0,0,0,0.3) !important;
+  }
+
+  .grid-wrapper {
+    background: #1e293b !important;
+  }
+}

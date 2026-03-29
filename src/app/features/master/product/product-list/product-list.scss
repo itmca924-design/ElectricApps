@@ -243,3 +243,37 @@
     }
   }
 }
+
+// ==========================================================================
+// FULL PAGE DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .header-actions h1 {
+    color: #f8fafc !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .list-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
+  }
+
+  /* Filter Alert Panel - Executive Dark Amber */
+  .filter-alert-banner {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border: 1px solid rgba(245, 158, 11, 0.2) !important;
+    box-shadow: 0 8px 16px rgba(180, 83, 9, 0.1) !important;
+
+    .alert-content {
+      color: #fcd34d !important;
+    }
+
+    .view-all-btn {
+      color: #fbbf24 !important;
+      &:hover { background: rgba(251, 191, 36, 0.1) !important; }
+    }
+  }
+}

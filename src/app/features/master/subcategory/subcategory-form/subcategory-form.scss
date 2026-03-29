@@ -69,3 +69,57 @@ mat-card-title {
     border-radius: 0 0 4px 4px;
   }
 }
+
+// ==========================================================================
+// FULL FORM DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  .professional-form-card {
+    background-color: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3) !important;
+    color: #ffffff !important;
+
+    /* Header Section Polish */
+    > div:first-child {
+      border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      
+      h2 { color: #f8fafc !important; }
+      span { color: rgba(255, 255, 255, 0.6) !important; }
+    }
+  }
+
+  mat-card-title, h1, h2, h3 {
+    color: #f8fafc !important;
+  }
+
+  /* Material Form Field Polishing */
+  ::ng-deep {
+    .mat-mdc-form-field {
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__leading,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__notch,
+      .mdc-text-field--outlined:not(.mdc-text-field--disabled) .mdc-notched-outline__trailing {
+        border-color: rgba(255, 255, 255, 0.2) !important;
+      }
+
+      .mat-mdc-form-field-input-control { color: #ffffff !important; }
+      .mat-mdc-floating-label { color: rgba(255, 255, 255, 0.7) !important; }
+      input::placeholder { color: rgba(255, 255, 255, 0.4) !important; }
+      
+      .mat-mdc-select-value-text { color: #ffffff !important; }
+      .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+    }
+
+    /* Active Toggle Text */
+    .mat-mdc-slide-toggle .mdc-label {
+      color: #ffffff !important;
+    }
+  }
+
+  /* Button Polishing */
+  button[mat-stroked-button] {
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #94a3b8 !important;
+    &:hover { background: rgba(255,255,255,0.05) !important; color: #fff !important; }
+  }
+}

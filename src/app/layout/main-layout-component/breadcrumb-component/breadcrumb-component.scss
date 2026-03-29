@@ -38,3 +38,33 @@
   color: #cbd5e1;
   margin: 0 8px;
 }
+
+// ==========================================================================
+// BREADCRUMB DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  .breadcrumb-nav {
+    background-color: #1e293b !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+  }
+
+  .crumb-link {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-weight: 500 !important;
+    
+    &:hover {
+      color: #ffffff !important;
+      text-decoration: none !important;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  .crumb-active {
+    color: #ffffff !important;
+  }
+
+  .separator-icon {
+    color: rgba(255, 255, 255, 0.3) !important;
+  }
+}
