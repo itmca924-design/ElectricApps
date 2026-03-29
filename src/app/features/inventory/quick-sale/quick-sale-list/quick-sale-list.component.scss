@@ -241,3 +241,77 @@ app-enterprise-hierarchical-grid {
      }
   }
 }
+
+// ==========================================================================
+// QUICK SALE DASHBOARD DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .header-actions {
+    .page-title {
+      color: #ffffff !important;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  .list-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 40px rgba(0, 0,0, 0.4) !important;
+  }
+
+  ::ng-deep .main-grid-content {
+    /* ⚡ SUPREME LOCAL GRID OVERRIDE - NO WHITE EVER ⚡ */
+    .mat-table, .mat-mdc-table {
+      background: #1e293b !important;
+    }
+
+    .mat-mdc-header-row, .mat-header-row {
+      background: #0f172a !important;
+      th { 
+        background: #0f172a !important; 
+        color: rgba(255, 255, 255, 0.6) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+    
+    .mat-mdc-row, .mat-row {
+      background: #1e293b !important;
+      td { 
+        background: #1e293b !important; 
+        color: #ffffff !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      }
+
+      &:hover, &.mat-mdc-row:hover, &.mat-row:hover { 
+        background-color: rgba(255, 255, 255, 0.04) !important; 
+        td { background-color: rgba(255, 255, 255, 0.04) !important; }
+      }
+      
+      &.mat-mdc-row-focused, &.mat-row-focused {
+        background-color: rgba(255, 255, 255, 0.04) !important;
+      }
+    }
+
+    /* Child Table Dark Polish for Sale Module */
+    .mat-row.detail-row, .detail-row {
+      background: #0f172a !important;
+      td { background: #0f172a !important; }
+      
+      .detail-panel {
+        background-color: #0f172a !important;
+        .child-table-scroll {
+          background-color: #0f172a !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          
+          &::-webkit-scrollbar-track { background: #0f172a !important; }
+          &::-webkit-scrollbar-thumb { 
+            background: #3b82f6 !important; 
+            border-color: #0f172a !important; 
+          }
+        }
+      }
+    }
+  }
+}

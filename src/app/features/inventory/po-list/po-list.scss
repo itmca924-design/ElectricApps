@@ -478,3 +478,81 @@ app-enterprise-hierarchical-grid {
   color: #ed6c02 !important;
   font-weight: bold;
 }
+
+// ==========================================================================
+// STANDARD PURCHASE ORDER DARK MODE POLISH
+// ==========================================================================
+:host-context(.dark-mode) {
+  background-color: #0f172a !important;
+
+  .list-container {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .stat-card {
+    background: #1e293b !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    .stat-info .label { color: rgba(255, 255, 255, 0.5) !important; }
+    .stat-info .value { color: #ffffff !important; }
+    
+    &.total, &.active, &.inward, &.overdue {
+        background: #1e293b !important;
+        * { color: #ffffff !important; }
+    }
+  }
+
+  ::ng-deep .main-grid-content {
+    .mat-table, .mat-mdc-table {
+      background: #1e293b !important;
+    }
+
+    .mat-mdc-header-row, .mat-header-row {
+      background: #0f172a !important;
+      th { 
+        background: #0f172a !important; 
+        color: rgba(255, 255, 255, 0.6) !important;
+        border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+      }
+    }
+    
+    .mat-mdc-row, .mat-row {
+      background: #1e293b !important;
+      td { 
+        background: #1e293b !important; 
+        color: #ffffff !important;
+        border-bottom-color: rgba(255, 255, 255, 0.05) !important;
+      }
+
+      &:hover, &.mat-mdc-row:hover, &.mat-row:hover { 
+        background-color: rgba(255, 255, 255, 0.04) !important; 
+        td { background-color: rgba(255, 255, 255, 0.04) !important; }
+      }
+    }
+
+    /* Child Table Dark Polish for Standard PO */
+    .mat-row.detail-row, .detail-row {
+      background: #0f172a !important;
+      td { background: #0f172a !important; }
+      
+      .detail-panel {
+        background-color: #0f172a !important;
+        .child-table-scroll {
+          background-color: #0f172a !important;
+          border-color: rgba(255, 255, 255, 0.1) !important;
+          
+          &::-webkit-scrollbar-track { background: #0f172a !important; }
+          &::-webkit-scrollbar-thumb { 
+            background: #3b82f6 !important; 
+            border-color: #0f172a !important; 
+          }
+        }
+      }
+    }
+  }
+
+  .loading-shade {
+      background: rgba(15, 23, 42, 0.7) !important;
+  }
+}

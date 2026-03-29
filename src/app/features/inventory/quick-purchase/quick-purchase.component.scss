@@ -638,6 +638,17 @@ input[type=number] {
       }
       .mat-mdc-select-value-text { color: #ffffff !important; }
       .mat-mdc-select-arrow svg { fill: #ffffff !important; }
+
+      /* ⚡ NUCLEAR CALENDAR ICON FORCE ⚡ */
+      .mat-datepicker-toggle, 
+      .mat-datepicker-toggle mat-icon,
+      .mat-datepicker-toggle svg,
+      .mat-datepicker-toggle path,
+      .mat-datepicker-toggle .mat-mdc-button-touch-target {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+        opacity: 1 !important;
+      }
     }
   }
 
@@ -699,6 +710,11 @@ input[type=number] {
     mat-button-toggle {
       color: rgba(255, 255, 255, 0.5) !important;
       border-left-color: rgba(255, 255, 255, 0.1) !important;
+      
+      &.mat-button-toggle-checked {
+        color: #ffffff !important;
+        mat-icon { color: #ffffff !important; }
+      }
     }
   }
 
